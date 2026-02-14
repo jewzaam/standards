@@ -1,0 +1,28 @@
+# Work Standards
+
+[![Markdown Lint](https://github.com/jewzaam/standards/actions/workflows/markdown-lint.yml/badge.svg)](https://github.com/jewzaam/standards/actions/workflows/markdown-lint.yml)
+[![Validate Links](https://github.com/jewzaam/standards/actions/workflows/links.yml/badge.svg)](https://github.com/jewzaam/standards/actions/workflows/links.yml)
+
+Reusable software development standards. Reference these instead of recreating project-specific guidelines.
+
+## Usage
+
+Reference in your project:
+
+```markdown
+This project follows the [Work Standards](https://github.com/jewzaam/standards).
+```
+
+## Standards
+
+See [standards/index.md](standards/index.md) for complete catalog with guiding principles.
+
+| Area | Standards |
+|------|-----------|
+| Code | [Naming](standards/naming.md), [Code Style](standards/code-style.md), [Project Structure](standards/project-structure.md), [Testing](standards/testing.md) |
+| Build | [Makefile](standards/makefile.md), [GitHub Workflows](standards/github-workflows.md), [Releases](standards/releases.md) |
+| Docs | [README Format](standards/readme-format.md) |
+| CLI | [CLI](standards/cli.md), [Logging & Progress](standards/logging-progress.md) |
+| Services | [Services](standards/services.md), [API Design](standards/api-design.md) |
+| UI | [User Interface](standards/user-interface.md) |
+
