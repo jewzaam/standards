@@ -25,4 +25,3 @@ See [standards/index.md](standards/index.md) for complete catalog with guiding p
 | CLI | [CLI](standards/cli.md), [Logging & Progress](standards/logging-progress.md) |
 | Services | [Services](standards/services.md), [API Design](standards/api-design.md) |
 | UI | [User Interface](standards/user-interface.md) |
-
