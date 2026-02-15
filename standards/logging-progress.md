@@ -45,10 +45,10 @@ def main():
 
 | Flags | Effective Level | Output |
 |-------|-----------------|--------|
-| Default | INFO | INFO, WARNING, ERROR |
-| `--quiet` | WARNING | WARNING, ERROR only |
-| `--debug` | DEBUG | DEBUG, INFO, WARNING, ERROR |
-| `--debug --quiet` | DEBUG | DEBUG, INFO, WARNING, ERROR (debug overrides quiet) |
+| Default | INFO | INFO, WARNING, ERROR, CRITICAL |
+| `--quiet` | WARNING | WARNING, ERROR, CRITICAL only |
+| `--debug` | DEBUG | DEBUG, INFO, WARNING, ERROR, CRITICAL |
+| `--debug --quiet` | DEBUG | DEBUG, INFO, WARNING, ERROR, CRITICAL (debug overrides quiet) |
 
 ### Logger Naming
 
@@ -204,8 +204,9 @@ Use print for **primary program output** that may be piped or captured:
 ### Print Guidelines
 
 ```python
-# Final summary (always shown)
-print(f"Processed {count} files successfully")
+# Final summary (suppressed by --quiet)
+if not quiet:
+    print(f"Processed {count} files successfully")
 
 # Dry-run output
 if dryrun:
@@ -262,9 +263,6 @@ def main():
     # Summary output (suppressed by --quiet)
     if not args.quiet:
         print(f"Processed {len(results)} files")
-    if args.verbose:
-        for r in results:
-            print(f"  {r}")
 ```
 
 ### Dry-Run Pattern
