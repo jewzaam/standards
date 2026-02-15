@@ -60,7 +60,7 @@ This tool is part of the astrophotography pipeline. For comprehensive documentat
 - **[ap-<name> Guide](https://github.com/jewzaam/ap-base/blob/main/docs/tools/ap-<name>.md)** - Detailed usage guide for this tool
 ```
 
-Replace `<name>` with the actual project name (e.g., `ap-common`, `ap-cull-lights`).
+Replace `<name>` with the actual project name (e.g., `ap-common`, `ap-cull-light`).
 
 ## Overview
 
@@ -108,6 +108,7 @@ python -m ap_<name>.<module> <source_dir> <dest_dir> [options]
 |--------|-------------|
 | `--debug` | Enable debug output |
 | `--dryrun` | Preview without changes |
+| `--quiet` / `-q` | Suppress non-essential output |
 ```
 
 Include 1-2 concrete examples with real-looking paths.
