@@ -8,6 +8,21 @@ CLI tests verify that command-line arguments are correctly parsed and passed to
 business logic functions. This prevents a common class of bugs where argument names
 are mistyped when accessing the parsed args object.
 
+## Dependencies
+
+CLI tests require `pytest-mock>=3.0` for the `mocker` fixture used to patch `sys.argv` and mock business functions.
+
+**Add to `pyproject.toml`:**
+```toml
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-mock>=3.0",  # Required for CLI tests
+    # ... other dev dependencies
+]
+```
+
 ## The Bug Class This Prevents
 
 ### Argument Name Mismatch Pattern
