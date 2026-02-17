@@ -17,16 +17,21 @@ All ap-* projects share a single venv at `~/.venv/ap/`. This location is:
 - **Uniquely named** - `ap` identifies it as the astrophotography pipeline venv, no collisions with other projects
 - **In the home directory** - a natural place for user-level development tooling
 
-Each submodule Makefile auto-detects whether the shared venv exists:
+Each Makefile auto-detects whether the shared venv exists, with platform-appropriate paths:
 
 ```makefile
-VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/bin/python),$(HOME)/.venv/ap,.venv)
-PYTHON := $(VENV_DIR)/bin/python
+ifeq ($(OS),Windows_NT)
+    VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/Scripts/python.exe),$(HOME)/.venv/ap,.venv)
+    PYTHON := $(VENV_DIR)/Scripts/python.exe
+else
+    VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/bin/python),$(HOME)/.venv/ap,.venv)
+    PYTHON := $(VENV_DIR)/bin/python
+endif
 ```
 
-`$(HOME)` is used instead of `~` because Make does not expand tilde in variable assignments.
+`$(HOME)` is used instead of `~` because Make does not expand tilde in variable assignments. `$(OS)` is set to `Windows_NT` by Windows itself, so the conditional works without any configuration.
 
-- If `~/.venv/ap/bin/python` exists: `VENV_DIR` resolves to `~/.venv/ap` (shared)
+- If the shared venv python exists: `VENV_DIR` resolves to `~/.venv/ap`
 - If it does not exist: `VENV_DIR` falls back to `.venv` (local)
 - Manual override always works: `make VENV_DIR=.venv test`
 
@@ -93,20 +98,26 @@ The full pattern used in [templates/Makefile](templates/Makefile):
 
 ```makefile
 # Use shared ~/.venv/ap if it exists, otherwise local .venv
-VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/bin/python),$(HOME)/.venv/ap,.venv)
-PYTHON := $(VENV_DIR)/bin/python
+ifeq ($(OS),Windows_NT)
+    VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/Scripts/python.exe),$(HOME)/.venv/ap,.venv)
+    PYTHON := $(VENV_DIR)/Scripts/python.exe
+else
+    VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/bin/python),$(HOME)/.venv/ap,.venv)
+    PYTHON := $(VENV_DIR)/bin/python
+endif
 
-$(VENV_DIR)/bin/python:
+$(PYTHON):
 	python3 -m venv $(VENV_DIR)
 
-install-dev: $(VENV_DIR)/bin/python
+install-dev: $(PYTHON)
 	$(PYTHON) -m pip install -e ".[dev]"
 ```
 
 Key details:
 
-- **Auto-detection**: `$(wildcard $(HOME)/.venv/ap/bin/python)` is evaluated at Makefile parse time. If the file exists, `VENV_DIR` resolves to the shared venv.
-- **Venv creation**: The `$(VENV_DIR)/bin/python` target only fires if the file does not exist. When using the shared venv, this is a no-op.
+- **Auto-detection**: The `$(wildcard)` check is evaluated at Makefile parse time. If the shared venv python exists, `VENV_DIR` resolves to the shared venv.
+- **Windows support**: `$(OS)` is set to `Windows_NT` by Windows itself; venv layout uses `Scripts/python.exe` instead of `bin/python`.
+- **Venv creation**: The `$(PYTHON)` target only fires if the file does not exist. When using the shared venv, this is a no-op.
 - **Override**: `VENV_DIR ?=` means you can always force a specific path: `make VENV_DIR=.venv test` to use a local venv instead.
 
 ## CI Compatibility
