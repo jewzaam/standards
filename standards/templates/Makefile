@@ -4,21 +4,26 @@
 .PHONY: install install-dev install-no-deps uninstall clean format lint typecheck test test-verbose coverage default
 
 # Use shared ~/.venv/ap if it exists, otherwise local .venv
-VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/bin/python),$(HOME)/.venv/ap,.venv)
-PYTHON := $(VENV_DIR)/bin/python
+ifeq ($(OS),Windows_NT)
+    VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/Scripts/python.exe),$(HOME)/.venv/ap,.venv)
+    PYTHON := $(VENV_DIR)/Scripts/python.exe
+else
+    VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/bin/python),$(HOME)/.venv/ap,.venv)
+    PYTHON := $(VENV_DIR)/bin/python
+endif
 
 default: format lint typecheck test coverage
 
-$(VENV_DIR)/bin/python:
+$(PYTHON):
 	python3 -m venv $(VENV_DIR)
 
-install: $(VENV_DIR)/bin/python
+install: $(PYTHON)
 	$(PYTHON) -m pip install .
 
-install-dev: $(VENV_DIR)/bin/python
+install-dev: $(PYTHON)
 	$(PYTHON) -m pip install -e ".[dev]"
 
-install-no-deps: $(VENV_DIR)/bin/python
+install-no-deps: $(PYTHON)
 	$(PYTHON) -m pip install -e . --no-deps
 
 uninstall:

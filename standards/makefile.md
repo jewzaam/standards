@@ -58,34 +58,34 @@ Copy [templates/Makefile](templates/Makefile) to your project and replace `<name
 
 ## Conventions
 
-### VENV_DIR variable
+### VENV_DIR and PYTHON variables
 
-`VENV_DIR` auto-detects the shared venv at `~/.venv/ap` or falls back to a local one:
+`VENV_DIR` and `PYTHON` auto-detect the shared venv at `~/.venv/ap` or fall back to a local one, with platform-appropriate paths:
 
 ```makefile
-VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/bin/python),$(HOME)/.venv/ap,.venv)
+ifeq ($(OS),Windows_NT)
+    VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/Scripts/python.exe),$(HOME)/.venv/ap,.venv)
+    PYTHON := $(VENV_DIR)/Scripts/python.exe
+else
+    VENV_DIR ?= $(if $(wildcard $(HOME)/.venv/ap/bin/python),$(HOME)/.venv/ap,.venv)
+    PYTHON := $(VENV_DIR)/bin/python
+endif
 ```
 
 - **Shared venv exists**: `VENV_DIR` resolves to `~/.venv/ap`
 - **No shared venv**: `VENV_DIR` resolves to `.venv` (local)
 - **Override**: `make VENV_DIR=.venv test` always works
 
+Do not hardcode `python` or `python3` in targets - always use `$(PYTHON)`.
+
 See [Shared Virtual Environment](shared-venv.md) for full details.
-
-### PYTHON variable
-
-`PYTHON` points to the venv's Python binary. Do not hardcode `python` or `python3` in targets:
-
-```makefile
-PYTHON := $(VENV_DIR)/bin/python
-```
 
 ### Venv creation target
 
-The venv is created automatically as a Make prerequisite. Make only runs this if the file does not exist:
+The venv is created automatically as a Make prerequisite. Make only runs this if `$(PYTHON)` does not exist:
 
 ```makefile
-$(VENV_DIR)/bin/python:
+$(PYTHON):
 	python3 -m venv $(VENV_DIR)
 ```
 
@@ -94,7 +94,7 @@ $(VENV_DIR)/bin/python:
 Targets that need the package installed should depend on `install-dev`, which itself depends on the venv existing:
 
 ```makefile
-install-dev: $(VENV_DIR)/bin/python
+install-dev: $(PYTHON)
 	$(PYTHON) -m pip install -e ".[dev]"
 
 format: install-dev
