@@ -36,6 +36,8 @@ make deinit init
 
 The `deinit` target removes existing submodule checkouts and `init` re-clones them at the currently pinned commits. This is the cleanest way to sync submodules after pulling changes to `.gitmodules` or submodule refs.
 
+Periodically update the parent repo's pinned submodule references to keep them current.
+
 ## Day-to-Day Development
 
 ### Working inside a submodule
@@ -49,15 +51,6 @@ git checkout -b feature-branch
 git add .
 git commit -m "Add feature"
 git push origin feature-branch
-```
-
-After the submodule branch is merged, update the reference in the parent repo:
-
-```bash
-cd ..
-git submodule update --remote <submodule-path>
-git add <submodule-path>
-git commit -m "Update <submodule-path> to latest"
 ```
 
 ### Cross-repo testing
@@ -98,6 +91,5 @@ All submodules should track `main`.
 ## What to Avoid
 
 - **Do not commit from a detached HEAD inside a submodule** - Always checkout a branch before making changes. Submodules default to detached HEAD after `git submodule update`.
-- **Do not use `git submodule foreach` for development tasks** - Work in each submodule individually to avoid accidental changes.
 - **Do not nest submodules** - Keep the hierarchy flat. Individual projects should not contain their own submodules.
 - **Do not modify submodule content in parent repo PRs** - Make changes in the individual project repository first, then update the submodule reference in the parent.
