@@ -19,7 +19,7 @@ Standards for all ap-* astrophotography pipeline projects.
 | [Logging & Progress](logging-progress.md) | Logging, progress indicators, and output |
 | [Shared Virtual Environment](shared-venv.md) | Venv setup for standalone and monorepo development |
 | [Versioning](versioning.md) | Semantic versioning and release conventions |
-| [Git Submodules](submodules.md) | Submodule management in the ap-base monorepo |
+| [Git Submodules](submodules.md) | Git submodule conventions and workflows |
 
 ## Templates
 
