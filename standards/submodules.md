@@ -20,44 +20,21 @@ git commit -m "Add <path> submodule"
 
 This creates an entry in `.gitmodules` and records the pinned commit.
 
-## Cloning with Submodules
-
-Clone and initialize all submodules in one step:
+## Initializing Submodules
 
 ```bash
-git clone --recurse-submodules <repo-url>
+make init
 ```
 
-If already cloned without submodules:
-
-```bash
-git submodule update --init --recursive
-```
+The `init` target wraps `git submodule update --init --recursive`. Use this after cloning a repo that contains submodules.
 
 ## Updating Submodules
 
-### Pull latest from all submodules
-
 ```bash
-git submodule update --remote
+make deinit init
 ```
 
-This advances each submodule to the latest commit on its tracked branch. Review the changes, then commit the updated references:
-
-```bash
-git add <submodule-path>
-git commit -m "Update <submodule-path> to latest"
-```
-
-### Pull latest for a single submodule
-
-```bash
-cd <submodule-path>
-git pull origin main
-cd ..
-git add <submodule-path>
-git commit -m "Update <submodule-path> to latest"
-```
+The `deinit` target removes existing submodule checkouts and `init` re-clones them at the currently pinned commits. This is the cleanest way to sync submodules after pulling changes to `.gitmodules` or submodule refs.
 
 ## Day-to-Day Development
 
