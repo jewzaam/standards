@@ -1,7 +1,7 @@
 # Makefile template for ap-* projects
 # Replace <name> with the project name (e.g., ap-cull-light -> cull_light)
 
-.PHONY: install install-dev install-no-deps uninstall clean format lint typecheck test test-verbose coverage default
+.PHONY: check install install-dev install-no-deps uninstall clean format lint typecheck test test-verbose coverage
 
 # Normalize HOME to forward slashes (no-op on Unix, fixes Windows backslashes)
 HOME_DIR := $(subst \,/,$(HOME))
@@ -17,7 +17,9 @@ endif
 
 $(info venv: $(VENV_DIR))
 
-default: format lint typecheck test coverage
+check: format lint typecheck test coverage
+
+.DEFAULT_GOAL := check
 
 $(PYTHON):
 	python3 -m venv $(VENV_DIR)
