@@ -4,18 +4,20 @@ Standard Makefile targets for ap-* Python projects.
 
 ## Default Target
 
-Running `make` without specifying a target runs the `default` target, which executes all validation steps (format, lint, typecheck, test, coverage). This ensures code quality checks are easy to run.
+Running `make` without specifying a target runs the `check` target, which executes all validation steps (format, lint, typecheck, test, coverage). This ensures code quality checks are easy to run.
+
+Using `check` as the named default target allows safer permissions for AI tools — instead of permitting the broad `make` command, tools can be granted permission for the specific `make check` target.
 
 ```bash
-make           # Runs default target (all validations)
-make default   # Same as above (explicit)
+make           # Runs check target (all validations)
+make check     # Same as above (explicit)
 ```
 
 ## Required Targets
 
 | Target | Description |
 |--------|-------------|
-| `default` | Run format, lint, typecheck, test, coverage |
+| `check` | Run format, lint, typecheck, test, coverage (default target) |
 | `install` | Install package |
 | `install-dev` | Install in editable mode with dev deps |
 | `install-no-deps` | Install in editable mode without dependencies |
