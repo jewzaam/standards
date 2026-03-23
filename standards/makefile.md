@@ -4,7 +4,7 @@ Standard Makefile targets for ap-* Python projects.
 
 ## Default Target
 
-Running `make` without specifying a target runs the `check` target, which executes all validation steps (format, lint, typecheck, test, coverage). This ensures code quality checks are easy to run.
+Running `make` without specifying a target runs the `check` target, which executes all validation steps (format, lint, typecheck, test, coverage). The `format` step applies formatting fixes automatically; use `make format-check` separately when you need a non-modifying check that exits non-zero on unformatted code (e.g., in CI workflows).
 
 Using `check` as the named default target allows safer permissions for AI tools — instead of permitting the broad `make` command, tools can be granted permission for the specific `make check` target.
 
@@ -24,6 +24,7 @@ make check     # Same as above (explicit)
 | `uninstall` | Uninstall package |
 | `clean` | Remove build artifacts |
 | `format` | Format code with black |
+| `format-check` | Check formatting without modifying files (exits non-zero if changes needed) |
 | `lint` | Lint with flake8 |
 | `typecheck` | Type check with mypy |
 | `test` | Run pytest |
@@ -105,6 +106,18 @@ install-dev: $(PYTHON)
 
 format: install-dev
 	$(PYTHON) -m black ap_<name> tests
+```
+
+### format vs format-check
+
+`format` applies black formatting in-place — safe for local development and used by `make check`. `format-check` runs `black --check` which exits non-zero if any file would be reformatted, without modifying files. Use `format-check` in CI workflows where you want to fail the build on unformatted code.
+
+```makefile
+format: install-dev
+	$(PYTHON) -m black ap_<name> tests
+
+format-check: install-dev
+	$(PYTHON) -m black --check ap_<name> tests
 ```
 
 ### Quiet failures in clean

@@ -1,7 +1,7 @@
 # Makefile template for ap-* projects
 # Replace <name> with the project name (e.g., ap-cull-light -> cull_light)
 
-.PHONY: check install install-dev install-no-deps uninstall clean format lint typecheck test test-verbose coverage
+.PHONY: check install install-dev install-no-deps uninstall clean format format-check lint typecheck test test-verbose coverage
 
 # Normalize HOME to forward slashes (no-op on Unix, fixes Windows backslashes)
 HOME_DIR := $(subst \,/,$(HOME))
@@ -43,6 +43,9 @@ clean:
 
 format: install-dev
 	$(PYTHON) -m black ap_<name> tests
+
+format-check: install-dev
+	$(PYTHON) -m black --check ap_<name> tests
 
 lint: install-dev
 	$(PYTHON) -m flake8 --max-line-length=88 --extend-ignore=E203,W503 ap_<name> tests
