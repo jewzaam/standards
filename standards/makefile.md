@@ -18,6 +18,7 @@ make check     # Same as above (explicit)
 | Target | Description |
 |--------|-------------|
 | `check` | Run format, lint, typecheck, test, coverage (default target) |
+| `help` | Show available targets with descriptions |
 | `install` | Install package |
 | `install-dev` | Install in editable mode with dev deps |
 | `install-no-deps` | Install in editable mode without dependencies |
@@ -119,6 +120,20 @@ format: install-dev
 format-check: install-dev
 	$(PYTHON) -m black --check ap_<name> tests
 ```
+
+### Self-documenting help target
+
+The `help` target greps for `## ` comments on target lines and prints a formatted list. Every target that should appear in `make help` output must have a `## description` comment on its rule line:
+
+```makefile
+format: install-dev  ## Format code with black
+	$(PYTHON) -m black ap_<name> tests
+
+help:  ## Show available targets
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+```
+
+Targets without `## ` comments (like the `$(PYTHON)` venv-creation target) are intentionally hidden from help output.
 
 ### Quiet failures in clean
 
