@@ -192,4 +192,4 @@ When reviewing or adding CLI tests:
 - `ap-copy-master-to-blink/tests/test_main.py` - Comprehensive, all flags, kwargs verification
 - `ap-empty-directory/tests/test_cli.py` - Alternative pattern with monkeypatch
 
-**See:** [Testing Standards](testing.md) for general testing philosophy and patterns.
+**See:** [Testing Standards](../python/testing.md) for general testing philosophy and patterns.

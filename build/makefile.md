@@ -33,7 +33,7 @@ make check     # Same as above (explicit)
 
 ## Shared Venv
 
-All ap-* projects share a single venv at `~/.venv/ap/`. See [Shared Virtual Environment](shared-venv.md) for the full standard.
+All ap-* projects share a single venv at `~/.venv/ap/`. See [Shared Virtual Environment](../python/shared-venv.md) for the full standard.
 
 One-time setup:
 
@@ -58,7 +58,7 @@ The `install-no-deps` target is still available for cases where you need to inst
 
 ## Template
 
-Copy [templates/Makefile](templates/Makefile) to your project and replace `<name>` with your project name.
+Copy [templates/Makefile](../python/templates/Makefile) to your project and replace `<name>` with your project name.
 
 ## Conventions
 
@@ -86,7 +86,7 @@ endif
 
 Do not hardcode `python` or `python3` in targets - always use `$(PYTHON)`.
 
-See [Shared Virtual Environment](shared-venv.md) for full details.
+See [Shared Virtual Environment](../python/shared-venv.md) for full details.
 
 ### Venv creation target
 

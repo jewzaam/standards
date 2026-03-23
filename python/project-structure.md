@@ -46,7 +46,7 @@ The `.venv/` directory is created automatically by `make install-dev` and must b
 
 ## Naming Conventions
 
-See [Naming](naming.md) for the full naming taxonomy and pattern.
+See [Naming](../common/naming.md) for the full naming taxonomy and pattern.
 
 - **Repository**: `ap-{verb}-{noun}` or `ap-{verb}-{noun}-to-{dest}` (hyphenated)
 - **Package directory**: Same as repository with underscores (e.g., `ap_cull_light`)
