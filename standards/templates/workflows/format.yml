@@ -22,18 +22,4 @@ jobs:
         run: make install-dev
 
       - name: Check code formatting
-        run: |
-          # Run format to see if any changes are needed
-          make format
-
-          # Check if any files were modified
-          if ! git diff --exit-code; then
-            echo "❌ Code formatting changes required!"
-            echo "Please run 'make format' locally and commit the changes."
-            echo ""
-            echo "Files that need formatting:"
-            git diff --name-only
-            exit 1
-          fi
-
-          echo "✅ Code formatting is correct"
+        run: make format-check
