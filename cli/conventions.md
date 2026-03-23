@@ -47,7 +47,7 @@ The `--quiet` flag enables minimal output mode for scripting, automation, and cl
 - File logging where progress bars create unwanted artifacts
 - CI/CD pipelines with cleaner logs
 
-See [Logging and Progress Standards](logging-progress.md) for implementation patterns.
+See [Logging and Progress Standards](../python/logging-progress.md) for implementation patterns.
 
 ## Option Naming
 

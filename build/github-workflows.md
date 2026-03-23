@@ -17,7 +17,7 @@ Standard CI workflows for ap-* projects.
 Copy all files from [templates/workflows/](templates/workflows/) to your project's `.github/workflows/` directory:
 
 ```bash
-cp -r standards/templates/workflows/* .github/workflows/
+cp -r build/templates/workflows/* .github/workflows/
 ```
 
 No modifications needed - workflows use Makefile targets which handle project-specific paths.

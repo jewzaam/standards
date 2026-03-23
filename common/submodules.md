@@ -7,7 +7,7 @@ Standard Git submodule conventions and workflows.
 - **Independence** - Each project is a standalone repository that can be cloned and developed independently
 - **Integration** - A parent repo aggregates projects as submodules for combined workflows
 - **Single source of truth** - Each project has one canonical repository; the parent references a specific commit
-- **Shared development** - Combined with the [shared venv](shared-venv.md), submodules enable cross-repo editable installs
+- **Shared development** - Combined with the [shared venv](../python/shared-venv.md), submodules enable cross-repo editable installs
 
 ## Adding a Submodule
 
@@ -55,7 +55,7 @@ git push origin feature-branch
 
 ### Cross-repo testing
 
-With the [shared venv](shared-venv.md), editable installs make cross-repo changes immediately visible:
+With the [shared venv](../python/shared-venv.md), editable installs make cross-repo changes immediately visible:
 
 ```bash
 cd <parent-repo>/<shared-lib>

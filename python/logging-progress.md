@@ -308,7 +308,7 @@ except Exception as e:
 
 ## Required CLI Flags
 
-Per [CLI Standards](cli.md), all tools must support these flags:
+Per [CLI Standards](../cli/conventions.md), all tools must support these flags:
 
 | Flag | Purpose |
 |------|---------|
