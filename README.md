@@ -32,6 +32,17 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Shared Venv](python/shared-venv.md) | Venv setup for standalone and monorepo development |
 | [ap-common Usage](python/ap-common-usage.md) | Use shared constants from ap-common |
 | [Logging & Progress](python/logging-progress.md) | Logging, progress indicators, and output |
+| [Settings Persistence](python/settings-persistence.md) | Dataclass settings with atomic JSON I/O |
+
+### Tkinter UI
+
+| Standard | Description |
+|----------|-------------|
+| [Architecture](python/tkinter/architecture.md) | Application structure, controller pattern, window hierarchy |
+| [Windows](python/tkinter/windows.md) | Window lifecycle, borderless mode, dragging, position persistence |
+| [Widgets](python/tkinter/widgets.md) | Layout, StringVar, styling, fonts, context menus |
+| [Threading](python/tkinter/threading.md) | Thread-safe UI updates, daemon threads, periodic polling |
+| [Dialogs](python/tkinter/dialogs.md) | Modal dialogs, settings windows, color pickers |
 
 ### Python Templates
 
@@ -70,7 +81,6 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 
 | Section | Description |
 |---------|-------------|
-| [Tkinter](python/tkinter/) | UI patterns for Python tkinter applications |
 | [Android](android/) | Android application development standards |
 | [Mobile](mobile/) | Cross-platform mobile development patterns |
 | [Spec-Kit](spec-kit/) | Working with spec-kit |

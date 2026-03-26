@@ -2,4 +2,21 @@
 
 # Tkinter UI Standards
 
-UI patterns and conventions for Python tkinter applications.
+UI patterns and conventions for Python tkinter desktop applications.
+
+## Standards
+
+| Standard | Description |
+|----------|-------------|
+| [Architecture](architecture.md) | Application structure, controller pattern, window hierarchy |
+| [Windows](windows.md) | Window lifecycle, borderless mode, dragging, position persistence |
+| [Widgets](widgets.md) | Layout, StringVar, styling, fonts, context menus |
+| [Threading](threading.md) | Thread-safe UI updates, daemon threads, periodic polling |
+| [Dialogs](dialogs.md) | Modal dialogs, settings windows, color pickers |
+
+## Related Standards
+
+| Standard | Description |
+|----------|-------------|
+| [Settings Persistence](../settings-persistence.md) | Dataclass settings with atomic JSON I/O (referenced by architecture, windows, dialogs) |
+| [Logging & Progress](../logging-progress.md) | Logging setup and conventions (referenced by architecture) |
