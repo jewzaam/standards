@@ -80,6 +80,51 @@ Increment patch version for fixes that correct behavior to match documented inte
 - Documentation corrections
 - Performance improvements with no behavior change
 
+## Version Location (Python)
+
+Version must be defined in exactly two places that must always match:
+
+1. **`pyproject.toml`** — the packaging metadata source:
+
+   ```toml
+   [project]
+   version = "0.2.0"
+   ```
+
+2. **`__version__` constant in code** — for runtime access. Place it in either
+   `__init__.py` (for library packages) or the main script (for single-file tools):
+
+   ```python
+   __version__ = "0.2.0"
+   ```
+
+### Why Both
+
+- `pyproject.toml` is read by packaging tools (`pip`, `build`, `setuptools`) but is
+  not reliably accessible at runtime from installed packages without `importlib.metadata`
+- `__version__` is directly importable and available for logging, `--version` flags,
+  and output headers without import overhead
+
+### Keeping Them in Sync
+
+The `version-check` Makefile target (see [Makefile Standards](../build/makefile.md))
+validates that both values match and follow semver. Run it in CI or before release.
+
+## Automated Version Validation
+
+The optional `version-check` Makefile target validates:
+
+1. **Semver format** — version string matches `X.Y.Z` (no `v` prefix, no pre-release
+   suffixes unless intentional)
+2. **Sources match** — `pyproject.toml` version equals the `__version__` constant in code
+3. **Version bumped** — version differs from the mainline branch (prevents merging
+   without a version bump)
+
+The target is a standalone `.mk` file — copy it to your project root and add a single
+`-include` line. Pure shell, no Python dependency. Remove the include line to disable.
+See [Makefile Standards — version-check](../build/makefile.md#version-check) for setup
+and [version-check.mk](../python/templates/version-check.mk) for the implementation.
+
 ## Guidelines
 
 1. **CLI is the public API** - Version the CLI contract, not internal code

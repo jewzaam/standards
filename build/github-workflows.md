@@ -12,6 +12,17 @@ Standard CI workflows for ap-* projects.
 | Format Check | [format.yml](templates/workflows/format.yml) | Verify black formatting |
 | Coverage | [coverage.yml](templates/workflows/coverage.yml) | Enforce 80% coverage threshold |
 
+## Optional Workflows
+
+| Workflow | Template | Description |
+|----------|----------|-------------|
+| Version Check | [version-check.yml](templates/workflows/version-check.yml) | Validate semver format, source consistency, and version bump |
+
+Copy when the project opts in to semver enforcement. Can be configured as a required
+status check on GitHub PRs. Requires `fetch-depth: 0` for full git history (needed
+by `git merge-base`). See [Makefile Standards — version-check](makefile.md#version-check)
+for setup.
+
 ## Setup
 
 Copy all files from [templates/workflows/](templates/workflows/) to your project's `.github/workflows/` directory:
