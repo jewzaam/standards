@@ -50,6 +50,16 @@ def main():
 | `--debug` | DEBUG | DEBUG, INFO, WARNING, ERROR, CRITICAL |
 | `--debug --quiet` | DEBUG | DEBUG, INFO, WARNING, ERROR, CRITICAL (debug overrides quiet) |
 
+### Logger Variable Name
+
+The module-level logger variable must be named `logger`:
+
+```python
+logger = logging.getLogger(__name__)
+```
+
+Do not use abbreviations like `log`, `lg`, or `LOG`. The name `logger` is consistent with Python documentation and distinguishes the logger object from the `logging` module and from log files or log output.
+
 ### Logger Naming
 
 Use hierarchical names for filtering:
