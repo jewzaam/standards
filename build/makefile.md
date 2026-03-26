@@ -178,12 +178,24 @@ This works correctly for both feature branches and direct mainline commits.
 
    ```makefile
    VERSION_FILE ?= my_package/__init__.py
+   VERSION_DIRS ?= my_package/ scripts/
    -include version-check.mk
    ```
 
 3. Copy [version-check.yml](templates/workflows/version-check.yml) to
    `.github/workflows/` for CI enforcement
 4. Optionally configure as a required status check on the GitHub repo for PRs
+
+### Configuration
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `VERSION_FILE` | File containing `__version__` (empty to skip consistency check) | empty |
+| `VERSION_DIRS` | Space-separated dirs that require a version bump when changed | empty |
+
+When `VERSION_DIRS` is set, the bump check only fires if files in those directories
+changed vs mainline. Changes to docs, tests, workflows, or other non-source files
+are ignored. When `VERSION_DIRS` is empty, any change triggers the bump check.
 
 `version-check` is **not** part of the `check` target — it runs in CI via the
 workflow, not locally on every `make`. This avoids penalizing local iteration speed
