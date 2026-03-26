@@ -151,6 +151,50 @@ Match black's default of 88 characters:
 --max-line-length=88
 ```
 
+## Optional Targets
+
+### `version-check`
+
+Validates semantic versioning compliance. This target is **opt-in** — add it to
+projects that enforce semver. It is not part of `check` by default because not all
+projects use semver enforcement.
+
+The target is implemented as a standalone `.mk` file
+([version-check.mk](../python/templates/version-check.mk)) that gets included into
+your Makefile. Pure shell (grep/sed/git) — no Python dependency. It checks:
+
+1. **Semver format** — `pyproject.toml` version matches `X.Y.Z`
+2. **Sources match** — `pyproject.toml` version equals `__version__` in code
+3. **Version bumped** — version differs from the mainline branch (`main` or `master`)
+
+The bump check uses `git merge-base` to find the common ancestor with mainline and
+compares the `pyproject.toml` version at that point against the current version.
+This works correctly for both feature branches and direct mainline commits.
+
+### Opting In
+
+1. Copy [version-check.mk](../python/templates/version-check.mk) to your project root
+2. Add to your Makefile:
+
+   ```makefile
+   VERSION_FILE ?= my_package/__init__.py
+   -include version-check.mk
+   ```
+
+3. Copy [version-check.yml](templates/workflows/version-check.yml) to
+   `.github/workflows/` for CI enforcement
+4. Optionally configure as a required status check on the GitHub repo for PRs
+
+`version-check` is **not** part of the `check` target — it runs in CI via the
+workflow, not locally on every `make`. This avoids penalizing local iteration speed
+with git operations on every build.
+
+To remove: delete the `-include` line (or comment it out) and remove the `.mk` file
+and workflow.
+
+See [Versioning Standards](../common/versioning.md) for the full version location
+convention.
+
 ## What to Avoid
 
 - Complex shell logic
