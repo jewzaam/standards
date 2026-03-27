@@ -316,6 +316,53 @@ except Exception as e:
 | Summary output | stdout | `--quiet` (suppresses) | None (built-in) |
 | Dry-run output | stdout | Always shown | None (built-in) |
 
+## File Output
+
+### `--log-file` Flag
+
+When `--log-file` is specified, use a `RotatingFileHandler` instead of stderr. Rotate at 2 MB, keep 1 backup — prevents unbounded disk growth while retaining enough history for diagnostics.
+
+```python
+import logging.handlers
+
+log_fmt = "%(asctime)s %(levelname)s %(name)s: %(message)s"
+if args.log_file:
+    os.makedirs(os.path.dirname(os.path.abspath(args.log_file)), exist_ok=True)
+    handler = logging.handlers.RotatingFileHandler(
+        args.log_file,
+        maxBytes=2 * 1024 * 1024,
+        backupCount=1,
+        encoding="utf-8",
+    )
+    handler.setFormatter(logging.Formatter(log_fmt))
+    logging.basicConfig(level=level, handlers=[handler])
+else:
+    logging.basicConfig(level=level, format=log_fmt, stream=sys.stderr)
+```
+
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| `maxBytes` | 2 MB | Enough for hours of DEBUG-level output |
+| `backupCount` | 1 | One rolled file (`*.log.1`) retained alongside the active log |
+| `encoding` | `utf-8` | Consistent with Python defaults |
+
+### Capturing Uncaught Exceptions
+
+Install a `sys.excepthook` so that uncaught exceptions (stack traces) reach the log file instead of being lost to a detached stderr. Let `KeyboardInterrupt` fall through to the default handler.
+
+```python
+def _install_excepthook(*, logger: logging.Logger) -> None:
+    def _hook(exc_type, exc_value, exc_tb):
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_tb)
+            return
+        logger.critical("uncaught exception", exc_info=(exc_type, exc_value, exc_tb))
+
+    sys.excepthook = _hook
+```
+
+Call `_install_excepthook` unconditionally after `logging.basicConfig` — it is useful even without `--log-file` since it ensures stack traces pass through the logging system's handlers and formatting.
+
 ## Required CLI Flags
 
 Per [CLI Standards](../cli/conventions.md), all tools must support these flags:
@@ -324,8 +371,9 @@ Per [CLI Standards](../cli/conventions.md), all tools must support these flags:
 |------|---------|
 | `--debug` | Enable DEBUG-level logging |
 | `--quiet` / `-q` | Suppress non-essential output (progress, INFO logs, summaries) |
+| `--log-file` | Write log output to file (append mode) |
 
-See [CLI Standards - --quiet Flag Behavior](cli.md#--quiet-flag-behavior) for full specification.
+See [CLI Standards](../cli/conventions.md) for full flag specifications.
 
 ## Anti-Patterns
 

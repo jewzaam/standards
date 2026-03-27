@@ -18,6 +18,7 @@ All CLI tools must support:
 | `--debug` | | flag | Enable debug output |
 | `--dryrun` | | flag | Perform dry run without side effects |
 | `--quiet` | `-q` | flag | Suppress non-essential output (see below) |
+| `--log-file` | | path | Write log output to file (see below) |
 
 ### `--quiet` Flag Behavior
 
@@ -48,6 +49,28 @@ The `--quiet` flag enables minimal output mode for scripting, automation, and cl
 - CI/CD pipelines with cleaner logs
 
 See [Logging and Progress Standards](../python/logging-progress.md) for implementation patterns.
+
+### `--log-file` Flag Behavior
+
+The `--log-file` flag redirects all log output to a file instead of stderr.
+
+**Behavior:**
+
+| Aspect | Detail |
+|--------|--------|
+| Default | Not set — logs go to stderr |
+| File mode | Append (`"a"`) — survives process restarts |
+| Scope | All logging output (DEBUG through CRITICAL) |
+| Uncaught exceptions | Route through `sys.excepthook` to the same logger |
+| Combines with | `--debug`, `--quiet` (controls level, not destination) |
+
+**Use cases:**
+
+- Long-running GUI/daemon processes that restart themselves
+- Preserving log history across `os.execv`-style restarts
+- Post-mortem debugging of crashes via captured stack traces
+
+See [Logging and Progress Standards - File Output](../python/logging-progress.md#file-output) for implementation patterns.
 
 ## Option Naming
 
