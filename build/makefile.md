@@ -169,6 +169,7 @@ because the help target uses `$(MAKEFILE_LIST)`, which includes all loaded files
 project-root/
 ├── Makefile
 └── make/
+    ├── mutation-test.mk
     ├── run.mk
     └── version-check.mk
 ```
@@ -199,6 +200,30 @@ run: ## Start the app (use DEBUG=1 for debug logging)
 
 There is no template for `run.mk` — the module name, log path, and flags are
 entirely project-specific. The pattern above is the reference.
+
+### `mutation-test`
+
+Runs mutation testing via mutmut to evaluate test suite fault-detection power.
+This is **not** part of `check` — it is slow and used on-demand when evaluating
+test quality, especially for AI-generated test suites.
+
+Create `make/mutation-test.mk`:
+
+```makefile
+MUTMUT_PATHS ?= ap_<name>/
+
+mutation-test: install-dev  ## Run mutation testing on source modules
+	$(PYTHON) -m pip install mutmut
+	$(PYTHON) -m mutmut run --paths-to-mutate="$(MUTMUT_PATHS)"
+	$(PYTHON) -m mutmut results
+```
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `MUTMUT_PATHS` | Source directories to mutate | empty (must be set) |
+
+See [Testing Standards - Mutation Testing](../python/testing.md#mutation-testing)
+for when and how to interpret results.
 
 ### `version-check`
 
