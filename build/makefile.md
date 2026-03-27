@@ -84,7 +84,9 @@ endif
 - **No shared venv**: `VENV_DIR` resolves to `.venv` (local)
 - **Override**: `make VENV_DIR=.venv test` always works
 
-Do not hardcode `python` or `python3` in targets - always use `$(PYTHON)`.
+Do not hardcode `python` or `python3` in targets — always use `$(PYTHON)`.
+
+All variables (`PYTHON`, `LOG_FILE`, etc.) must be declared at the top of the Makefile, before the first target. This keeps configuration visible and easy to override.
 
 See [Shared Virtual Environment](../python/shared-venv.md) for full details.
 
@@ -153,6 +155,51 @@ Match black's default of 88 characters:
 
 ## Optional Targets
 
+Optional targets are implemented as standalone `.mk` files in a `make/` directory
+at the project root. Each `.mk` file is self-contained and included into the main
+Makefile with `-include`. This keeps the root directory clean and optional
+functionality modular.
+
+Targets defined in included `.mk` files automatically appear in `make help` output
+because the help target uses `$(MAKEFILE_LIST)`, which includes all loaded files.
+
+### `make/` directory structure
+
+```
+project-root/
+├── Makefile
+└── make/
+    ├── run.mk
+    └── version-check.mk
+```
+
+Include optional targets in your Makefile:
+
+```makefile
+-include make/run.mk
+-include make/version-check.mk
+```
+
+### `run`
+
+For applications (as opposed to libraries), provide a `run` target that starts the
+app with `--log-file` pointing to a stable location. Use a `LOG_FILE` variable at
+the top of the `.mk` file and echo the path so the user knows where logs land.
+Support `DEBUG=1` to enable debug logging.
+
+Create `make/run.mk` with project-specific values:
+
+```makefile
+LOG_FILE := ~/.claude/my-app/app.log
+
+run: ## Start the app (use DEBUG=1 for debug logging)
+	@echo "Logging to $(LOG_FILE)"
+	$(PYTHON) -m my_app $(if $(DEBUG),--debug) --log-file $(LOG_FILE)
+```
+
+There is no template for `run.mk` — the module name, log path, and flags are
+entirely project-specific. The pattern above is the reference.
+
 ### `version-check`
 
 Validates semantic versioning compliance. This target is **opt-in** — add it to
@@ -173,13 +220,13 @@ This works correctly for both feature branches and direct mainline commits.
 
 ### Opting In
 
-1. Copy [version-check.mk](../python/templates/version-check.mk) to your project root
+1. Copy [version-check.mk](../python/templates/version-check.mk) to `make/` in your project
 2. Add to your Makefile:
 
    ```makefile
    VERSION_FILE ?= my_package/__init__.py
    VERSION_DIRS ?= my_package/ scripts/
-   -include version-check.mk
+   -include make/version-check.mk
    ```
 
 3. Copy [version-check.yml](templates/workflows/version-check.yml) to
