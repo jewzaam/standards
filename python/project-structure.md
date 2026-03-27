@@ -25,6 +25,7 @@ ap-<name>/
 ├── LICENSE
 ├── MANIFEST.in
 ├── Makefile
+├── make/                   # Optional .mk targets (run.mk, version-check.mk)
 ├── README.md
 ├── TEST_PLAN.md
 └── pyproject.toml

@@ -303,6 +303,124 @@ make coverage
 
 Coverage metrics are a floor, not a ceiling. High coverage with weak assertions provides false confidence.
 
+## Mutation Testing
+
+Mutation testing measures whether your tests can actually detect bugs by deliberately introducing faults into the code and checking if tests fail.
+
+### Why Coverage Isn't Enough
+
+Coverage measures execution, not fault detection. A test suite can achieve 100% code coverage while having only 4% mutation score — meaning it fails to detect 96% of introduced bugs. This gap is particularly dangerous with AI-generated tests, which optimize for coverage metrics while producing tautological assertions that confirm the code does what it does, not what it should do.
+
+When AI writes both code and tests from the same context, bugs in logic are often mirrored in tests, creating a circular validation loop where tests pass regardless of correctness.
+
+### Tool
+
+Use **mutmut** for Python mutation testing:
+
+```bash
+python -m pip install mutmut
+python -m mutmut run
+```
+
+mutmut integrates with pytest and mypy, supports incremental runs, and provides clear output showing which mutants survived.
+
+### When to Use
+
+Mutation testing is not required on every commit. Use it when:
+
+| Scenario | Rationale |
+|----------|-----------|
+| Evaluating AI-generated test suites | AI tests frequently have high coverage but weak assertions |
+| Investigating test suite quality | A bug escaped to production despite passing tests |
+| Validating critical business logic | Payment calculations, data transformations, security checks |
+| Reviewing new modules | Establish baseline fault-detection capability early |
+
+### Interpreting Results
+
+mutmut reports surviving mutants — code mutations that didn't cause any test to fail. Each surviving mutant indicates either:
+
+1. **Weak assertion** - Test executes the code but doesn't validate the result
+2. **Missing test case** - No test covers that code path with meaningful assertions
+3. **Acceptable gap** - Logging, formatting, or error messages don't need strict validation
+
+**Focus your review on:**
+
+- Surviving mutants in business logic (calculations, conditionals, data transformations)
+- Boundary conditions (`>` changed to `>=`, `==` to `!=`)
+- Return value mutations (functions that return wrong values but tests still pass)
+
+**Deprioritize:**
+
+- Log message formatting
+- Exception message text
+- Debug output
+- Constants in non-critical paths
+
+### Example Workflow
+
+```bash
+# Run mutation testing on a module
+python -m mutmut run --paths-to-mutate=ap_common/validation.py
+
+# Review results
+python -m mutmut results
+
+# Show specific surviving mutant
+python -m mutmut show 5
+
+# Apply the mutant to investigate
+python -m mutmut apply 5
+pytest tests/test_validation.py  # Should fail but doesn't - weak test!
+git checkout ap_common/validation.py  # Restore original
+```
+
+### Mutation Score Targets
+
+**There is no hard threshold.** The value of mutation testing is identifying weak assertions, not hitting a coverage-like percentage.
+
+| Mutation Score | Interpretation |
+|---------------|----------------|
+| < 40% | Severe gaps in assertion quality; tests may be tautological |
+| 40-60% | Moderate coverage with weak spots; investigate surviving mutants |
+| 60-80% | Reasonable fault detection for business logic |
+| > 80% | Strong test suite; diminishing returns above this point |
+
+For business-critical modules (payment processing, security validation, data integrity), target >60% mutation score. For supporting code (logging, formatting utilities), focus mutation testing effort on core logic only.
+
+### Common Patterns in Surviving Mutants
+
+**Pattern 1: Assertion-free tests**
+
+```python
+# MUTANT SURVIVES - no assertion validates the result
+def test_calculate_total(self):
+    result = calculate_total([10, 20, 30])
+    # Function runs, no exception = test passes
+```
+
+**Pattern 2: Tautological assertions**
+
+```python
+# MUTANT SURVIVES - assertion mirrors implementation
+def calculate_discount(price, percent):
+    return price * (1 - percent / 100)
+
+def test_calculate_discount(self):
+    result = calculate_discount(100, 10)
+    assert result == 100 * (1 - 10 / 100)  # Repeats the bug if implementation is wrong
+```
+
+**Pattern 3: Weak boundary checks**
+
+```python
+# MUTANT SURVIVES when > changes to >=
+def test_validate_positive(self):
+    assert validate_positive(1) is True
+    # Missing: validate_positive(0) to catch off-by-one
+```
+
+**Fix:** Write tests from specifications, not implementation. Use concrete expected values, test boundaries explicitly, and verify behavior rather than repeating logic.
+
 ## What to Test
 
 - Public functions and methods
