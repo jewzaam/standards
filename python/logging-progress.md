@@ -26,7 +26,7 @@ Use Python logging for **operational and diagnostic information**:
 
 ### Configuration
 
-Use `ap_common.logging_config` for consistent setup:
+**With `ap_common`** (ap-* tools):
 
 ```python
 from ap_common import setup_logging
@@ -34,6 +34,29 @@ from ap_common import setup_logging
 def main():
     logger = setup_logging(name="ap_my_tool", debug=args.debug, quiet=args.quiet)
 ```
+
+**Without `ap_common`** (standalone projects):
+
+```python
+import logging
+import sys
+
+def main():
+    if args.debug:
+        level = logging.DEBUG
+    elif args.quiet:
+        level = logging.WARNING
+    else:
+        level = logging.INFO
+
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        stream=sys.stderr,
+    )
+```
+
+The format string `%(asctime)s %(levelname)s %(name)s: %(message)s` is the required baseline — timestamps, level, and logger name must always be present. Never use a format without `%(asctime)s`.
 
 | Rule | Rationale |
 |------|-----------|
