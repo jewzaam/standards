@@ -48,7 +48,8 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 
 | Template | Description |
 |----------|-------------|
-| [Makefile](python/templates/Makefile) | Standard Makefile for ap-* projects |
+| [Makefile](python/templates/Makefile) | Standard Makefile with all required targets |
+| [pyproject.toml](python/templates/pyproject.toml) | Package config with standard dev dependencies |
 | [TEST_PLAN.md](python/templates/TEST_PLAN.md) | Testing strategy documentation template |
 | [version-check.mk](python/templates/version-check.mk) | Semver validation (includable `.mk`, optional `make version-check`) |
 
@@ -75,6 +76,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [typecheck.yml](build/templates/workflows/typecheck.yml) | Run mypy type checker |
 | [format.yml](build/templates/workflows/format.yml) | Verify black formatting |
 | [coverage.yml](build/templates/workflows/coverage.yml) | Enforce 80% coverage threshold |
+| [mutation.yml](build/templates/workflows/mutation.yml) | Run mutmut mutation testing |
 | [version-check.yml](build/templates/workflows/version-check.yml) | Validate semver (optional, copy when opting in) |
 
 ## Planned Sections
