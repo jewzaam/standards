@@ -19,7 +19,7 @@ def heading_to_anchor(heading):
     text = text.lower()
     text = re.sub(r"[^\w\s-]", "", text)
     text = re.sub(r"[\s]+", "-", text)
-    text = text.strip("-")
+    text = text.rstrip("-")
     return text
 
 

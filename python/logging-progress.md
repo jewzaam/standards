@@ -183,7 +183,7 @@ Progress should be controllable via CLI:
 | `--quiet` / `-q` | Suppress progress indicators |
 | Default (no flag) | Show progress indicators |
 
-Note: The `--quiet` flag also suppresses INFO-level logging and summary statistics. See [CLI Standards](cli.md#--quiet-flag-behavior) for full specification.
+Note: The `--quiet` flag also suppresses INFO-level logging and summary statistics. See [CLI Standards](../cli/conventions.md#--quiet-flag-behavior) for full specification.
 
 ```python
 parser.add_argument("--quiet", "-q", action="store_true",
