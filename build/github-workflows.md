@@ -16,7 +16,23 @@ Standard CI workflows for ap-* projects.
 
 | Workflow | Template | Description |
 |----------|----------|-------------|
+| Mutation Testing | [mutation.yml](templates/workflows/mutation.yml) | Run mutmut mutation testing (post-merge only) |
 | Version Check | [version-check.yml](templates/workflows/version-check.yml) | Validate semver format, source consistency, and version bump |
+
+### Mutation Testing
+
+Runs on push to main only — not on PRs. Mutation testing is computationally expensive
+(each mutant requires a full test run) and should not block merges. Use a README badge
+to surface the current mutation score:
+
+```markdown
+[![Mutation Testing](https://github.com/<owner>/<repo>/actions/workflows/mutation.yml/badge.svg?branch=main)](https://github.com/<owner>/<repo>/actions/workflows/mutation.yml)
+```
+
+See [Makefile Standards — Mutation testing](makefile.md#mutation-testing) for the
+Makefile target and mutmut version requirements.
+
+### Version Check
 
 Copy when the project opts in to semver enforcement. Can be configured as a required
 status check on GitHub PRs. Requires `fetch-depth: 0` for full git history (needed
