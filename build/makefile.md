@@ -143,14 +143,21 @@ testing reveals this gap.
 
 ```makefile
 mutation: install-dev  ## Run mutation testing
-	$(PYTHON) -m mutmut run
+	$(PYTHON) -m mutmut run --CI --paths-to-mutate "$(PACKAGE_NAME)"
 
 mutation-report:  ## Show results of last mutation run
 	$(PYTHON) -m mutmut results
 ```
 
-Configure paths in `pyproject.toml` under `[tool.mutmut]` (mutmut 3.x uses config
-files, not CLI flags). See [templates/pyproject.toml](../python/templates/pyproject.toml).
+**Use mutmut 2.x** (`mutmut>=2.0,<3.0`). mutmut 3.x has a [decorator bug (#387)](https://github.com/boxed/mutmut/issues/387)
+that skips ALL decorated functions and classes — `@staticmethod`, `@classmethod`, `@property`,
+`@dataclass`, etc. are all silently excluded. This makes 3.x unusable for most real codebases.
+mutmut 3.x also has a [`set_start_method` bug (#466)](https://github.com/boxed/mutmut/issues/466)
+on Python 3.12+ when invoked via `python -m`.
+
+mutmut 2.x is slower (no parallelization, one test run per mutant) but actually mutates
+decorated code. The `--CI` flag makes mutmut return 0 for all non-fatal runs (surviving
+mutants return 0, not 2).
 
 **Platform constraint:** mutmut requires `fork()` — Linux, macOS, and WSL only. It
 does not run on native Windows.
