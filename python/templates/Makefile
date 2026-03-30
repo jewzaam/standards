@@ -1,7 +1,9 @@
 # Makefile template for Python projects
-# Replace <name> with the project name (e.g., my-tool -> my_tool)
+# Replace <package_name> with the Python package name (e.g., my_tool)
 
-.PHONY: check help install install-dev install-no-deps uninstall clean format format-check lint typecheck test test-verbose coverage
+.PHONY: check help install install-dev install-no-deps uninstall clean format format-check lint typecheck test test-verbose coverage mutation mutation-report
+
+PACKAGE_NAME ?= <package_name>
 
 ifeq ($(OS),Windows_NT)
     VENV_DIR ?= .venv
@@ -33,7 +35,7 @@ install-no-deps: $(PYTHON)  ## Install in editable mode without dependencies
 	$(PYTHON) -m pip install -e . --no-deps
 
 uninstall:  ## Uninstall package
-	$(PYTHON) -m pip uninstall -y ap-<name>
+	$(PYTHON) -m pip uninstall -y $(PACKAGE_NAME)
 
 clean:  ## Remove build artifacts and caches
 	rm -rf build/ dist/ *.egg-info
@@ -41,16 +43,16 @@ clean:  ## Remove build artifacts and caches
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 
 format: install-dev  ## Format code with black
-	$(PYTHON) -m black ap_<name> tests
+	$(PYTHON) -m black $(PACKAGE_NAME) tests
 
 format-check: install-dev  ## Check formatting without modifying files
-	$(PYTHON) -m black --check ap_<name> tests
+	$(PYTHON) -m black --check $(PACKAGE_NAME) tests
 
 lint: install-dev  ## Lint with flake8
-	$(PYTHON) -m flake8 --max-line-length=88 --extend-ignore=E203,W503 ap_<name> tests
+	$(PYTHON) -m flake8 --max-line-length=88 --extend-ignore=E203,W503 $(PACKAGE_NAME) tests
 
 typecheck: install-dev  ## Type check with mypy
-	$(PYTHON) -m mypy ap_<name>
+	$(PYTHON) -m mypy $(PACKAGE_NAME)
 
 test: install-dev  ## Run pytest
 	$(PYTHON) -m pytest
@@ -59,4 +61,10 @@ test-verbose: install-dev  ## Run pytest with verbose output
 	$(PYTHON) -m pytest -v
 
 coverage: install-dev  ## Run pytest with coverage
-	$(PYTHON) -m pytest --cov=ap_<name> --cov-report=term
+	$(PYTHON) -m pytest --cov=$(PACKAGE_NAME) --cov-report=term
+
+mutation: install-dev  ## Run mutation testing (not part of check — run in CI or on-demand)
+	$(PYTHON) -m mutmut run
+
+mutation-report:  ## Show results of last mutation run
+	$(PYTHON) -m mutmut results

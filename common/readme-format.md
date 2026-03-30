@@ -1,44 +1,47 @@
 # README Format
 
-Standard structure for ap-* project READMEs.
+Standard structure for project READMEs.
 
 ## Structure
 
 1. Title
-2. Badges
+2. Badges (if GitHub Actions workflows exist)
 3. Brief description (1-2 sentences)
-4. Documentation links (ap-base boilerplate)
+4. Documentation links
 5. Overview (what it does, key features)
 6. Installation
 7. Usage (with examples)
+8. Development
 
 ## Title
 
 Use the package name as the title:
 
 ```markdown
-# ap-<name>
+# <package-name>
 ```
 
 Do not use prose titles like "Light Frame Organization Tool".
 
 ## Badges
 
-Seven standard badges, formatted on two lines for readability:
+Include badges only when the project has corresponding GitHub Actions workflows. Each badge maps to a workflow file — if the workflow doesn't exist, omit the badge.
+
+Format on two lines for readability:
 
 **Line 1:** Workflow badges (Test, Coverage, Lint, Format, Type Check)
 **Line 2:** Language and style badges (Python version, Black formatting)
 
 ```markdown
-[![Test](https://github.com/jewzaam/ap-<name>/workflows/Test/badge.svg)](https://github.com/jewzaam/ap-<name>/actions/workflows/test.yml) [![Coverage](https://github.com/jewzaam/ap-<name>/workflows/Coverage%20Check/badge.svg)](https://github.com/jewzaam/ap-<name>/actions/workflows/coverage.yml) [![Lint](https://github.com/jewzaam/ap-<name>/workflows/Lint/badge.svg)](https://github.com/jewzaam/ap-<name>/actions/workflows/lint.yml) [![Format](https://github.com/jewzaam/ap-<name>/workflows/Format%20Check/badge.svg)](https://github.com/jewzaam/ap-<name>/actions/workflows/format.yml) [![Type Check](https://github.com/jewzaam/ap-<name>/workflows/Type%20Check/badge.svg)](https://github.com/jewzaam/ap-<name>/actions/workflows/typecheck.yml)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Test](https://github.com/<owner>/<repo>/workflows/Test/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/test.yml) [![Coverage](https://github.com/<owner>/<repo>/workflows/Coverage%20Check/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/coverage.yml) [![Lint](https://github.com/<owner>/<repo>/workflows/Lint/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/lint.yml) [![Format](https://github.com/<owner>/<repo>/workflows/Format%20Check/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/format.yml) [![Type Check](https://github.com/<owner>/<repo>/workflows/Type%20Check/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/typecheck.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ```
 
-**Note:** The Type Check badge is optional for projects that don't have type checking configured. Projects without type checking should omit this badge, resulting in 6 badges total (4 workflow badges on line 1, 2 language/style badges on line 2).
+Omit any badge whose workflow doesn't exist. Projects with no GitHub Actions workflows have no badges section.
 
 ## Description
 
-One or two sentences immediately after badges. State what the tool does, not implementation details.
+One or two sentences immediately after badges (or title if no badges). State what the tool does, not implementation details.
 
 Good:
 > A tool for organizing light frames based on FITS metadata.
@@ -48,7 +51,20 @@ Bad:
 
 ## Documentation Links
 
-All projects must include standard boilerplate linking back to ap-base for comprehensive documentation:
+Link to project-specific documentation if it exists:
+
+```markdown
+## Documentation
+
+- **[How It Works](docs/how-it-works.md)** — pipeline, layout, side effects
+- **[Setup Guide](docs/setup.md)** — prerequisites and configuration
+```
+
+Omit this section if the project has no docs beyond the README.
+
+### ap-* projects
+
+All `ap-*` projects include standard boilerplate linking back to ap-base for comprehensive documentation:
 
 ```markdown
 ## Documentation
@@ -81,13 +97,15 @@ Two methods:
 ### Development
 
 \`\`\`bash
+git clone https://github.com/<owner>/<repo>.git
+cd <repo>
 make install-dev
 \`\`\`
 
 ### From Git
 
 \`\`\`bash
-pip install git+https://github.com/jewzaam/ap-<name>.git
+pip install git+https://github.com/<owner>/<repo>.git
 \`\`\`
 ```
 
@@ -99,7 +117,7 @@ Show the command-line interface with examples:
 ## Usage
 
 \`\`\`bash
-python -m ap_<name>.<module> <source_dir> <dest_dir> [options]
+python -m <module> [options]
 \`\`\`
 
 ### Options
@@ -121,3 +139,4 @@ Include 1-2 concrete examples with real-looking paths.
 - Contributor guidelines (use CONTRIBUTING.md if needed)
 - Duplicate information from other sections
 - License section (LICENSE file exists)
+- Badges for workflows that don't exist
