@@ -55,6 +55,8 @@ See [Naming](../common/naming.md) for the full naming taxonomy and pattern.
 
 ## pyproject.toml
 
+See [templates/pyproject.toml](templates/pyproject.toml) for the generic template. The ap-specific version below adds astrophotography classifiers and keywords:
+
 ```toml
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
@@ -65,7 +67,7 @@ name = "ap-<name>"
 version = "0.1.0"
 description = "<brief description>"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = {file = "LICENSE"}
 authors = [
     {name = "Naveen Malik"}
@@ -75,7 +77,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",

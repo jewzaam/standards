@@ -6,7 +6,7 @@ Standard CI workflows for ap-* projects.
 
 | Workflow | Template | Description |
 |----------|----------|-------------|
-| Test | [test.yml](templates/workflows/test.yml) | Run pytest on Python 3.10-3.14 |
+| Test | [test.yml](templates/workflows/test.yml) | Run pytest on Python 3.11-3.14 |
 | Lint | [lint.yml](templates/workflows/lint.yml) | Run flake8 linter |
 | Typecheck | [typecheck.yml](templates/workflows/typecheck.yml) | Run mypy type checker |
 | Format Check | [format.yml](templates/workflows/format.yml) | Verify black formatting |
@@ -37,7 +37,7 @@ No modifications needed - workflows use Makefile targets which handle project-sp
 
 ### Python versions
 
-Test on Python 3.10 through 3.14. Use 3.12 for single-version jobs (lint, format, typecheck, coverage).
+Test on Python 3.11 through 3.14. Use 3.12 for single-version jobs (lint, format, typecheck, coverage).
 
 ### Actions versions
 

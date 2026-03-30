@@ -30,6 +30,8 @@ make check     # Same as above (explicit)
 | `typecheck` | Type check with mypy |
 | `test` | Run pytest |
 | `coverage` | Run pytest with coverage |
+| `mutation` | Run mutation testing with mutmut |
+| `mutation-report` | Show results of last mutation run |
 
 ## Virtual Environment
 
@@ -39,7 +41,7 @@ For `ap-*` projects that share a single venv, see [Shared Virtual Environment](.
 
 ## Template
 
-Copy [templates/Makefile](../python/templates/Makefile) to your project and replace `<name>` with your project name.
+Copy [templates/Makefile](../python/templates/Makefile) and [templates/pyproject.toml](../python/templates/pyproject.toml) to your project and set `PACKAGE_NAME` (Makefile) / `<package_name>` (pyproject.toml) to your Python package name (e.g., `my_tool`).
 
 ## Conventions
 
@@ -62,7 +64,17 @@ endif
 
 Do not hardcode `python` or `python3` in targets — always use `$(PYTHON)`.
 
-All variables (`PYTHON`, `LOG_FILE`, etc.) must be declared at the top of the Makefile, before the first target. This keeps configuration visible and easy to override.
+### PACKAGE_NAME variable
+
+`PACKAGE_NAME` is the Python package directory name (the importable name, e.g., `my_tool`). All targets that operate on source code use this variable:
+
+```makefile
+PACKAGE_NAME ?= my_tool
+```
+
+This single variable drives format, lint, typecheck, coverage, and mutation targets. Declare it at the top of the Makefile before any other variables.
+
+All variables (`PYTHON`, `PACKAGE_NAME`, `LOG_FILE`, etc.) must be declared at the top of the Makefile, before the first target. This keeps configuration visible and easy to override.
 
 ### Venv creation target
 
@@ -82,7 +94,7 @@ install-dev: $(PYTHON)
 	$(PYTHON) -m pip install -e ".[dev]"
 
 format: install-dev
-	$(PYTHON) -m black ap_<name> tests
+	$(PYTHON) -m black $(PACKAGE_NAME) tests
 ```
 
 ### format vs format-check
@@ -91,10 +103,10 @@ format: install-dev
 
 ```makefile
 format: install-dev
-	$(PYTHON) -m black ap_<name> tests
+	$(PYTHON) -m black $(PACKAGE_NAME) tests
 
 format-check: install-dev
-	$(PYTHON) -m black --check ap_<name> tests
+	$(PYTHON) -m black --check $(PACKAGE_NAME) tests
 ```
 
 ### Self-documenting help target
@@ -103,7 +115,7 @@ The `help` target greps for `## ` comments on target lines and prints a formatte
 
 ```makefile
 format: install-dev  ## Format code with black
-	$(PYTHON) -m black ap_<name> tests
+	$(PYTHON) -m black $(PACKAGE_NAME) tests
 
 help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -118,6 +130,30 @@ Use `|| true` for commands that might fail during cleanup:
 ```makefile
 find . -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true
 ```
+
+### Mutation testing
+
+[mutmut](https://github.com/boxed/mutmut) verifies test suite quality by injecting
+small faults into source code and checking whether tests detect them. A test suite
+can achieve 100% code coverage but catch almost none of the actual bugs — mutation
+testing reveals this gap.
+
+`mutation` is **not** part of `check` — mutation testing is computationally expensive
+(each mutant requires a test run) and is best run in CI or on-demand locally.
+
+```makefile
+mutation: install-dev  ## Run mutation testing
+	$(PYTHON) -m mutmut run
+
+mutation-report:  ## Show results of last mutation run
+	$(PYTHON) -m mutmut results
+```
+
+Configure paths in `pyproject.toml` under `[tool.mutmut]` (mutmut 3.x uses config
+files, not CLI flags). See [templates/pyproject.toml](../python/templates/pyproject.toml).
+
+**Platform constraint:** mutmut requires `fork()` — Linux, macOS, and WSL only. It
+does not run on native Windows.
 
 ### Line length
 

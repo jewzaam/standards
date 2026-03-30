@@ -70,7 +70,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 
 | Template | Description |
 |----------|-------------|
-| [test.yml](build/templates/workflows/test.yml) | Run pytest on Python 3.10-3.14 |
+| [test.yml](build/templates/workflows/test.yml) | Run pytest on Python 3.11-3.14 |
 | [lint.yml](build/templates/workflows/lint.yml) | Run flake8 linter |
 | [typecheck.yml](build/templates/workflows/typecheck.yml) | Run mypy type checker |
 | [format.yml](build/templates/workflows/format.yml) | Verify black formatting |
