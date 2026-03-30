@@ -7,7 +7,7 @@ all: check  ## Run all checks (default)
 check: markdown-lint links  ## Run all validation
 
 install-dev:  ## Install development dependencies
-	$(PYTHON) -m pip install --quiet pymarkdownlnt>=0.9.36
+	$(PYTHON) -m pip install --quiet 'pymarkdownlnt>=0.9.36'
 
 markdown-lint: install-dev  ## Lint markdown files
 	@echo "Linting markdown files..."
