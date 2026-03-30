@@ -64,7 +64,7 @@ coverage: install-dev  ## Run pytest with coverage
 	$(PYTHON) -m pytest --cov=$(PACKAGE_NAME) --cov-report=term
 
 mutation: install-dev  ## Run mutation testing (not part of check — run in CI or on-demand)
-	$(PYTHON) -m mutmut run
+	$(PYTHON) -m mutmut run --CI --paths-to-mutate "$(PACKAGE_NAME)"
 
 mutation-report:  ## Show results of last mutation run
 	$(PYTHON) -m mutmut results
