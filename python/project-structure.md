@@ -115,6 +115,13 @@ build/
 .coverage
 htmlcov/
 
+# Mutation testing
+mutants/
+.mutmut-cache
+
+# Type checking
+.mypy_cache/
+
 # IDE
 .vscode/
 .idea/
