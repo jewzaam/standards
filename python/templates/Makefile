@@ -1,17 +1,13 @@
-# Makefile template for ap-* projects
-# Replace <name> with the project name (e.g., ap-cull-light -> cull_light)
+# Makefile template for Python projects
+# Replace <name> with the project name (e.g., my-tool -> my_tool)
 
 .PHONY: check help install install-dev install-no-deps uninstall clean format format-check lint typecheck test test-verbose coverage
 
-# Normalize HOME to forward slashes (no-op on Unix, fixes Windows backslashes)
-HOME_DIR := $(subst \,/,$(HOME))
-
-# Use shared ~/.venv/ap if it exists, otherwise local .venv
 ifeq ($(OS),Windows_NT)
-    VENV_DIR ?= $(if $(wildcard $(HOME_DIR)/.venv/ap/Scripts/python.exe),$(HOME_DIR)/.venv/ap,.venv)
+    VENV_DIR ?= .venv
     PYTHON := $(VENV_DIR)/Scripts/python.exe
 else
-    VENV_DIR ?= $(if $(wildcard $(HOME_DIR)/.venv/ap/bin/python),$(HOME_DIR)/.venv/ap,.venv)
+    VENV_DIR ?= .venv
     PYTHON := $(VENV_DIR)/bin/python
 endif
 

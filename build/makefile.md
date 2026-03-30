@@ -1,6 +1,6 @@
 # Makefile Standards
 
-Standard Makefile targets for ap-* Python projects.
+Standard Makefile targets for Python projects.
 
 ## Default Target
 
@@ -31,30 +31,11 @@ make check     # Same as above (explicit)
 | `test` | Run pytest |
 | `coverage` | Run pytest with coverage |
 
-## Shared Venv
+## Virtual Environment
 
-All ap-* projects share a single venv at `~/.venv/ap/`. See [Shared Virtual Environment](../python/shared-venv.md) for the full standard.
+By default, projects use a local `.venv` in the project root. The `install-no-deps` target is available for cases where you need to install a package without pulling its dependencies from the network.
 
-One-time setup:
-
-```bash
-python3 -m venv ~/.venv/ap
-```
-
-Then cd into any repo and run make as usual:
-
-```bash
-cd ap-common
-make install-dev        # Detects ~/.venv/ap, installs there
-
-cd ../ap-cull-light
-make install-dev        # Same shared venv
-make test               # Uses ~/.venv/ap automatically
-```
-
-The auto-detection uses `$(wildcard $(HOME)/.venv/ap/bin/python)` in each Makefile. If the shared venv does not exist (CI, new machine), it falls back to a local `.venv`.
-
-The `install-no-deps` target is still available for cases where you need to install a package without pulling its dependencies from the network.
+For `ap-*` projects that share a single venv, see [Shared Virtual Environment](../python/shared-venv.md).
 
 ## Template
 
@@ -64,31 +45,24 @@ Copy [templates/Makefile](../python/templates/Makefile) to your project and repl
 
 ### VENV_DIR and PYTHON variables
 
-`VENV_DIR` and `PYTHON` auto-detect the shared venv at `~/.venv/ap` or fall back to a local one, with platform-appropriate paths:
+`VENV_DIR` and `PYTHON` use a local `.venv` by default, with platform-appropriate paths:
 
 ```makefile
-HOME_DIR := $(subst \,/,$(HOME))
-
 ifeq ($(OS),Windows_NT)
-    VENV_DIR ?= $(if $(wildcard $(HOME_DIR)/.venv/ap/Scripts/python.exe),$(HOME_DIR)/.venv/ap,.venv)
+    VENV_DIR ?= .venv
     PYTHON := $(VENV_DIR)/Scripts/python.exe
 else
-    VENV_DIR ?= $(if $(wildcard $(HOME_DIR)/.venv/ap/bin/python),$(HOME_DIR)/.venv/ap,.venv)
+    VENV_DIR ?= .venv
     PYTHON := $(VENV_DIR)/bin/python
 endif
 ```
 
-`HOME_DIR` normalizes backslashes to forward slashes so paths work in both Windows shells and Unix.
-
-- **Shared venv exists**: `VENV_DIR` resolves to `~/.venv/ap`
-- **No shared venv**: `VENV_DIR` resolves to `.venv` (local)
-- **Override**: `make VENV_DIR=.venv test` always works
+- **Default**: `VENV_DIR` resolves to `.venv` (local)
+- **Override**: `make VENV_DIR=/path/to/venv test` always works
 
 Do not hardcode `python` or `python3` in targets — always use `$(PYTHON)`.
 
 All variables (`PYTHON`, `LOG_FILE`, etc.) must be declared at the top of the Makefile, before the first target. This keeps configuration visible and easy to override.
-
-See [Shared Virtual Environment](../python/shared-venv.md) for full details.
 
 ### Venv creation target
 
