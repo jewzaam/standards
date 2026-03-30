@@ -22,8 +22,10 @@ Standard CI workflows for ap-* projects.
 ### Mutation Testing
 
 Runs on push to main only — not on PRs. Mutation testing is computationally expensive
-(each mutant requires a full test run) and should not block merges. Use a README badge
-to surface the current mutation score:
+(each mutant requires a full test run) and should not block merges. Uses `concurrency`
+with `cancel-in-progress: true` so that rapid-fire merges cancel stale runs instead
+of queueing 1-2 hour jobs that will never be looked at. Use a README badge to surface
+the current mutation score:
 
 ```markdown
 [![Mutation Testing](https://github.com/<owner>/<repo>/actions/workflows/mutation.yml/badge.svg?branch=main)](https://github.com/<owner>/<repo>/actions/workflows/mutation.yml)
