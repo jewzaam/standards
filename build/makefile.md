@@ -271,6 +271,85 @@ and workflow.
 See [Versioning Standards](../common/versioning.md) for the full version location
 convention.
 
+## Documentation-Only Projects
+
+For repos that contain only markdown (no Python source code), use a simplified
+Makefile with two targets: `markdown-lint` and `links`.
+
+### Targets
+
+| Target | Description |
+|--------|-------------|
+| `check` | Run markdown-lint and links (default target) |
+| `install-dev` | Install dev deps from pyproject.toml |
+| `markdown-lint` | Lint markdown with pymarkdown |
+| `links` | Validate local markdown links and anchors |
+| `help` | Show available targets |
+
+### Link Checker
+
+Use `scripts/check-links.py` — a zero-dependency script (stdlib only) that
+checks local file links and heading anchors in markdown files. It does **not**
+check external URLs. This avoids pulling in third-party dependencies for a
+narrow, stable task.
+
+The script:
+- Finds all `.md` files recursively (excluding `.git/`)
+- Checks `[text](relative/path.md)` — does the file exist?
+- Checks `[text](relative/path.md#anchor)` — does the heading exist?
+- Checks `[text](#anchor)` — does the heading exist in current file?
+- Converts headings to GitHub-style anchor slugs
+- Skips external URLs, glob patterns, and `...` literals
+- Exits 1 with file:line report on broken links
+
+Copy `scripts/check-links.py` from the standards repo into your project.
+
+### Template
+
+```makefile
+PYTHON := python
+
+.PHONY: all check install-dev markdown-lint links help
+
+all: check
+
+check: markdown-lint links
+
+install-dev:
+	$(PYTHON) -m pip install --quiet -e '.[dev]'
+
+markdown-lint: install-dev
+	$(PYTHON) -m pymarkdown --disable-rules MD013,MD024,MD031,MD036 scan .
+
+links:
+	$(PYTHON) scripts/check-links.py
+
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+.DEFAULT_GOAL := all
+```
+
+### pyproject.toml
+
+```toml
+[project]
+name = "my-docs-repo"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[project.optional-dependencies]
+dev = [
+    "pymarkdownlnt>=0.9.36,<1.0",
+]
+```
+
+### GitHub Workflows
+
+Use the same `markdown-lint.yml` and `links.yml` workflow templates as Python
+projects — they both just call `make <target>`.
+
 ## What to Avoid
 
 - Complex shell logic
