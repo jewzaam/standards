@@ -74,6 +74,7 @@ by directory. The sections below map common questions to the authoritative file.
 ## Git
 
 - [common/submodules.md](common/submodules.md) — submodule conventions and workflows
+- [common/git-worktrees.md](common/git-worktrees.md) — worktree conventions, cleanup, AI-assisted parallel development
 
 ## Templates (copy to new projects)
 

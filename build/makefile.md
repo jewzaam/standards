@@ -162,6 +162,48 @@ mutants return 0, not 2).
 **Platform constraint:** mutmut requires `fork()` — Linux, macOS, and WSL only. It
 does not run on native Windows.
 
+#### Configuration
+
+Add `[tool.mutmut]` to `pyproject.toml` for projects that need non-default settings:
+
+```toml
+[tool.mutmut]
+paths_to_mutate = ["<package_name>/"]
+also_copy = ["conftest.py"]
+pytest_add_cli_args = ["-p", "no:asyncio", "-p", "no:anyio"]
+```
+
+- **`also_copy`** — files mutmut needs alongside the mutated source (fixtures,
+  test config). Without this, mutation runs fail when conftest or pytest config
+  is missing.
+- **`pytest_add_cli_args`** — disable pytest plugins that conflict with mutmut's
+  subprocess model. `asyncio` and `anyio` plugins are common offenders.
+
+#### Python 3.13+ workaround
+
+mutmut 2.x calls `set_start_method('fork')` without `force=True` at module
+import time. Python 3.13+ locks the multiprocessing context on the first
+`get_start_method()` call, causing a `RuntimeError`. Add this workaround to
+`conftest.py`:
+
+```python
+import multiprocessing
+
+_orig = multiprocessing.set_start_method
+
+def _patched(method, force=False):
+    _orig(method, force=True)
+
+multiprocessing.set_start_method = _patched
+```
+
+#### CI performance
+
+Mutation testing is slow — expect 1-2 hours for a mid-size project (250+ tests,
+20+ source files). Since the workflow runs post-merge, use `concurrency` with
+`cancel-in-progress: true` in the GitHub workflow to avoid queueing stale runs
+during rapid-fire merges. See [GitHub Workflows — Mutation Testing](github-workflows.md#mutation-testing).
+
 ### Line length
 
 Match black's default of 88 characters:
