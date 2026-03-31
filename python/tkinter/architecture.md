@@ -4,6 +4,24 @@
 
 Application structure and composition patterns for tkinter desktop applications.
 
+## MVC Separation
+
+Tkinter was not designed for testing. The single most important architectural
+decision is separating business logic from GUI code so that the majority of the
+application can be tested with standard pytest — no tkinter, no display, no
+mainloop.
+
+| Layer | Responsibility | Tkinter dependency? | Testable without GUI? |
+|-------|---------------|--------------------|-----------------------|
+| Model | Data, business logic, state | No | Yes — standard unit tests |
+| View | Widget layout, display | Yes | Requires tkinter or mocks |
+| Controller | Lifecycle, coordination | Yes (owns root) | Partially — can mock views |
+
+**The model must not import tkinter.** This is the hard boundary. If business
+logic requires tkinter to run, the architecture is wrong. See
+[Testing](testing.md) for how this separation enables a two-layer testing
+strategy.
+
 ## Controller Pattern
 
 A single `AppController` class owns the `tk.Tk` root and coordinates all components. The controller is the only class that directly manages application lifecycle.

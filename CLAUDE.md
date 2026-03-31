@@ -64,6 +64,7 @@ by directory. The sections below map common questions to the authoritative file.
 - [python/tkinter/widgets.md](python/tkinter/widgets.md) — layout, StringVar, styling, context menus
 - [python/tkinter/threading.md](python/tkinter/threading.md) — thread-safe UI updates
 - [python/tkinter/dialogs.md](python/tkinter/dialogs.md) — modal dialogs, settings windows
+- [python/tkinter/testing.md](python/tkinter/testing.md) — two-layer testing strategy, root fixture, mocking dialogs, headless CI
 
 ## Mutation testing
 
