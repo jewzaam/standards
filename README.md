@@ -85,7 +85,6 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 |---------|-------------|
 | [Android](android/) | Android application development standards |
 | [Mobile](mobile/) | Cross-platform mobile development patterns |
-| [Spec-Kit](spec-kit/) | Working with spec-kit |
 | [Guides](guides/) | Process and tooling how-tos |
 
 ## Guiding Principles
