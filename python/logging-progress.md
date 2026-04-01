@@ -374,8 +374,14 @@ else:
 Install a `sys.excepthook` so that uncaught exceptions (stack traces) reach the log file instead of being lost to a detached stderr. Let `KeyboardInterrupt` fall through to the default handler.
 
 ```python
+import types
+
 def _install_excepthook(*, logger: logging.Logger) -> None:
-    def _hook(exc_type, exc_value, exc_tb):
+    def _hook(
+        exc_type: type[BaseException],
+        exc_value: BaseException,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_tb)
             return
