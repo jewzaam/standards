@@ -118,8 +118,12 @@ format: install-dev  ## Format code with black
 	$(PYTHON) -m black $(PACKAGE_NAME) tests
 
 help:  ## Show available targets
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 ```
+
+The `-h` flag on grep suppresses filename prefixes when `$(MAKEFILE_LIST)` contains
+multiple files (e.g., from `-include make/*.mk`). Without it, the awk field split
+breaks and prints filenames instead of target names.
 
 Targets without `## ` comments (like the `$(PYTHON)` venv-creation target) are intentionally hidden from help output.
 
@@ -228,6 +232,7 @@ because the help target uses `$(MAKEFILE_LIST)`, which includes all loaded files
 project-root/
 ├── Makefile
 └── make/
+    ├── pipx.mk
     ├── run.mk
     └── version-check.mk
 ```
@@ -235,6 +240,7 @@ project-root/
 Include optional targets in your Makefile:
 
 ```makefile
+-include make/pipx.mk
 -include make/run.mk
 -include make/version-check.mk
 ```
@@ -313,6 +319,48 @@ and workflow.
 See [Versioning Standards](../common/versioning.md) for the full version location
 convention.
 
+### `pipx`
+
+For projects that provide CLI entry points (defined in `[project.scripts]` in
+`pyproject.toml`), `pipx` installs the package into an isolated global environment
+and puts commands on PATH. This is the standard way to install CLI tools for
+day-to-day use without polluting the system site-packages or the project venv.
+
+Create `make/pipx.mk`:
+
+```makefile
+.PHONY: pipx pipx-uninstall
+
+# Distribution name from [project] name in pyproject.toml.
+# May differ from PACKAGE_NAME (Python module) — e.g., my-tool vs my_tool.
+PROJECT_NAME ?= $(PACKAGE_NAME)
+
+pipx:  ## Install globally via pipx
+	python3 -m pipx install .
+
+pipx-uninstall:  ## Uninstall global pipx install
+	python3 -m pipx uninstall $(PROJECT_NAME)
+```
+
+`PROJECT_NAME` defaults to `PACKAGE_NAME` but can be overridden when the
+distribution name differs from the module name (hyphens vs underscores). pipx
+tracks packages by distribution name, not module name.
+
+Use `python3 -m pipx` rather than bare `pipx` — the command may not be on PATH
+even when the module is installed.
+
+Include in your Makefile:
+
+```makefile
+-include make/pipx.mk
+```
+
+**When to use:** Projects that define CLI commands other tools or skills invoke by
+name (e.g., `meet-summarize-query`). Not needed for libraries or projects only used
+via `python -m`.
+
+**Prerequisite:** pipx must be installed (`python3 -m pip install --user pipx`).
+
 ## Documentation-Only Projects
 
 For repos that contain only markdown (no Python source code), use a simplified
@@ -367,8 +415,8 @@ links:
 	$(PYTHON) scripts/check-links.py
 
 help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 .DEFAULT_GOAL := all
 ```

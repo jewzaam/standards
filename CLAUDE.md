@@ -82,5 +82,6 @@ by directory. The sections below map common questions to the authoritative file.
 - [python/templates/Makefile](python/templates/Makefile) — Makefile with all standard targets
 - [python/templates/pyproject.toml](python/templates/pyproject.toml) — package config with dev deps
 - [python/templates/TEST_PLAN.md](python/templates/TEST_PLAN.md) — testing strategy doc
+- [python/templates/pipx.mk](python/templates/pipx.mk) — CLI tool installation via pipx
 - [python/templates/version-check.mk](python/templates/version-check.mk) — semver validation make target
 - [build/templates/workflows/](build/templates/workflows/) — GitHub Actions workflow files
