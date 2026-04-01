@@ -232,6 +232,119 @@ def test_copy_file(tmp_path):
     assert dest.exists()
 ```
 
+## Conftest Safety Guards
+
+Use `autouse` fixtures in `conftest.py` to block real side effects globally. Tests that need the real thing must explicitly mock around the guard — not the other way around. This catches accidental leakage that per-test mocking misses.
+
+### Command Execution
+
+Block all `subprocess` entry points. Tests that need subprocess must mock the specific call they use.
+
+```python
+import subprocess
+from unittest.mock import patch
+
+@pytest.fixture(autouse=True)
+def _block_subprocess():
+    """Block subprocess globally — no real commands in tests."""
+    def _blocked(*args, **kwargs):
+        cmd = args[0] if args else kwargs.get("args", "?")
+        raise RuntimeError(
+            f"subprocess blocked by conftest: {cmd!r}. Mock it instead."
+        )
+
+    with patch.object(subprocess, "run", side_effect=_blocked), \
+         patch.object(subprocess, "Popen", side_effect=_blocked), \
+         patch.object(subprocess, "call", side_effect=_blocked), \
+         patch.object(subprocess, "check_call", side_effect=_blocked), \
+         patch.object(subprocess, "check_output", side_effect=_blocked):
+        yield
+```
+
+### Filesystem Mutation
+
+Allow writes inside `tmp_path` and the project's `.venv`; block everything else. Cover `pathlib.Path` methods and `shutil` operations that move or copy files.
+
+```python
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+@pytest.fixture(autouse=True)
+def _block_real_filesystem(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Prevent tests from writing outside tmp_path."""
+    def _is_allowed(path: Path) -> bool:
+        resolved = path.resolve()
+        return (
+            str(resolved).startswith(str(tmp_path))
+            or str(resolved).startswith(str(_PROJECT_ROOT / ".venv"))
+        )
+
+    def _guard(original):
+        def guarded(self, *args, **kwargs):
+            if not _is_allowed(self):
+                raise PermissionError(
+                    f"Test tried to write outside tmp_path: {self}"
+                )
+            return original(self, *args, **kwargs)
+        return guarded
+
+    for method in ("write_text", "write_bytes", "rename", "unlink",
+                   "rmdir", "mkdir"):
+        monkeypatch.setattr(Path, method, _guard(getattr(Path, method)))
+```
+
+Extend to `shutil.copy2`, `shutil.move`, and `builtins.open` when the project uses those for writes.
+
+### API / Network Calls
+
+Block outbound HTTP. Any test that needs a real response should use `responses`, `respx`, or a similar library to register explicit fakes.
+
+```python
+import httpx
+
+@pytest.fixture(autouse=True)
+def _block_http(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Block real HTTP requests."""
+    def _blocked(*args, **kwargs):
+        raise RuntimeError("HTTP blocked by conftest. Mock it instead.")
+
+    monkeypatch.setattr(httpx, "get", _blocked)
+    monkeypatch.setattr(httpx, "post", _blocked)
+    monkeypatch.setattr(httpx, "Client", _blocked)
+```
+
+Adapt to the HTTP library the project uses (`requests`, `httpx`, `urllib3`).
+
+### Database / State Files
+
+Redirect mutable state to `tmp_path` so tests never touch real data.
+
+```python
+@pytest.fixture(autouse=True)
+def _isolate_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Point DB_FILE at tmp_path so tests get an isolated database."""
+    import mypackage.config as config
+
+    monkeypatch.setattr(config, "DB_FILE", tmp_path / "test.db")
+```
+
+Same pattern works for config files, state files, and cache directories — `monkeypatch.setattr` the path constant to a `tmp_path` child.
+
+### Which Guards to Include
+
+Not every project needs every guard. Match guards to the side effects the code actually performs:
+
+| Project uses | Guard needed |
+|-------------|-------------|
+| `subprocess` | Command execution |
+| `pathlib` / `shutil` writes | Filesystem mutation |
+| `requests` / `httpx` | API / network |
+| SQLite / database | Database isolation |
+| Config/state files on disk | State file isolation |
+
+Start with the guards that match the project's dependencies. Add more as the codebase grows.
+
 ## Test Data (Fixtures)
 
 **DO NOT USE GIT LFS**
