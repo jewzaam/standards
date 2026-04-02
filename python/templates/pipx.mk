@@ -10,7 +10,7 @@
 PROJECT_NAME ?= $(PACKAGE_NAME)
 
 pipx:  ## Install globally via pipx
-	python3 -m pipx install .
+	python3 -m pipx install . --force
 
 pipx-uninstall:  ## Uninstall global pipx install
 	python3 -m pipx uninstall $(PROJECT_NAME)

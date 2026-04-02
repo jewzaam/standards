@@ -34,7 +34,7 @@ install-dev: $(PYTHON)  ## Install in editable mode with dev deps
 install-no-deps: $(PYTHON)  ## Install in editable mode without dependencies
 	$(PYTHON) -m pip install -e . --no-deps
 
-uninstall:  ## Uninstall package
+uninstall: $(PYTHON)  ## Uninstall package
 	$(PYTHON) -m pip uninstall -y $(PACKAGE_NAME)
 
 clean:  ## Remove build artifacts and caches
@@ -66,5 +66,5 @@ coverage: install-dev  ## Run pytest with coverage
 mutation: install-dev  ## Run mutation testing (not part of check — run in CI or on-demand)
 	$(PYTHON) -m mutmut run --CI --paths-to-mutate "$(PACKAGE_NAME)"
 
-mutation-report:  ## Show results of last mutation run
+mutation-report: $(PYTHON)  ## Show results of last mutation run
 	$(PYTHON) -m mutmut results

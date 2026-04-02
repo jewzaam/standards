@@ -27,7 +27,7 @@ jobs:
       - name: Generate coverage report
         run: |
           make coverage
-          python -m coverage report | tail -1 | awk '{print $$4}' | sed 's/%//' > .coverage-percentage || echo "0" > .coverage-percentage
+          .venv/bin/python -m coverage report | tail -1 | awk '{print $$4}' | sed 's/%//' > .coverage-percentage || echo "0" > .coverage-percentage
 
       - name: Extract coverage data and set badge info
         if: always()

@@ -54,27 +54,26 @@ def get_position(self) -> tuple[int | None, int | None]:
 
 ## Borderless Windows
 
-Use `overrideredirect(True)` for custom chrome. Combine with `-topmost` for always-on-top overlay behavior.
+Remove window manager decorations (title bar, borders) while keeping keyboard focus.
 
-### Cross-Platform Differences
+### Platform Strategy
 
-`overrideredirect` behaves differently on Windows and Linux:
-
-| Behavior | Windows | Linux/X11 |
-|----------|---------|-----------|
-| Focus | Normal | May not receive focus |
-| Taskbar entry | Removed | Varies by window manager |
-| Dialog stacking | Dialogs appear in front | Dialogs may appear behind the window |
-
-On Linux, `overrideredirect` opts the window entirely out of the window manager. Expect
-focus and stacking issues that do not occur on Windows. `-topmost` is reliable on
-Windows but some Linux window managers ignore it.
+| Platform | Method | Keyboard Focus | Decorations |
+|----------|--------|---------------|-------------|
+| Linux/Wayland | `wm_attributes("-type", "splash")` | Yes | None |
+| Linux/X11 | `wm_attributes("-type", "splash")` | Yes | None |
+| Windows | `overrideredirect(True)` | Yes | None |
 
 ```python
+import platform
+
 def _build(self) -> None:
     win = tk.Toplevel(self._root)
-    win.overrideredirect(True)
-    win.wm_attributes("-topmost", True)
+
+    if platform.system() == "Linux":
+        win.wm_attributes("-type", "splash")
+    else:
+        win.overrideredirect(True)
 
     # Optional: colored border frame for visual boundary
     border_frame = tk.Frame(win, bg=WINDOW_BORDER_COLOR)
@@ -83,6 +82,28 @@ def _build(self) -> None:
     content_frame = tk.Frame(border_frame, bg=self._bg, padx=4, pady=4)
     content_frame.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
 ```
+
+### Window Type Pitfalls on Linux
+
+**Never use `-type dock`** — dock windows are treated as taskbar panels by Wayland
+compositors (Mutter, KWin). They do not receive keyboard focus, which breaks ALL
+text input widgets (Entry, Text) in the entire application.
+
+**Never use `overrideredirect(True)` on Linux** — it opts the window entirely out of
+the window manager. On Wayland via XWayland, keyboard focus delivery is unreliable.
+
+**`-type splash`** is the correct choice — splash windows have no decorations on
+GNOME/Mutter and KDE/KWin, but still receive keyboard focus because the compositor
+treats them as application windows.
+
+### Cross-Platform Differences
+
+| Behavior | Windows (`overrideredirect`) | Linux (`-type splash`) |
+|----------|----------------------------|----------------------|
+| Focus | Normal | Normal |
+| Taskbar entry | Removed | Varies by compositor |
+| Dialog stacking | Dialogs appear in front | Dialogs may appear behind |
+| Keyboard input | Works | Works |
 
 ### Border Frame Pattern
 
@@ -200,3 +221,5 @@ def _on_close(self) -> None:
 - Using `destroy()` when `withdraw()` is sufficient — forces a full widget rebuild on next show
 - Calling `focus_force()` without user-initiated context — Linux WMs may block it as focus stealing; on Windows it succeeds if the app has foreground rights, otherwise Windows blocks it and flashes the taskbar
 - Using `overrideredirect` without providing drag support — the user has no way to move the window since the OS title bar is gone
+- Using `wm_attributes("-type", "dock")` for application windows — dock windows don't receive keyboard focus on Wayland, breaking all text input
+- Using `overrideredirect(True)` on Linux — unreliable keyboard focus on Wayland; use `-type splash` instead

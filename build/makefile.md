@@ -87,7 +87,7 @@ $(PYTHON):
 
 ### Dependencies
 
-Targets that need the package installed should depend on `install-dev`, which itself depends on the venv existing:
+Targets that need the package installed should depend on `install-dev`, which itself depends on the venv existing. Targets that use `$(PYTHON)` but don't need packages installed (e.g., `links`, `install`, `uninstall`, `mutation-report`, `run`) should depend on `$(PYTHON)` directly:
 
 ```makefile
 install-dev: $(PYTHON)
@@ -95,6 +95,9 @@ install-dev: $(PYTHON)
 
 format: install-dev
 	$(PYTHON) -m black $(PACKAGE_NAME) tests
+
+links: $(PYTHON)
+	$(PYTHON) scripts/check-links.py
 ```
 
 ### format vs format-check
@@ -257,7 +260,7 @@ Create `make/run.mk` with project-specific values:
 ```makefile
 LOG_FILE := ~/.claude/my-app/app.log
 
-run: ## Start the app (use DEBUG=1 for debug logging)
+run: $(PYTHON) ## Start the app (use DEBUG=1 for debug logging)
 	@echo "Logging to $(LOG_FILE)"
 	$(PYTHON) -m my_app $(if $(DEBUG),--debug) --log-file $(LOG_FILE)
 ```
@@ -411,7 +414,7 @@ install-dev:
 markdown-lint: install-dev
 	$(PYTHON) -m pymarkdown --disable-rules MD013,MD024,MD031,MD036 scan .
 
-links:
+links: $(PYTHON)
 	$(PYTHON) scripts/check-links.py
 
 help:

@@ -2,4 +2,4 @@
 
 # Python Standards
 
-Python-specific standards for ap-* astrophotography pipeline projects.
+Python standards applicable to all projects. Astrophotography-specific conventions (ap-* naming, shared venv) are noted where applicable.

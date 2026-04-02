@@ -40,6 +40,7 @@ by directory. The sections below map common questions to the authoritative file.
 - [python/logging-progress.md](python/logging-progress.md) — logger setup, `--log-file`, progress bars
 - [python/settings-persistence.md](python/settings-persistence.md) — dataclass settings with JSON I/O
 - [python/testing.md](python/testing.md) — pytest conventions, TDD, TEST_PLAN.md
+- [python/agent-sdk.md](python/agent-sdk.md) — Claude Agent SDK integration, threading with tkinter, permission control
 
 ## CLI conventions
 

@@ -1,8 +1,19 @@
 # Naming Conventions
 
+## General Principles
+
+1. **Repo names:** lowercase, hyphens (`my-tool` not `myTool` or `my_tool`)
+1. **Python packages:** lowercase, underscores (`my_tool` not `my-tool`)
+1. **Modules:** lowercase, underscores, singular (`model.py` not `models.py` — exception: `types` shadows stdlib, use `models.py` instead)
+1. **Variables:** descriptive, include unit of measure where relevant (`timeout_seconds` not `timeout`)
+1. **Don't repeat context:** a field inside `ImageConfig` should be `width`, not `image_width`
+1. **Start with a verb** for tools/commands that perform actions
+
+## ap-* Astrophotography Pipeline Naming
+
 Standard naming patterns for ap-* astrophotography pipeline projects.
 
-## Naming Pattern
+### Naming Pattern
 
 All tools follow the pattern:
 
@@ -17,9 +28,9 @@ ap-{verb}-{qualifier?}-{noun}-to-{destination?}
 | `noun` | Yes | What the tool operates on (always singular) |
 | `destination` | No | Where data moves to |
 
-## Taxonomy
+### Taxonomy
 
-### Verbs
+#### Verbs
 
 | Verb | Action |
 |------|--------|
@@ -31,7 +42,7 @@ ap-{verb}-{qualifier?}-{noun}-to-{destination?}
 | `delete` | Remove files/frames |
 | `empty` | Clean up (e.g., remove empty directories) |
 
-### Nouns
+#### Nouns
 
 | Noun | Definition |
 |------|------------|
@@ -39,13 +50,13 @@ ap-{verb}-{qualifier?}-{noun}-to-{destination?}
 | `master` | An integrated calibration frame (bias, dark, or flat) |
 | `header` | Metadata stored in the file |
 
-### Qualifiers
+#### Qualifiers
 
 | Qualifier | Meaning |
 |-----------|---------|
 | `raw` | Unprocessed, directly from capture |
 
-### Destinations
+#### Destinations
 
 | Destination | Directory | Purpose |
 |-------------|-----------|---------|
@@ -53,7 +64,7 @@ ap-{verb}-{qualifier?}-{noun}-to-{destination?}
 | `data` | `20_Data/` | Accepted frames, collecting more |
 | `library` | `Calibration/Library/` | Organized master frame storage |
 
-## Project Names
+### Project Names
 
 | Project | Pattern | Purpose |
 |---------|---------|---------|
@@ -66,7 +77,7 @@ ap-{verb}-{qualifier?}-{noun}-to-{destination?}
 | `ap-move-light-to-data` | verb-noun-to-dest | Move accepted lights from blink → data |
 | `ap-common` | — | Shared utilities (exception to pattern) |
 
-## Guidelines
+### Guidelines
 
 1. **Start with a verb** - Every tool name begins with an action
 2. **Use singular nouns** - `light` not `lights`, `header` not `headers`
