@@ -59,6 +59,7 @@ The `--log-file` flag redirects all log output to a file instead of stderr.
 | Aspect | Detail |
 |--------|--------|
 | Default | Not set — logs go to stderr |
+| Path resolution | `expanduser().resolve()` — expands `~`, converts to absolute |
 | File mode | Append (`"a"`) — survives process restarts |
 | Scope | All logging output (DEBUG through CRITICAL) |
 | Uncaught exceptions | Route through `sys.excepthook` to the same logger |

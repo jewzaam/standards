@@ -21,6 +21,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [README Format](common/readme-format.md) | README structure and content |
 | [Naming](common/naming.md) | Project and package naming conventions |
 | [Git Submodules](common/submodules.md) | Git submodule conventions and workflows |
+| [Git Worktrees](common/git-worktrees.md) | Worktree conventions, cleanup, AI-assisted parallel development |
 
 ## Python
 
@@ -33,6 +34,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [ap-common Usage](python/ap-common-usage.md) | Use shared constants from ap-common |
 | [Logging & Progress](python/logging-progress.md) | Logging, progress indicators, and output |
 | [Settings Persistence](python/settings-persistence.md) | Dataclass settings with atomic JSON I/O |
+| [Agent SDK Integration](python/agent-sdk.md) | Claude Agent SDK integration patterns |
 
 ### Tkinter UI
 
@@ -43,6 +45,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Widgets](python/tkinter/widgets.md) | Layout, StringVar, styling, fonts, context menus |
 | [Threading](python/tkinter/threading.md) | Thread-safe UI updates, daemon threads, periodic polling |
 | [Dialogs](python/tkinter/dialogs.md) | Modal dialogs, settings windows, color pickers |
+| [Testing](python/tkinter/testing.md) | Two-layer testing strategy, root fixture, headless CI |
 
 ### Python Templates
 

@@ -345,12 +345,41 @@ except Exception as e:
 
 When `--log-file` is specified, use a `RotatingFileHandler` instead of stderr. Rotate at 2 MB, keep 1 backup — prevents unbounded disk growth while retaining enough history for diagnostics.
 
+#### Path Resolution
+
+All user-supplied path arguments (`--log-file`, `--output-dir`, etc.) must be resolved to absolute paths **before** any other processing. This prevents:
+
+- **Literal `~` directories** — `Path("~/logs")` creates a directory named `~`, not `$HOME/logs`
+- **CWD-relative surprises** — relative paths resolve against the process working directory, which may differ from the user's shell CWD in daemons, cron, or wrapper scripts
+
+Resolve paths once in `main()`, immediately after argument parsing:
+
+```python
+from pathlib import Path
+
+def main():
+    args = parser.parse_args()
+
+    # Resolve paths before any use
+    if hasattr(args, "output_dir"):
+        args.output_dir = str(Path(args.output_dir).expanduser().resolve())
+    if hasattr(args, "log_file") and args.log_file:
+        args.log_file = str(Path(args.log_file).expanduser().resolve())
+```
+
+| Method | What It Does |
+|--------|-------------|
+| `expanduser()` | Expands `~` and `~user` to home directory |
+| `resolve()` | Converts to absolute path, resolves symlinks |
+
+#### Handler Setup
+
 ```python
 import logging.handlers
 
 log_fmt = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 if args.log_file:
-    os.makedirs(os.path.dirname(os.path.abspath(args.log_file)), exist_ok=True)
+    Path(args.log_file).parent.mkdir(parents=True, exist_ok=True)
     handler = logging.handlers.RotatingFileHandler(
         args.log_file,
         maxBytes=2 * 1024 * 1024,
