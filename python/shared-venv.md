@@ -25,10 +25,10 @@ HOME_DIR := $(subst \,/,$(HOME))
 
 ifeq ($(OS),Windows_NT)
     VENV_DIR ?= $(if $(wildcard $(HOME_DIR)/.venv/ap/Scripts/python.exe),$(HOME_DIR)/.venv/ap,.venv)
-    PYTHON := $(VENV_DIR)/Scripts/python.exe
+    PYTHON ?= $(VENV_DIR)/Scripts/python.exe
 else
     VENV_DIR ?= $(if $(wildcard $(HOME_DIR)/.venv/ap/bin/python),$(HOME_DIR)/.venv/ap,.venv)
-    PYTHON := $(VENV_DIR)/bin/python
+    PYTHON ?= $(VENV_DIR)/bin/python
 endif
 ```
 
@@ -40,14 +40,10 @@ endif
 
 ## One-Time Setup
 
-Create the shared venv once:
+Create the shared venv once (requires [cross-platform Python shims](cross-platform.md)):
 
 ```bash
-# Linux/macOS
 python3 -m venv ~/.venv/ap
-
-# Windows (Git Bash)
-py -3 -m venv ~/.venv/ap
 ```
 
 Then install submodules into it from any checkout:
@@ -110,18 +106,16 @@ HOME_DIR := $(subst \,/,$(HOME))
 # Use shared ~/.venv/ap if it exists, otherwise local .venv
 ifeq ($(OS),Windows_NT)
     VENV_DIR ?= $(if $(wildcard $(HOME_DIR)/.venv/ap/Scripts/python.exe),$(HOME_DIR)/.venv/ap,.venv)
-    PYTHON := $(VENV_DIR)/Scripts/python.exe
-    PYTHON_BOOTSTRAP := py -3
+    PYTHON ?= $(VENV_DIR)/Scripts/python.exe
 else
     VENV_DIR ?= $(if $(wildcard $(HOME_DIR)/.venv/ap/bin/python),$(HOME_DIR)/.venv/ap,.venv)
-    PYTHON := $(VENV_DIR)/bin/python
-    PYTHON_BOOTSTRAP := python3
+    PYTHON ?= $(VENV_DIR)/bin/python
 endif
 
 $(info venv: $(VENV_DIR))
 
 $(PYTHON):
-	$(PYTHON_BOOTSTRAP) -m venv $(VENV_DIR)
+	python3 -m venv $(VENV_DIR)
 
 install-dev: $(PYTHON)
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -131,6 +125,7 @@ Key details:
 
 - **Auto-detection**: The `$(wildcard)` check is evaluated at Makefile parse time. If the shared venv python exists, `VENV_DIR` resolves to the shared venv.
 - **Windows support**: `$(OS)` is set to `Windows_NT` by Windows itself; venv layout uses `Scripts/python.exe` instead of `bin/python`.
+- **Cross-platform bootstrap**: `python3` works on all platforms via [cross-platform shims](cross-platform.md). No `PYTHON_BOOTSTRAP` variable needed.
 - **Venv indicator**: `$(info venv: $(VENV_DIR))` prints which venv is in use on every Make invocation, so you always know at a glance whether you are using the shared or local venv.
 - **Venv creation**: The `$(PYTHON)` target only fires if the file does not exist. When using the shared venv, this is a no-op.
 - **Override**: `VENV_DIR ?=` means you can always force a specific path: `make VENV_DIR=.venv test` to use a local venv instead.

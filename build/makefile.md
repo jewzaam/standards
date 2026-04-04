@@ -45,63 +45,18 @@ Copy [templates/Makefile](../python/templates/Makefile) and [templates/pyproject
 
 ## Conventions
 
-### VENV_DIR and PYTHON variables
+### Variables and venv creation
 
-`VENV_DIR` and `PYTHON` use a local `.venv` by default, with platform-appropriate paths:
+See [templates/Makefile](../python/templates/Makefile) for the canonical variable declarations, platform split, and venv creation target. Key points:
 
-```makefile
-ifeq ($(OS),Windows_NT)
-    VENV_DIR ?= .venv
-    PYTHON := $(VENV_DIR)/Scripts/python.exe
-    PYTHON_BOOTSTRAP := py -3
-else
-    VENV_DIR ?= .venv
-    PYTHON := $(VENV_DIR)/bin/python
-    PYTHON_BOOTSTRAP := python3
-endif
-```
-
-- **Default**: `VENV_DIR` resolves to `.venv` (local)
-- **Override**: `make VENV_DIR=/path/to/venv test` always works
-- **`PYTHON_BOOTSTRAP`**: The command used to create the venv. On Windows, `python3` does not exist — the Python Launcher `py -3` is the standard way to invoke Python. On Unix, `python3` is used. `PYTHON_BOOTSTRAP` is only used in the venv creation target; all other targets use `$(PYTHON)`.
-
-Do not hardcode `python` or `python3` in targets — always use `$(PYTHON)`.
-
-### PACKAGE_NAME variable
-
-`PACKAGE_NAME` is the Python package directory name (the importable name, e.g., `my_tool`). All targets that operate on source code use this variable:
-
-```makefile
-PACKAGE_NAME ?= my_tool
-```
-
-This single variable drives format, lint, typecheck, coverage, and mutation targets. Declare it at the top of the Makefile before any other variables.
-
-All variables (`PYTHON`, `PACKAGE_NAME`, `LOG_FILE`, etc.) must be declared at the top of the Makefile, before the first target. This keeps configuration visible and easy to override.
-
-### Venv creation target
-
-The venv is created automatically as a Make prerequisite. Make only runs this if `$(PYTHON)` does not exist:
-
-```makefile
-$(PYTHON):
-	$(PYTHON_BOOTSTRAP) -m venv $(VENV_DIR)
-```
+- All variables use `?=` so callers can override from the command line or environment
+- Do not hardcode `python` or `python3` in targets — always use `$(PYTHON)`
+- `python3` works on all platforms via [cross-platform shims](../python/cross-platform.md)
+- All variables must be declared at the top of the Makefile, before the first target
 
 ### Dependencies
 
-Targets that need the package installed should depend on `install-dev`, which itself depends on the venv existing. Targets that use `$(PYTHON)` but don't need packages installed (e.g., `links`, `install`, `uninstall`, `mutation-report`, `run`) should depend on `$(PYTHON)` directly:
-
-```makefile
-install-dev: $(PYTHON)
-	$(PYTHON) -m pip install -e ".[dev]"
-
-format: install-dev
-	$(PYTHON) -m black $(PACKAGE_NAME) tests
-
-links: $(PYTHON)
-	$(PYTHON) scripts/check-links.py
-```
+Targets that need the package installed should depend on `install-dev`, which itself depends on the venv existing. Targets that use `$(PYTHON)` but don't need packages installed (e.g., `links`, `install`, `uninstall`, `mutation-report`, `run`) should depend on `$(PYTHON)` directly.
 
 ### format vs format-check
 
@@ -243,7 +198,10 @@ project-root/
     └── version-check.mk
 ```
 
-Include optional targets in your Makefile:
+Include optional targets in your Makefile. `-include` lines can go at the top,
+before variable definitions — Make expands variables in rules and prerequisites
+after all files are parsed, so included `.mk` files can reference `$(PYTHON)` and
+other variables defined later in the main Makefile:
 
 ```makefile
 -include make/pipx.mk
@@ -263,6 +221,7 @@ Create `make/run.mk` with project-specific values:
 ```makefile
 LOG_FILE := ~/.claude/my-app/app.log
 
+.PHONY: run
 run: $(PYTHON) ## Start the app (use DEBUG=1 for debug logging)
 	@echo "Logging to $(LOG_FILE)"
 	$(PYTHON) -m my_app $(if $(DEBUG),--debug) --log-file $(LOG_FILE)
@@ -433,7 +392,7 @@ help:
 [project]
 name = "my-docs-repo"
 version = "0.1.0"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 [project.optional-dependencies]
 dev = [
