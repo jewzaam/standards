@@ -43,7 +43,11 @@ endif
 Create the shared venv once:
 
 ```bash
+# Linux/macOS
 python3 -m venv ~/.venv/ap
+
+# Windows (Git Bash)
+py -3 -m venv ~/.venv/ap
 ```
 
 Then install submodules into it from any checkout:
@@ -107,15 +111,17 @@ HOME_DIR := $(subst \,/,$(HOME))
 ifeq ($(OS),Windows_NT)
     VENV_DIR ?= $(if $(wildcard $(HOME_DIR)/.venv/ap/Scripts/python.exe),$(HOME_DIR)/.venv/ap,.venv)
     PYTHON := $(VENV_DIR)/Scripts/python.exe
+    PYTHON_BOOTSTRAP := py -3
 else
     VENV_DIR ?= $(if $(wildcard $(HOME_DIR)/.venv/ap/bin/python),$(HOME_DIR)/.venv/ap,.venv)
     PYTHON := $(VENV_DIR)/bin/python
+    PYTHON_BOOTSTRAP := python3
 endif
 
 $(info venv: $(VENV_DIR))
 
 $(PYTHON):
-	python3 -m venv $(VENV_DIR)
+	$(PYTHON_BOOTSTRAP) -m venv $(VENV_DIR)
 
 install-dev: $(PYTHON)
 	$(PYTHON) -m pip install -e ".[dev]"

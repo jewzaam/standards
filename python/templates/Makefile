@@ -8,9 +8,11 @@ PACKAGE_NAME ?= <package_name>
 ifeq ($(OS),Windows_NT)
     VENV_DIR ?= .venv
     PYTHON := $(VENV_DIR)/Scripts/python.exe
+    PYTHON_BOOTSTRAP := py -3
 else
     VENV_DIR ?= .venv
     PYTHON := $(VENV_DIR)/bin/python
+    PYTHON_BOOTSTRAP := python3
 endif
 
 $(info venv: $(VENV_DIR))
@@ -23,7 +25,7 @@ help:  ## Show available targets
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 $(PYTHON):
-	python3 -m venv $(VENV_DIR)
+	$(PYTHON_BOOTSTRAP) -m venv $(VENV_DIR)
 
 install: $(PYTHON)  ## Install package
 	$(PYTHON) -m pip install .

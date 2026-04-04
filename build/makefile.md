@@ -53,14 +53,17 @@ Copy [templates/Makefile](../python/templates/Makefile) and [templates/pyproject
 ifeq ($(OS),Windows_NT)
     VENV_DIR ?= .venv
     PYTHON := $(VENV_DIR)/Scripts/python.exe
+    PYTHON_BOOTSTRAP := py -3
 else
     VENV_DIR ?= .venv
     PYTHON := $(VENV_DIR)/bin/python
+    PYTHON_BOOTSTRAP := python3
 endif
 ```
 
 - **Default**: `VENV_DIR` resolves to `.venv` (local)
 - **Override**: `make VENV_DIR=/path/to/venv test` always works
+- **`PYTHON_BOOTSTRAP`**: The command used to create the venv. On Windows, `python3` does not exist — the Python Launcher `py -3` is the standard way to invoke Python. On Unix, `python3` is used. `PYTHON_BOOTSTRAP` is only used in the venv creation target; all other targets use `$(PYTHON)`.
 
 Do not hardcode `python` or `python3` in targets — always use `$(PYTHON)`.
 
@@ -82,7 +85,7 @@ The venv is created automatically as a Make prerequisite. Make only runs this if
 
 ```makefile
 $(PYTHON):
-	python3 -m venv $(VENV_DIR)
+	$(PYTHON_BOOTSTRAP) -m venv $(VENV_DIR)
 ```
 
 ### Dependencies
