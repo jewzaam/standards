@@ -34,7 +34,7 @@ Format on two lines for readability:
 
 ```markdown
 [![Test](https://github.com/<owner>/<repo>/actions/workflows/test.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/test.yml) [![Coverage](https://github.com/<owner>/<repo>/actions/workflows/coverage.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/coverage.yml) [![Lint](https://github.com/<owner>/<repo>/actions/workflows/lint.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/lint.yml) [![Format](https://github.com/<owner>/<repo>/actions/workflows/format.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/format.yml) [![Type Check](https://github.com/<owner>/<repo>/actions/workflows/typecheck.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/typecheck.yml)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ```
 
 Omit any badge whose workflow doesn't exist. Projects with no GitHub Actions workflows have no badges section.

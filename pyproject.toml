@@ -5,7 +5,7 @@ name = "standards"
 version = "0.1.0"
 description = "Coding conventions and architectural patterns"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 [project.optional-dependencies]
 dev = [

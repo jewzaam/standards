@@ -7,12 +7,10 @@ PACKAGE_NAME ?= <package_name>
 
 ifeq ($(OS),Windows_NT)
     VENV_DIR ?= .venv
-    PYTHON := $(VENV_DIR)/Scripts/python.exe
-    PYTHON_BOOTSTRAP := py -3
+    PYTHON ?= $(VENV_DIR)/Scripts/python.exe
 else
     VENV_DIR ?= .venv
-    PYTHON := $(VENV_DIR)/bin/python
-    PYTHON_BOOTSTRAP := python3
+    PYTHON ?= $(VENV_DIR)/bin/python
 endif
 
 $(info venv: $(VENV_DIR))
@@ -25,7 +23,7 @@ help:  ## Show available targets
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 $(PYTHON):
-	$(PYTHON_BOOTSTRAP) -m venv $(VENV_DIR)
+	python3 -m venv $(VENV_DIR)
 
 install: $(PYTHON)  ## Install package
 	$(PYTHON) -m pip install .
@@ -62,8 +60,8 @@ test: install-dev  ## Run pytest
 test-verbose: install-dev  ## Run pytest with verbose output
 	$(PYTHON) -m pytest -v
 
-coverage: install-dev  ## Run pytest with coverage
-	$(PYTHON) -m pytest --cov=$(PACKAGE_NAME) --cov-report=term
+coverage: install-dev  ## Run pytest with coverage (80% threshold)
+	$(PYTHON) -m pytest --cov=$(PACKAGE_NAME) --cov-report=term --cov-fail-under=80
 
 mutation: install-dev  ## Run mutation testing (not part of check — run in CI or on-demand)
 	$(PYTHON) -m mutmut run --CI --paths-to-mutate "$(PACKAGE_NAME)"

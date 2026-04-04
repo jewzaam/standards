@@ -26,7 +26,7 @@ by directory. The sections below map common questions to the authoritative file.
 
 - [build/github-workflows.md](build/github-workflows.md) — workflow conventions, Python versions, triggers
 - [build/templates/workflows/](build/templates/workflows/) — workflow templates to copy:
-  - `test.yml` — pytest on Python 3.11-3.14
+  - `test.yml` — pytest on Python 3.12-3.14
   - `lint.yml` — flake8
   - `typecheck.yml` — mypy
   - `format.yml` — black --check
