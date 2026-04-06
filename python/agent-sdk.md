@@ -163,6 +163,56 @@ options = ClaudeAgentOptions(can_use_tool=_deny_unapproved)
 `types` module and causes `ImportError` on restart/re-exec. Use `models.py`
 instead.
 
+## Context Window Guidelines
+
+These are guidelines for review, not hard enforcement rules.
+
+- **Effective context is 60-70% of the advertised window** (80% practical
+  ceiling). Design prompts and tool outputs with this in mind — do not assume
+  the full advertised context is usable.
+- **Prefer pointers over full content** for large tool outputs. Instead of
+  inlining a 500-line file, reference the path and relevant line range. This
+  applies to both tool results and system prompts.
+- **Avoid summarization as a context management strategy.** Summarizing prior
+  conversation to free up context causes trajectory elongation — the agent
+  loses details it may need later, leading to repeated work or wrong decisions.
+
+**Open question:** The SDK does not currently expose token usage or context
+remaining. Enforcing token budgets would require wrapping the SDK or using the
+raw API with token counting. This needs investigation before a specific
+implementation pattern can be recommended.
+
+## Agent Security Principles
+
+- **Deterministic enforcement > probabilistic guardrails.** Hooks and capability
+  restrictions are more reliable than prompt instructions. Skills and CLAUDE.md
+  are guidance — they fail silently when the model doesn't follow them. Hooks
+  fail loudly with visible errors.
+- **Three-layer model:**
+  1. **Enforcement** (SDK hooks, `can_use_tool`) — answers "what must never
+     happen?" Deterministic, cannot be bypassed by the model.
+  2. **Structure** (`allowed_tools`, `AgentDefinition`) — answers "what can each
+     agent do?" Constrains the action space.
+  3. **Guidance** (skills, CLAUDE.md, system prompts) — answers "what should the
+     agent know?" Shapes behavior but is not guaranteed.
+- **MCP servers:** Pin server versions in configuration. Validate tool
+  descriptions before exposing them to the LLM — tool descriptions are a
+  prompt injection vector (72.8% attack success rate in research).
+
+## Multi-Agent Coordination
+
+- **3-5 parallel agents is optimal.** Beyond 5, organizational failures
+  (conflicting edits, redundant work, merge conflicts) dominate the
+  productivity gains from parallelism.
+- **Coordination latency scales non-linearly** — ~200ms overhead for 2 agents,
+  4s+ for 8 or more.
+
+**Open question:** Agent drift (performance degradation over long sessions) is
+documented in research — success rates drop ~42% after a median of 73
+interactions. There is no SDK mechanism to detect or reset drift. Possible
+approaches include session length limits or periodic re-prompting, but neither
+has been validated in practice.
+
 ## What to Avoid
 
 - Setting `model` explicitly — breaks cross-deployment compatibility

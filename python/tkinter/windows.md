@@ -190,6 +190,13 @@ but not position. Tkinter has no native Wayland support (runs via XWayland only)
 Position persistence will not work correctly on Wayland-default desktops (Fedora 41+,
 Ubuntu 24.04+). There is no Tk-level fix until native Wayland support is implemented.
 
+### Multi-Monitor Caveat
+
+`winfo_screenwidth()` returns the primary monitor dimensions on Windows but the
+combined virtual desktop on Linux. If your app needs per-monitor dimensions (e.g.,
+to constrain window position to a specific screen), use the `screeninfo` library
+instead of tkinter's built-in screen queries.
+
 ## Visibility Methods
 
 | Method | Effect |

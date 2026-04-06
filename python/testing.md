@@ -422,6 +422,9 @@ Coverage metrics are a floor, not a ceiling. High coverage with weak assertions 
 - Edge cases (empty input, missing keys, boundary values)
 - Error conditions (raises appropriate exceptions)
 - Bug fixes (regression tests with issue links)
+- **High-complexity functions** — functions with cyclomatic complexity > 10 (see
+  [Complexity](complexity.md)) are disproportionately likely to contain defects.
+  Each decision branch should have dedicated test coverage
 
 ## What Not to Test
 

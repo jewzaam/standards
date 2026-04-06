@@ -97,6 +97,34 @@ dominates. Beyond that, conflicts between branches increase, merge resolution
 becomes frequent, and the cognitive load of tracking parallel work outweighs the
 parallelism benefit.
 
+## Resource isolation
+
+Worktrees share the `.git` directory, remotes, hooks, and all external state.
+For projects that depend on local databases, state files, or ports, use
+per-worktree paths to prevent collisions:
+
+```bash
+# Example: derive DB path from worktree branch name
+DB_FILE=~/.myapp/$(git branch --show-current)/db.sqlite
+```
+
+### Common conflict types
+
+| Conflict | Cause | Mitigation |
+|----------|-------|------------|
+| Lock files | Concurrent git operations across worktrees | Use SIGTERM for graceful cleanup; investigate before deleting `.lock` files |
+| Index lock | Parallel `git add`/`git commit` in different worktrees | Each worktree has its own index — conflicts are rare but possible with hooks |
+| Branch checkout | Two worktrees cannot share the same branch | Git enforces this; don't use `--force` to bypass |
+| Merge conflicts | Parallel branches touching the same files | Merge early and often; keep worktree branches focused |
+| Stale refs | Worktrees removed with `rm -rf` instead of `git worktree remove` | Use `git worktree prune` to clean up |
+| Build artifacts | Shared build cache with absolute paths | Use relative paths in build config or per-worktree build directories |
+
+### Single-writer rule
+
+Shared config files (`.env`, `settings.json`, database files) must have at most
+one worktree writing to them. If multiple worktrees need their own state, derive
+the path from the worktree name or branch.
+
 ## What to avoid
 
 - **Do not nest worktrees inside the main repo** — use sibling directories under
