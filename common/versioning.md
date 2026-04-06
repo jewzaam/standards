@@ -130,5 +130,5 @@ and [version-check.mk](../python/templates/version-check.mk) for the implementat
 1. **CLI is the public API** - Version the CLI contract, not internal code
 2. **When in doubt, bump major** - A cautious major bump is better than a surprise break
 3. **Reset lower components** - Bumping minor resets patch to 0; bumping major resets minor and patch to 0
-4. **Tag releases** - Use git tags matching `vX.Y.Z` (e.g., `v1.2.0`)
+4. **Tag releases** - Use git tags matching `vX.Y.Z` (e.g., `v1.2.0`). The version-check workflow auto-creates tags on push to main — no manual tagging needed
 5. **Start at 0.1.0** - New projects start at `0.1.0`; the `0.x` range signals pre-stable development where breaking changes may occur in minor releases
