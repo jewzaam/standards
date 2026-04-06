@@ -278,6 +278,22 @@ are ignored. When `VERSION_DIRS` is empty, any change triggers the bump check.
 workflow, not locally on every `make`. This avoids penalizing local iteration speed
 with git operations on every build.
 
+### Auto-Tagging
+
+The version-check workflow includes an `auto-tag` job that runs on push to
+main (not on PRs). After version-check passes, it reads the version from
+`pyproject.toml` and creates a `vX.Y.Z` git tag if one doesn't already exist.
+
+This works with rebase-merge workflows — tags are created on the mainline
+commit after merge, not on the feature branch commit that gets rewritten.
+The job requires `contents: write` permission.
+
+Consumers can pin to a version tag:
+
+```
+pip install git+https://github.com/user/repo.git@v0.3.5
+```
+
 To remove: delete the `-include` line (or comment it out) and remove the `.mk` file
 and workflow.
 
