@@ -1,7 +1,7 @@
 # Makefile template for Python projects
 # Replace <package_name> with the Python package name (e.g., my_tool)
 
-.PHONY: check help install install-dev install-no-deps uninstall clean format format-check lint typecheck test test-verbose coverage mutation mutation-report
+.PHONY: check help install install-dev install-no-deps uninstall clean format format-check lint typecheck test test-verbose coverage complexity mutation mutation-report
 
 PACKAGE_NAME ?= <package_name>
 
@@ -62,6 +62,9 @@ test-verbose: install-dev  ## Run pytest with verbose output
 
 coverage: install-dev  ## Run pytest with coverage (80% threshold)
 	$(PYTHON) -m pytest --cov=$(PACKAGE_NAME) --cov-report=term --cov-fail-under=80
+
+complexity: install-dev  ## Check cyclomatic complexity (xenon, max-absolute B)
+	$(PYTHON) -m xenon $(PACKAGE_NAME) --max-absolute B --max-modules B --max-average A
 
 mutation: install-dev  ## Run mutation testing (not part of check — run in CI or on-demand)
 	$(PYTHON) -m mutmut run --CI --paths-to-mutate "$(PACKAGE_NAME)"

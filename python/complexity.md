@@ -30,6 +30,10 @@ ruff check --select C901 .
 
 Or integrate into the existing `make lint` target alongside flake8.
 
+Alternatively, use `make complexity` (see [Makefile Standards](../build/makefile.md))
+which runs [xenon](https://github.com/rubik/xenon) with `--max-absolute B` to
+enforce the same CC ≤ 10 limit.
+
 ## Refactor Patterns
 
 When a function exceeds complexity 10, use these patterns to reduce it:

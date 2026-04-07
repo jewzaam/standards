@@ -30,6 +30,7 @@ make check     # Same as above (explicit)
 | `typecheck` | Type check with mypy |
 | `test` | Run pytest |
 | `coverage` | Run pytest with coverage |
+| `complexity` | Check cyclomatic complexity with xenon |
 | `mutation` | Run mutation testing with mutmut |
 | `mutation-report` | Show results of last mutation run |
 
@@ -95,6 +96,27 @@ Use `|| true` for commands that might fail during cleanup:
 ```makefile
 find . -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true
 ```
+
+### Complexity checking
+
+[xenon](https://github.com/rubik/xenon) enforces cyclomatic complexity thresholds
+at the Makefile level. It wraps [radon](https://github.com/rubik/radon) and exits
+non-zero when any module, function, or average exceeds the configured grade.
+
+`complexity` is **not** part of `check` — it's a separate validation step, similar
+to mutation testing. Run it on-demand or in CI.
+
+```makefile
+complexity: install-dev  ## Check cyclomatic complexity (xenon, max-absolute B)
+	$(PYTHON) -m xenon $(PACKAGE_NAME) --max-absolute B --max-modules B --max-average A
+```
+
+Grades: A (low risk, CC 1-5), B (moderate, CC 6-10), C (high, CC 11-15). The
+thresholds above (`--max-absolute B --max-modules B --max-average A`) match the
+[complexity standard](../python/complexity.md) limit of CC ≤ 10.
+
+See [Cyclomatic Complexity](../python/complexity.md) for refactoring patterns when
+functions exceed the limit.
 
 ### Mutation testing
 
