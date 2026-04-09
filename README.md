@@ -2,6 +2,7 @@
 
 [![Markdown Lint](https://github.com/jewzaam/standards/actions/workflows/markdown-lint.yml/badge.svg)](https://github.com/jewzaam/standards/actions/workflows/markdown-lint.yml)
 [![Validate Links](https://github.com/jewzaam/standards/actions/workflows/links.yml/badge.svg)](https://github.com/jewzaam/standards/actions/workflows/links.yml)
+[![Reachability](https://github.com/jewzaam/standards/actions/workflows/reachability.yml/badge.svg)](https://github.com/jewzaam/standards/actions/workflows/reachability.yml)
 
 Reusable software development standards. Reference these instead of recreating project-specific guidelines.
 
