@@ -13,6 +13,7 @@ UI patterns and conventions for Python tkinter desktop applications.
 | [Widgets](widgets.md) | Layout, StringVar, styling, fonts, context menus |
 | [Threading](threading.md) | Thread-safe UI updates, daemon threads, periodic polling |
 | [Dialogs](dialogs.md) | Modal dialogs, settings windows, color pickers |
+| [Testing](testing.md) | Two-layer testing strategy, root fixture, headless CI |
 
 ## Related Standards
 

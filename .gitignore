@@ -30,3 +30,6 @@ htmlcov/
 # Environment
 .env
 .env.local
+
+# Depth Analysis
+ANALYSIS.md
