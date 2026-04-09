@@ -50,8 +50,11 @@ def extract_links(filepath: str, repo_root: str) -> list[str]:
         target = target.split("#")[0]
         if not target:
             continue
-        # Resolve relative to the file's directory
-        resolved = os.path.normpath(os.path.join(file_dir, target))
+        # Handle absolute paths (rooted at repo root)
+        if target.startswith("/"):
+            resolved = os.path.normpath(target.lstrip("/"))
+        else:
+            resolved = os.path.normpath(os.path.join(file_dir, target))
         links.append(resolved)
 
     return links
@@ -123,11 +126,19 @@ def is_excluded(filepath: str) -> bool:
     return filepath.startswith(EXCLUDED_PREFIXES)
 
 
+# Entry points for reachability analysis.
+# CLAUDE.md is the comprehensive index and must directly link every content file.
+# README.md also links docs for human readers.
+ENTRY_POINTS = ["CLAUDE.md", "README.md"]
+DIRECT_LINK_ENTRY = "CLAUDE.md"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--check", action="store_true",
-        help="Exit non-zero if any non-excluded file is unreachable from CLAUDE.md",
+        help="Exit non-zero if any non-excluded file is unreachable or not "
+             f"directly linked from {DIRECT_LINK_ENTRY}",
     )
     args = parser.parse_args()
 
@@ -135,8 +146,11 @@ def main() -> None:
     all_files = find_tracked_md_files(repo_root)
     graph = build_link_graph(repo_root, all_files)
 
-    readme_depths = bfs_depths(graph, "README.md")
-    claude_depths = bfs_depths(graph, "CLAUDE.md")
+    entry_set = set(ENTRY_POINTS)
+    depths_by_entry = {}
+    for entry in ENTRY_POINTS:
+        if entry in set(all_files):
+            depths_by_entry[entry] = bfs_depths(graph, entry)
 
     # Build table
     lines = []
@@ -145,48 +159,57 @@ def main() -> None:
     lines.append("Depth = shortest link-chain from entry point to file.")
     lines.append("Entry points have depth 1. Depth x = no path exists.")
     lines.append("")
-    lines.append("| File | README.md | CLAUDE.md |")
-    lines.append("|------|-----------|-----------|")
+    header = "| File | " + " | ".join(depths_by_entry.keys()) + " |"
+    sep = "|------" + "|-----------|" * len(depths_by_entry)
+    lines.append(header)
+    lines.append(sep)
 
     unreachable = []
     for f in all_files:
-        r_depth = readme_depths.get(f, "x")
-        c_depth = claude_depths.get(f, "x")
-        lines.append(f"| `{f}` | {r_depth} | {c_depth} |")
-        if not is_excluded(f):
-            if f not in readme_depths:
-                unreachable.append((f, "README.md"))
-            if f not in claude_depths:
-                unreachable.append((f, "CLAUDE.md"))
+        cols = []
+        for entry, depths in depths_by_entry.items():
+            d = depths.get(f, "x")
+            cols.append(str(d))
+        lines.append(f"| `{f}` | " + " | ".join(cols) + " |")
+        if not is_excluded(f) and f not in entry_set:
+            for entry, depths in depths_by_entry.items():
+                if f not in depths:
+                    unreachable.append((f, entry))
 
     output = "\n".join(lines) + "\n"
 
-    output_path = os.path.join(repo_root, "ANALYSIS.md")
-    with open(output_path, "w") as out:
-        out.write(output)
+    content_files = [f for f in all_files if not is_excluded(f) and f not in entry_set]
 
-    print(f"Wrote {output_path} ({len(all_files)} files)")
+    if not args.check:
+        output_path = os.path.join(repo_root, "ANALYSIS.md")
+        with open(output_path, "w") as out:
+            out.write(output)
+        print(f"Wrote {output_path} ({len(content_files)} content files, "
+              f"{len(all_files) - len(content_files)} excluded)")
 
-    r_reachable = sum(1 for f in all_files if f in readme_depths)
-    c_reachable = sum(1 for f in all_files if f in claude_depths)
-    print(f"Reachable from README.md: {r_reachable}/{len(all_files)}")
-    print(f"Reachable from CLAUDE.md: {c_reachable}/{len(all_files)}")
+    for entry, depths in depths_by_entry.items():
+        reachable = sum(1 for f in content_files if f in depths)
+        print(f"Reachable from {entry}: {reachable}/{len(content_files)} content files")
 
-    # CLAUDE.md must link every non-excluded file directly (depth 2)
+    # Direct-link entry must link every non-excluded file directly (depth 2)
+    direct_depths = depths_by_entry.get(DIRECT_LINK_ENTRY, {})
     too_deep = []
     for f in all_files:
-        if is_excluded(f) or f == "CLAUDE.md":
+        if is_excluded(f) or f in entry_set:
             continue
-        depth = claude_depths.get(f)
+        depth = direct_depths.get(f)
         if depth is None or depth > 2:
             too_deep.append((f, depth))
 
-    failures = unreachable + [(f, f"CLAUDE.md (depth {d}, expected 2)") for f, d in too_deep]
+    failures = unreachable + [
+        (f, f"{DIRECT_LINK_ENTRY} (depth {d}, expected 2)")
+        for f, d in too_deep
+    ]
 
     if args.check and failures:
         print(f"\nERROR: {len(failures)} issue(s):")
         for filepath, detail in failures:
-            if isinstance(detail, str) and detail.startswith("CLAUDE"):
+            if isinstance(detail, str) and detail.startswith(DIRECT_LINK_ENTRY):
                 print(f"  {filepath} — {detail}")
             else:
                 print(f"  {filepath} — not reachable from {detail}")

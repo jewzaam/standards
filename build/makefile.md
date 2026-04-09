@@ -33,6 +33,7 @@ make check     # Same as above (explicit)
 | `complexity` | Check cyclomatic complexity with xenon |
 | `mutation` | Run mutation testing with mutmut |
 | `mutation-report` | Show results of last mutation run |
+| `reachability` | Verify all content files are reachable from entry points |
 
 ## Virtual Environment
 
@@ -117,6 +118,22 @@ thresholds above (`--max-absolute B --max-modules B --max-average A`) match the
 
 See [Cyclomatic Complexity](../python/complexity.md) for refactoring patterns when
 functions exceed the limit.
+
+### Reachability
+
+Every project with a `CLAUDE.md` should include the `reachability` target as
+part of `check`. This ensures all content files remain discoverable from entry
+points. See [Document Reachability](../common/reachability.md) for the full
+standard.
+
+```makefile
+reachability:  ## Verify all files are reachable from entry points
+	@echo "Checking document reachability..."
+	$(PYTHON) scripts/reachability.py --check
+```
+
+The script only requires Python stdlib — no extra dependencies. Include
+`reachability` in the `check` target prerequisites.
 
 ### Mutation testing
 
@@ -373,10 +390,11 @@ Makefile with two targets: `markdown-lint` and `links`.
 
 | Target | Description |
 |--------|-------------|
-| `check` | Run markdown-lint and links (default target) |
+| `check` | Run markdown-lint, links, and reachability (default target) |
 | `install-dev` | Install dev deps from pyproject.toml |
 | `markdown-lint` | Lint markdown with pymarkdown |
 | `links` | Validate local markdown links and anchors |
+| `reachability` | Verify all files are reachable from entry points |
 | `help` | Show available targets |
 
 ### Link Checker
@@ -402,11 +420,11 @@ Copy `scripts/check-links.py` from the standards repo into your project.
 ```makefile
 PYTHON := python
 
-.PHONY: all check install-dev markdown-lint links help
+.PHONY: all check install-dev markdown-lint links reachability help
 
 all: check
 
-check: markdown-lint links
+check: markdown-lint links reachability
 
 install-dev:
 	$(PYTHON) -m pip install --quiet -e '.[dev]'
@@ -416,6 +434,10 @@ markdown-lint: install-dev
 
 links: $(PYTHON)
 	$(PYTHON) scripts/check-links.py
+
+reachability:
+	@echo "Checking document reachability..."
+	$(PYTHON) scripts/reachability.py --check
 
 help:
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
