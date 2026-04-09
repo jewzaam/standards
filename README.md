@@ -5,6 +5,8 @@
 
 Reusable software development standards. Reference these instead of recreating project-specific guidelines.
 
+AI agents: see [CLAUDE.md](CLAUDE.md) for a flat file index optimized for tool-based lookup.
+
 ## Usage
 
 Reference in your project:
@@ -13,7 +15,7 @@ Reference in your project:
 This project follows the [Work Standards](https://github.com/jewzaam/standards).
 ```
 
-## Common
+## [Common](common/README.md)
 
 | Standard | Description |
 |----------|-------------|
@@ -23,20 +25,23 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Git Submodules](common/submodules.md) | Git submodule conventions and workflows |
 | [Git Worktrees](common/git-worktrees.md) | Worktree conventions, cleanup, AI-assisted parallel development |
 
-## Python
+## [Python](python/README.md)
 
 | Standard | Description |
 |----------|-------------|
 | [Style](python/style.md) | Python coding style and best practices |
 | [Project Structure](python/project-structure.md) | Directory layout and required files |
 | [Testing](python/testing.md) | Unit testing conventions, TDD, and TEST_PLAN.md requirements |
+| [Complexity](python/complexity.md) | Cyclomatic complexity limit (10), ruff C901 enforcement |
+| [Subprocess Security](python/subprocess-security.md) | Subprocess and localhost server security rules |
+| [Cross-Platform](python/cross-platform.md) | Making python/python3 work across Linux, macOS, Windows |
 | [Shared Venv](python/shared-venv.md) | Venv setup for standalone and monorepo development |
 | [ap-common Usage](python/ap-common-usage.md) | Use shared constants from ap-common |
 | [Logging & Progress](python/logging-progress.md) | Logging, progress indicators, and output |
 | [Settings Persistence](python/settings-persistence.md) | Dataclass settings with atomic JSON I/O |
 | [Agent SDK Integration](python/agent-sdk.md) | Claude Agent SDK integration patterns |
 
-### Tkinter UI
+### [Tkinter UI](python/tkinter/README.md)
 
 | Standard | Description |
 |----------|-------------|
@@ -54,16 +59,18 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Makefile](python/templates/Makefile) | Standard Makefile with all required targets |
 | [pyproject.toml](python/templates/pyproject.toml) | Package config with standard dev dependencies |
 | [TEST_PLAN.md](python/templates/TEST_PLAN.md) | Testing strategy documentation template |
+| [pipx.mk](python/templates/pipx.mk) | CLI tool installation via pipx (includable `.mk`) |
 | [version-check.mk](python/templates/version-check.mk) | Semver validation (includable `.mk`, optional `make version-check`) |
+| [version-check.sh](python/templates/version-check.sh) | Shell script for semver validation |
 
-## CLI
+## [CLI](cli/README.md)
 
 | Standard | Description |
 |----------|-------------|
 | [Conventions](cli/conventions.md) | CLI argument and flag conventions |
 | [Testing](cli/testing.md) | CLI entry point testing patterns |
 
-## Build and CI/CD
+## [Build and CI/CD](build/README.md)
 
 | Standard | Description |
 |----------|-------------|
@@ -82,13 +89,20 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [mutation.yml](build/templates/workflows/mutation.yml) | Run mutmut mutation testing |
 | [version-check.yml](build/templates/workflows/version-check.yml) | Validate semver (optional, copy when opting in) |
 
+## Claude Code
+
+| Standard | Description |
+|----------|-------------|
+| [Skills](claude-code/skills.md) | Authoring Claude Code skills (SKILL.md files) |
+| [Hook State Transitions](claude-code/hook-state-transitions.md) | Hook event types, state machines, and configuration |
+
 ## Planned Sections
 
 | Section | Description |
 |---------|-------------|
-| [Android](android/) | Android application development standards |
-| [Mobile](mobile/) | Cross-platform mobile development patterns |
-| [Guides](guides/) | Process and tooling how-tos |
+| [Android](android/README.md) | Android application development standards |
+| [Mobile](mobile/README.md) | Cross-platform mobile development patterns |
+| [Guides](guides/README.md) | Process and tooling how-tos |
 
 ## Guiding Principles
 
