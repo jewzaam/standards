@@ -25,6 +25,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Naming](common/naming.md) | Project and package naming conventions |
 | [Git Submodules](common/submodules.md) | Git submodule conventions and workflows |
 | [Git Worktrees](common/git-worktrees.md) | Worktree conventions, cleanup, AI-assisted parallel development |
+| [Reachability](common/reachability.md) | Document reachability enforcement from entry points |
 
 ## [Python](python/README.md)
 
@@ -88,6 +89,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [format.yml](build/templates/workflows/format.yml) | Verify black formatting |
 | [coverage.yml](build/templates/workflows/coverage.yml) | Enforce 80% coverage threshold |
 | [mutation.yml](build/templates/workflows/mutation.yml) | Run mutmut mutation testing |
+| [reachability.yml](build/templates/workflows/reachability.yml) | Verify document reachability from entry points |
 | [version-check.yml](build/templates/workflows/version-check.yml) | Validate semver (optional, copy when opting in) |
 
 ## Claude Code

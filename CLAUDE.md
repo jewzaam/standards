@@ -16,7 +16,7 @@ Run `make help` for available validation targets.
 Every non-infrastructure file in this repo must be linked directly from this
 file. No file should require traversing intermediate documents to discover.
 
-Run `make reachability` (or `python scripts/analyze_depth.py --check`) to
+Run `make reachability` (or `python scripts/reachability.py --check`) to
 verify. It fails if any content file is missing a direct link from CLAUDE.md
 or README.md.
 
@@ -35,6 +35,7 @@ When adding a new standard or template:
 - [common/readme-format.md](common/readme-format.md) — README structure, badges, descriptions
 - [common/submodules.md](common/submodules.md) — git submodule conventions and workflows
 - [common/git-worktrees.md](common/git-worktrees.md) — worktree conventions, cleanup, AI-assisted parallel development
+- [common/reachability.md](common/reachability.md) — document reachability enforcement from entry points
 
 ## Python
 
@@ -87,6 +88,7 @@ When adding a new standard or template:
 - [build/templates/workflows/format.yml](build/templates/workflows/format.yml) — black formatting check
 - [build/templates/workflows/coverage.yml](build/templates/workflows/coverage.yml) — 80% coverage threshold
 - [build/templates/workflows/mutation.yml](build/templates/workflows/mutation.yml) — mutmut mutation testing
+- [build/templates/workflows/reachability.yml](build/templates/workflows/reachability.yml) — document reachability check
 - [build/templates/workflows/version-check.yml](build/templates/workflows/version-check.yml) — semver validation (optional)
 
 ## Claude Code
