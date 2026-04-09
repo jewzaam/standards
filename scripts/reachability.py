@@ -10,8 +10,8 @@ import sys
 from collections import deque
 
 
-def find_tracked_md_files(repo_root: str) -> list[str]:
-    """Find all tracked .md files using git ls-files (respects .gitignore)."""
+def find_tracked_files(repo_root: str) -> list[str]:
+    """Find all tracked files using git ls-files (respects .gitignore)."""
     result = subprocess.run(
         ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
         capture_output=True,
@@ -143,7 +143,7 @@ def main() -> None:
     args = parser.parse_args()
 
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    all_files = find_tracked_md_files(repo_root)
+    all_files = find_tracked_files(repo_root)
     graph = build_link_graph(repo_root, all_files)
 
     entry_set = set(ENTRY_POINTS)
