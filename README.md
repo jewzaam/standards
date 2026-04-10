@@ -78,6 +78,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 |----------|-------------|
 | [Makefile](build/makefile.md) | Build targets and conventions |
 | [GitHub Workflows](build/github-workflows.md) | CI/CD pipeline configuration |
+| [Local Workflow Testing](build/local-workflow-testing.md) | Testing workflows locally with act |
 
 ### Workflow Templates
 

@@ -82,6 +82,7 @@ When adding a new standard or template:
 - [build/README.md](build/README.md)
 - [build/makefile.md](build/makefile.md) — Makefile conventions, required targets, `PACKAGE_NAME`, `VENV_DIR`
 - [build/github-workflows.md](build/github-workflows.md) — workflow conventions, Python versions, triggers
+- [build/local-workflow-testing.md](build/local-workflow-testing.md) — testing GitHub Actions workflows locally with act, safe defaults
 - [build/templates/workflows/test.yml](build/templates/workflows/test.yml) — pytest on Python 3.12-3.14
 - [build/templates/workflows/lint.yml](build/templates/workflows/lint.yml) — flake8 linter
 - [build/templates/workflows/typecheck.yml](build/templates/workflows/typecheck.yml) — mypy type checker
