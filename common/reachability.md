@@ -84,6 +84,14 @@ reachability:  ## Verify all files are reachable from entry points
 	$(PYTHON) scripts/reachability.py --check
 ```
 
+For repos that need a higher depth limit:
+
+```makefile
+reachability:  ## Verify all files are reachable from entry points
+	@echo "Checking document reachability..."
+	$(PYTHON) scripts/reachability.py --check --max-depth 3
+```
+
 Include `reachability` in the `check` target so it runs with other validations.
 
 ### CI workflow
@@ -106,11 +114,15 @@ jobs:
       - run: make reachability
 ```
 
-### Modes
+### CLI flags
 
 - **`--check`** — validation mode. Prints pass/fail summary to stdout and
   exits non-zero on failures. Does not write any files. Use this in CI and
   Makefile targets.
+- **`--max-depth N`** — override the maximum allowed depth from the direct-link
+  entry. Default is 2. Use 3 for larger repos with intermediate index files
+  (e.g., monorepos where `CLAUDE.md` → `AGENTS.md` → `docs/standards/*.md`).
+  Pass via the Makefile target so the value is documented in one place.
 - **No flags** — report mode. Writes `ANALYSIS.md` with a depth table showing
   each file's depth from every entry point. Useful for auditing. Exclude
   `ANALYSIS.md` from reachability checks itself (add to `EXCLUDED_EXACT`).
