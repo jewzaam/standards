@@ -26,6 +26,12 @@ v0.2.87 was reviewed on 2026-04-10 and is safe to use with the
 required flags below. Pin to this version. Before upgrading, check
 release notes for security-relevant changes.
 
+Install via Go:
+
+```bash
+go install github.com/nektos/act@v0.2.87
+```
+
 ## Required Flags
 
 Act mounts the Docker socket into every container by default, granting
