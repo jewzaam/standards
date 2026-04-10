@@ -32,6 +32,86 @@ Install via Go:
 go install github.com/nektos/act@v0.2.87
 ```
 
+## Runner Image
+
+GitHub Actions steps (`uses: actions/checkout@v4`, `actions/setup-python@v5`,
+etc.) are Node.js applications. Official Ubuntu images do not include Node.js
+and cannot run these steps. Act requires a runner image that provides Node.js
+and the environment GitHub Actions expects.
+
+### Approved image
+
+[catthehacker/ubuntu](https://github.com/catthehacker/docker_images) provides
+purpose-built runner images for act. The Dockerfiles are public and auditable.
+
+**Reviewed image:** `act-22.04` — reviewed on 2026-04-10.
+
+**Pinned digest (required):**
+
+```
+docker.io/catthehacker/ubuntu:act-22.04@sha256:d83455c10c9a31c9c944a4c5628360c6c374983fa6616bd2439ab88b05ae2046
+```
+
+Never use mutable tags (`:latest`, `:act-latest`, `:act-22.04` without
+digest). A pinned digest is immutable — what you audit is what runs.
+
+### What the image contains
+
+Built from `ubuntu:22.04` with a single install script (`linux/ubuntu/scripts/act.sh`):
+
+- **System packages:** ssh, curl, jq, wget, sudo, gnupg, ca-certificates,
+  zstd, zip, unzip, python3-pip, python3-venv, pipx
+- **Git:** latest from ppa:git-core/ppa, plus git-lfs
+- **Docker CLI:** moby-engine, moby-cli, moby-buildx, moby-compose (from
+  Microsoft's Ubuntu repo). Inert when `--container-daemon-socket=-` is used
+- **Node.js:** versions 20 and 24, downloaded from nodejs.org
+- **yq:** from GitHub releases with checksum verification
+
+No services, daemons, cron jobs, or telemetry. Build-time only — the script
+installs packages and exits.
+
+### Updating the pinned digest
+
+When updating to a new image version:
+
+1. Review the Dockerfile and `act.sh` changes since the last pinned version
+2. Pull the new image: `podman pull docker.io/catthehacker/ubuntu:<new-tag>`
+3. Get the digest: `podman inspect docker.io/catthehacker/ubuntu:<new-tag> --format='{{.Digest}}'`
+4. Test with the full command line from the Usage section below
+5. Update the digest in this document
+
+## Container Runtime
+
+Act supports both Docker and Podman. **Podman rootless is preferred** —
+it runs containers in a user namespace with no root daemon, providing
+stronger isolation than Docker.
+
+### Podman setup
+
+Ensure the Podman user socket is active:
+
+```bash
+systemctl --user is-active podman.socket  # should print "active"
+```
+
+Point act at the Podman socket via `DOCKER_HOST`:
+
+```bash
+export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
+```
+
+### Risk comparison
+
+| Vector | Docker | Podman rootless |
+|--------|--------|-----------------|
+| Container escape | Root on host | Unprivileged user (your own UID) |
+| Daemon | Runs as root | No daemon — direct fork/exec |
+| Socket access | Root-equivalent | User-scoped, no privilege escalation |
+
+With Podman rootless + `--container-daemon-socket=-`, the risk profile
+is comparable to running `pip install` in your own terminal. The container
+isolation actually makes it *more* constrained than running commands natively.
+
 ## Required Flags
 
 Act mounts the Docker socket into every container by default, granting
@@ -44,6 +124,54 @@ Docker access.
 | `--container-daemon-socket` | `/var/run/docker.sock` | `-` | Docker socket mount gives containers root-equivalent host access |
 | `--privileged` | `false` | `false` (never enable) | Bypasses all container security — device access, kernel modules, iptables |
 | `--insecure-secrets` | `false` | `false` (never enable) | Disables secret masking entirely |
+
+## Usage
+
+Full command with all required flags and pinned image:
+
+```bash
+DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock \
+act pull_request \
+  -P ubuntu-latest=docker.io/catthehacker/ubuntu:act-22.04@sha256:d83455c10c9a31c9c944a4c5628360c6c374983fa6616bd2439ab88b05ae2046 \
+  --container-daemon-socket=- \
+  --privileged=false \
+  --insecure-secrets=false \
+  -W .github/workflows/ci.yml \
+  -j <job-name>
+```
+
+### Targeting specific jobs
+
+Use `-j <job-name>` to run a single job, or omit it to run all jobs
+triggered by the specified event. Use `act --list` to see available
+jobs and their stages.
+
+### Container reuse
+
+Add `--reuse` to keep containers between runs. First run is slow
+(image pull, dependency install). Subsequent runs reuse the container
+with packages already installed.
+
+### Jobs requiring Docker access
+
+Jobs that use testcontainers, docker-compose, or podman-compose need
+the Docker socket mounted inside the container. These will fail with
+`--container-daemon-socket=-`. This is expected — leave those checks
+for CI. The `--container-daemon-socket=-` flag is non-negotiable for
+local runs.
+
+## Discovering Required PR Checks
+
+To find which workflow jobs are required for PRs (configured in
+GitHub branch protection or repository rulesets):
+
+```bash
+gh api repos/$(gh repo view --json nameWithOwner --jq '.nameWithOwner')/rules/branches/$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo main) \
+  --jq '.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context'
+```
+
+This returns the job names that must pass. Cross-reference with
+`act --list` to identify which are locally runnable.
 
 ## Security Risks
 
@@ -83,9 +211,11 @@ structured output that splits values across fields.
 
 ## Limitations
 
-- **Docker required** — needs a running Docker daemon
+- **Container runtime required** — needs Docker or Podman
 - **Not identical to GitHub** — hosted runner tools, OIDC tokens, and
   GitHub-managed secrets are unavailable locally
+- **Jobs needing Docker inside containers** will fail with the required
+  `--container-daemon-socket=-` flag (testcontainers, compose, etc.)
 
 ## Project Health
 
