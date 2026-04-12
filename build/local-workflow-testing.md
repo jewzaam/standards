@@ -29,11 +29,41 @@ reconstitution and `.git` skip in FileCollector. Upstream PR:
 Pin to this fork until the [PR 6075](https://github.com/nektos/act/pull/6075) is merged and a new upstream release
 is tagged.
 
-Install via Go:
+Install from fork (module path mismatch prevents `go install`):
 
 ```bash
-go install github.com/jewzaam/act@c2a7412aafac17083e7213c03eb4f7960286cc0b
+git clone --depth 1 --branch fix/git-worktree-support \
+  https://github.com/jewzaam/act /tmp/act-fork \
+  && go build -C /tmp/act-fork -o "$(go env GOPATH)/bin/act" main.go \
+  && rm -rf /tmp/act-fork
 ```
+
+### Verifying the installed binary
+
+The fork does not change the version string or module path (`go.mod`
+still declares `github.com/nektos/act`), so `act --version` and the
+module path in build metadata are identical to upstream.
+
+**Quick check — built from source vs tagged release:**
+
+```bash
+go version -m "$(which act)" | grep 'github.com/nektos/act'
+```
+
+- `github.com/nektos/act  (devel)` → built from source (expected for
+  the fork clone+build install above)
+- `github.com/nektos/act  v0.2.87` → installed from a tagged upstream
+  release via `go install`
+
+`(devel)` confirms the binary was built from a local checkout rather
+than a published module version. It does not prove which fork — only
+that the install method was clone+build.
+
+**Definitive check — worktree behavior:**
+
+Run act from inside a git worktree. Upstream act fails because it
+cannot resolve `.git` file references; the fork reconstitutes the
+real `.git` directory and succeeds.
 
 ## Runner Image
 
