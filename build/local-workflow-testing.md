@@ -22,14 +22,17 @@ model intentionally mirrors GitHub's hosted runners.
 
 ## Reviewed Version
 
-v0.2.87 was reviewed on 2026-04-10 and is safe to use with the
-required flags below. Pin to this version. Before upgrading, check
-release notes for security-relevant changes.
+v0.2.87+worktree from fork `jewzaam/act` branch
+`fix/git-worktree-support` (commit `c2a7412a`). Adds git worktree
+reconstitution and `.git` skip in FileCollector. Upstream PR:
+[nektos/act#6074](https://github.com/nektos/act/issues/6074).
+Pin to this fork until the [PR 6075](https://github.com/nektos/act/pull/6075) is merged and a new upstream release
+is tagged.
 
 Install via Go:
 
 ```bash
-go install github.com/nektos/act@v0.2.87
+go install github.com/jewzaam/act@c2a7412aafac17083e7213c03eb4f7960286cc0b
 ```
 
 ## Runner Image
