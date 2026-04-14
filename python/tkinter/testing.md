@@ -147,10 +147,19 @@ this for tests that genuinely need event loop processing.
 
 ## Headless CI
 
-Tkinter tests require a display. On Linux CI runners, use pytest-xvfb:
+Tkinter requires the Tk shared libraries (`libtk`) at import time. The
+`actions/setup-python` action installs CPython from pre-built binaries that
+expect Tk to already be on the system — it is not included by default on
+`ubuntu-latest`. Any workflow that imports a module using tkinter (directly
+or transitively) will fail with `ImportError: libtk8.6.so: cannot open
+shared object file` unless the system package is installed first.
+
+Tkinter tests also require a display. On Linux CI runners, use pytest-xvfb:
 
 ```yaml
 # GitHub Actions
+- name: Install Tk libraries
+  run: sudo apt-get update && sudo apt-get install -y python3-tk
 - run: sudo apt-get install -y xvfb
 - run: pip install pytest-xvfb
 - run: python -m pytest
