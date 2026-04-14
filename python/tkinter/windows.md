@@ -183,12 +183,42 @@ def _build(self) -> None:
 
 Save on **hide** or **close**, not on every drag motion. Saving on every pixel of movement causes excessive I/O.
 
-### Wayland Limitation
+### Wayland/XWayland Position Tracking
 
-Window position setting via `geometry()` is broken under XWayland — it affects size
-but not position. Tkinter has no native Wayland support (runs via XWayland only).
-Position persistence will not work correctly on Wayland-default desktops (Fedora 41+,
-Ubuntu 24.04+). There is no Tk-level fix until native Wayland support is implemented.
+On Wayland compositors (Mutter, KWin), Tkinter runs via XWayland.  After a user
+drags a window through the compositor (e.g., Alt+drag), XWayland does **not** send
+`ConfigureNotify` with updated position.  This makes `geometry()` return stale
+coordinates while `winfo_rootx()`/`winfo_rooty()` stay accurate:
+
+| API                    | After user drag | After programmatic `geometry()` |
+|------------------------|-----------------|---------------------------------|
+| `geometry()`           | **Stale**       | Correct                         |
+| `winfo_rootx/rooty()`  | Correct         | Correct                         |
+
+**Impact:** Any `geometry()` call that changes size will jump the window back to its
+pre-drag position because Tk includes the stale coordinates in the `ConfigureRequest`.
+Even size-only calls (`geometry("WxH")` without `+X+Y`) trigger this — Tk internally
+sends the stale position. `update()` and `update_idletasks()` do not help.
+
+**Fix:** Use `winfo_rootx()`/`winfo_rooty()` for position, adjusted by a frame
+offset computed once at startup when `geometry()` is still accurate:
+
+```python
+# At startup, after setting geometry (coords are still fresh):
+window.update_idletasks()
+m = re.match(r"\d+x\d+\+(-?\d+)\+(-?\d+)", geometry)
+frame_dx = window.winfo_rootx() - int(m.group(1))  # typically 0
+frame_dy = window.winfo_rooty() - int(m.group(2))  # typically 37 (title bar)
+
+# Later, when you need WM-frame coordinates for geometry():
+frame_x = window.winfo_rootx() - frame_dx
+frame_y = window.winfo_rooty() - frame_dy
+window.geometry(f"{w}x{h}+{frame_x}+{frame_y}")
+```
+
+The offset accounts for the difference between client-area coordinates
+(`winfo_rootx/y`) and WM-frame coordinates (`geometry()`).  It is constant for the
+window's lifetime.  On Windows, the offset computes to `(0, 0)` making this a no-op.
 
 ### Multi-Monitor Caveat
 
