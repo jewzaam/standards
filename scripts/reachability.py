@@ -71,7 +71,7 @@ def extract_links(filepath: str, repo_root: str) -> list[str]:
             resolved = os.path.normpath(target.lstrip("/"))
         else:
             resolved = os.path.normpath(os.path.join(file_dir, target))
-        links.append(resolved)
+        links.append(resolved.replace("\\", "/"))
 
     return links
 
