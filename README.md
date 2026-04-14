@@ -98,6 +98,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | Standard | Description |
 |----------|-------------|
 | [Skills](claude-code/skills.md) | Authoring Claude Code skills (SKILL.md files) |
+| [Plugins](claude-code/plugins.md) | Plugin structure, manifest schema, marketplace distribution |
 | [Hook State Transitions](claude-code/hook-state-transitions.md) | Hook event types, state machines, and configuration |
 
 ## Planned Sections

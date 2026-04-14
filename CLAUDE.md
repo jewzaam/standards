@@ -95,6 +95,7 @@ When adding a new standard or template:
 ## Claude Code
 
 - [claude-code/skills.md](claude-code/skills.md) — authoring Claude Code skills (SKILL.md files)
+- [claude-code/plugins.md](claude-code/plugins.md) — plugin structure, manifest schema, marketplace distribution
 - [claude-code/hook-state-transitions.md](claude-code/hook-state-transitions.md) — hook event types, state machines, configuration
 
 ## Planned (empty)
