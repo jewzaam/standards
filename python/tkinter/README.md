@@ -9,6 +9,7 @@ UI patterns and conventions for Python tkinter desktop applications.
 | Standard | Description |
 |----------|-------------|
 | [Architecture](architecture.md) | Application structure, controller pattern, window hierarchy |
+| [DPI Scaling](dpi-scaling.md) | HiDPI detection, `tk scaling`, pixel dimension scaling |
 | [Windows](windows.md) | Window lifecycle, borderless mode, dragging, position persistence |
 | [Widgets](widgets.md) | Layout, StringVar, styling, fonts, context menus |
 | [Threading](threading.md) | Thread-safe UI updates, daemon threads, periodic polling |

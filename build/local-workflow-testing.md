@@ -103,6 +103,59 @@ Built from `ubuntu:22.04` with a single install script (`linux/ubuntu/scripts/ac
 No services, daemons, cron jobs, or telemetry. Build-time only — the script
 installs packages and exits.
 
+### Custom runner image
+
+Projects that need additional system packages (e.g., `python3-tk` for
+tkinter) should build a local image layered on the pinned base. This
+avoids slow installs on every act run.
+
+```dockerfile
+FROM docker.io/catthehacker/ubuntu:act-22.04@sha256:d83455c10c9a31c9c944a4c5628360c6c374983fa6616bd2439ab88b05ae2046
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3-tk \
+ && rm -rf /var/lib/apt/lists/*
+```
+
+Build and tag locally (no registry needed):
+
+```bash
+podman build -t act-runner:local -f Dockerfile.act-runner .
+```
+
+The image inherits the security properties of the pinned base. Only
+add packages needed for local testing — keep the layer minimal. When
+the base digest is updated, rebuild the custom image.
+
+## Configuration
+
+Act reads flags from config files (one flag per line), then appends
+CLI args. For array flags like `-P`, later values for the same key
+overwrite earlier ones. For scalar flags like
+`--container-daemon-socket`, last value wins. CLI always overrides
+config files.
+
+Config file load order:
+
+1. `~/.config/act/actrc` (XDG spec)
+2. `~/.actrc`
+3. `.actrc` in the current directory (project-level)
+
+### Global config (`~/.config/act/actrc`)
+
+Use for the runner image mapping. Required flags and other overrides
+are set explicitly where act is invoked.
+
+```
+-P ubuntu-latest=localhost/act-runner:local
+-P ubuntu-22.04=localhost/act-runner:local
+```
+
+### Project-level config (`.actrc`)
+
+Overrides global config for a specific project. Project-level `.actrc`
+files should be gitignored — they reflect local environment choices,
+not project requirements.
+
 ### Updating the pinned digest
 
 When updating to a new image version:
@@ -160,7 +213,16 @@ Docker access.
 
 ## Usage
 
-Full command with all required flags and pinned image:
+With the global `~/.config/act/actrc` configured, invocations are
+minimal:
+
+```bash
+act pull_request
+act pull_request -j <job-name>
+act pull_request -W .github/workflows/ci.yml -j <job-name>
+```
+
+Full command without config files (all flags explicit):
 
 ```bash
 DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock \

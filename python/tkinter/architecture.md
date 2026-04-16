@@ -160,6 +160,7 @@ def main():
     parser = argparse.ArgumentParser(description="...")
     parser.add_argument("--debug", action="store_true", help="enable debug logging")
     parser.add_argument("--quiet", "-q", action="store_true", help="suppress non-essential output")
+    parser.add_argument("--scale", type=float, default=None, help="DPI scale override")
     args = parser.parse_args()
 
     level = logging.DEBUG if args.debug else (logging.WARNING if args.quiet else logging.INFO)
@@ -169,9 +170,8 @@ def main():
         stream=sys.stderr,
     )
 
-    # Windows DPI awareness — must be called before Tk() is created.
-    # Without this, Windows bitmap-scales the entire window on HiDPI
-    # displays (125%+), causing blurry text and oversized widgets.
+    # DPI awareness — platform-specific setup before Tk() is created.
+    # See [DPI Scaling](dpi-scaling.md) for the full cross-platform pattern.
     if sys.platform == "win32":
         try:
             import ctypes
@@ -182,7 +182,7 @@ def main():
     # Deferred import — only after args parsed and logging configured
     from mypackage.controller import AppController
 
-    app = AppController(debug=args.debug, quiet=args.quiet)
+    app = AppController(debug=args.debug, quiet=args.quiet, dpi_scale=args.scale)
     app.run()
 ```
 
