@@ -61,6 +61,7 @@ When adding a new standard or template:
 - [python/tkinter/threading.md](python/tkinter/threading.md) — thread-safe UI updates, daemon threads, periodic polling
 - [python/tkinter/dialogs.md](python/tkinter/dialogs.md) — modal dialogs, settings windows, color pickers
 - [python/tkinter/testing.md](python/tkinter/testing.md) — two-layer testing strategy, root fixture, headless CI
+- [python/tkinter/dpi-scaling.md](python/tkinter/dpi-scaling.md) — HiDPI detection, `tk scaling`, pixel dimension scaling
 
 ## Python Templates
 

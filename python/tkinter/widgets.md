@@ -76,17 +76,23 @@ def update_countdowns(self, countdowns: dict[str, str]) -> None:
 
 ## Styling
 
-### Font Sizes: Pixels, Not Points
+### Font Sizes: Pixels vs Points
 
-Use **negative** font sizes to specify pixels. Positive sizes mean points, which
-resolve to different pixel counts depending on DPI settings. Negative sizes remove
-the DPI variable, though different fonts (Segoe UI vs Noto Sans) still have different
-metrics — pixel-exact cross-platform matching is not achievable with different fonts:
+**Negative** font sizes specify pixels; **positive** sizes mean points. Points
+resolve to different pixel counts depending on `tk scaling` (see
+[DPI Scaling](dpi-scaling.md)):
 
 ```python
-font = ("Segoe UI", -13)    # 13 pixels — removes DPI variation
-font = ("Segoe UI", 10)     # 10 points — different pixel count per DPI setting
+font = ("Segoe UI", -13)    # 13 pixels — fixed regardless of tk scaling
+font = ("Segoe UI", 10)     # 10 points — varies with tk scaling / DPI
 ```
+
+**When to use points (positive):** Apps that apply `tk scaling` for HiDPI support.
+Point-based fonts scale automatically with `tk scaling`, so text adapts to the
+display DPI without per-font adjustments.
+
+**When to use pixels (negative):** Apps that need exact pixel control and handle
+DPI scaling by other means (e.g., scaling the pixel value directly).
 
 ### Platform-Aware Fonts
 

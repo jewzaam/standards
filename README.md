@@ -53,6 +53,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Threading](python/tkinter/threading.md) | Thread-safe UI updates, daemon threads, periodic polling |
 | [Dialogs](python/tkinter/dialogs.md) | Modal dialogs, settings windows, color pickers |
 | [Testing](python/tkinter/testing.md) | Two-layer testing strategy, root fixture, headless CI |
+| [DPI Scaling](python/tkinter/dpi-scaling.md) | HiDPI detection, `tk scaling`, pixel dimension scaling |
 
 ### Python Templates
 
