@@ -1,0 +1,7 @@
+[project]
+name = "fixture-ok-precise"
+version = "0.0.1"
+dependencies = [
+    "Pillow>=10.0",
+    "requests>=2.31",
+]

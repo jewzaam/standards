@@ -138,3 +138,28 @@ stats = process_blink_directory(lib_path, blink_path, "YYYY-MM-DD", True, False,
 - Python itself raises `TypeError` for violations — no linter needed
 - Code reviewers should flag function definitions that have optional parameters without `*`
 - Add `*` to existing functions opportunistically when making changes
+
+## Imports: Every Import Must Resolve
+
+**Adding an import is an implicit dependency-contract change.** An import must
+resolve to one of:
+
+- A Python stdlib module
+- A local module in the tree
+- A package declared in `requirements.txt` or `pyproject.toml[project.dependencies]`
+
+Unresolvable imports — typos, hallucinated packages, packages pinned only in a
+lockfile — are treated as fabrications. Projects enforcing this standard run
+[fabcheck](../build/fabcheck.md) as a check (locally or in CI), which fails when
+it finds an import that doesn't resolve.
+
+Implications for contributors:
+
+- Adding an import to a third-party package means also adding it to the project's
+  declared deps in the same commit.
+- Dist-name / import-name divergence (e.g., `pillow` installs as `PIL`) is
+  handled precisely when fabcheck runs from an environment where the project's
+  deps are installed. Run `make install-dev` before `make fabcheck` locally; CI
+  does this automatically.
+- Dynamic imports (`importlib.import_module`) and conditional imports bypass
+  fabcheck — they are not a loophole for undeclared deps.

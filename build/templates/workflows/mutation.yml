@@ -22,7 +22,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install dependencies
-        run: make install-dev
+        run: make install-dev PY_SYS=python
 
       - name: Run mutation testing
         run: make mutation

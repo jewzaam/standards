@@ -36,6 +36,7 @@ When adding a new standard or template:
 - [common/submodules.md](common/submodules.md) — git submodule conventions and workflows
 - [common/git-worktrees.md](common/git-worktrees.md) — worktree conventions, cleanup, AI-assisted parallel development
 - [common/reachability.md](common/reachability.md) — document reachability enforcement from entry points
+- [common/tmp-dirs.md](common/tmp-dirs.md) — `.tmp-<slug>/` convention for named, git-ignored working directories
 
 ## Python
 
@@ -84,6 +85,9 @@ When adding a new standard or template:
 - [build/makefile.md](build/makefile.md) — Makefile conventions, required targets, `PACKAGE_NAME`, `VENV_DIR`
 - [build/github-workflows.md](build/github-workflows.md) — workflow conventions, Python versions, triggers
 - [build/local-workflow-testing.md](build/local-workflow-testing.md) — testing GitHub Actions workflows locally with act, safe defaults
+- [build/fabcheck.md](build/fabcheck.md) — fabrication detection: every import must resolve to stdlib, local code, or declared dep
+- [build/templates/fabcheck.mk](build/templates/fabcheck.mk) — fabcheck include (optional `make fabcheck`, `make fabcheck-report`)
+- [build/templates/fabcheck.sh](build/templates/fabcheck.sh) — vendorable bash script for fabcheck (multi-language import resolution)
 - [build/templates/workflows/test.yml](build/templates/workflows/test.yml) — pytest on Python 3.12-3.14
 - [build/templates/workflows/lint.yml](build/templates/workflows/lint.yml) — flake8 linter
 - [build/templates/workflows/typecheck.yml](build/templates/workflows/typecheck.yml) — mypy type checker
@@ -92,6 +96,7 @@ When adding a new standard or template:
 - [build/templates/workflows/mutation.yml](build/templates/workflows/mutation.yml) — mutmut mutation testing
 - [build/templates/workflows/reachability.yml](build/templates/workflows/reachability.yml) — document reachability check
 - [build/templates/workflows/version-check.yml](build/templates/workflows/version-check.yml) — semver validation (optional)
+- [build/templates/workflows/fabcheck.yml](build/templates/workflows/fabcheck.yml) — fabcheck CI with annotated findings (optional)
 
 ## Claude Code
 

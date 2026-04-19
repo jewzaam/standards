@@ -85,3 +85,14 @@ Workflows call Makefile targets, not duplicate commands:
 ```
 
 This keeps CI configuration simple and ensures local `make test` matches CI behavior.
+
+### Pin the venv to the matrix Python
+
+The install step passes `PY_SYS=python` so the venv is bootstrapped with the Python that `actions/setup-python` put on `PATH`, not the container's default `python3`:
+
+```yaml
+- name: Install dependencies
+  run: make install-dev PY_SYS=python
+```
+
+Without this, [act](local-workflow-testing.md) matrix legs targeting Python ≥3.12 fall back to the `catthehacker/ubuntu:act-22.04` image's default `python3` (3.11) and fail with `requires-python >=3.12`. See [Makefile Standards — Pinning the venv interpreter](makefile.md#pinning-the-venv-interpreter-py_sys) for the full rationale.

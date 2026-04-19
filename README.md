@@ -26,6 +26,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Git Submodules](common/submodules.md) | Git submodule conventions and workflows |
 | [Git Worktrees](common/git-worktrees.md) | Worktree conventions, cleanup, AI-assisted parallel development |
 | [Reachability](common/reachability.md) | Document reachability enforcement from entry points |
+| [Temp Directories](common/tmp-dirs.md) | `.tmp-<slug>/` convention for named, git-ignored working directories |
 
 ## [Python](python/README.md)
 
@@ -80,6 +81,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Makefile](build/makefile.md) | Build targets and conventions |
 | [GitHub Workflows](build/github-workflows.md) | CI/CD pipeline configuration |
 | [Local Workflow Testing](build/local-workflow-testing.md) | Testing workflows locally with act |
+| [Fabcheck](build/fabcheck.md) | Detect hallucinated imports and missing file references |
 
 ### Workflow Templates
 
@@ -93,6 +95,14 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [mutation.yml](build/templates/workflows/mutation.yml) | Run mutmut mutation testing |
 | [reachability.yml](build/templates/workflows/reachability.yml) | Verify document reachability from entry points |
 | [version-check.yml](build/templates/workflows/version-check.yml) | Validate semver (optional, copy when opting in) |
+| [fabcheck.yml](build/templates/workflows/fabcheck.yml) | Run fabcheck on push/PR, annotate missing findings, upload verdict |
+
+### Build Templates
+
+| Template | Description |
+|----------|-------------|
+| [fabcheck.mk](build/templates/fabcheck.mk) | Import fabrication detection (includable `.mk`, optional `make fabcheck`) |
+| [fabcheck.sh](build/templates/fabcheck.sh) | Shell script for fabcheck (vendor into `scripts/`) |
 
 ## Claude Code
 
