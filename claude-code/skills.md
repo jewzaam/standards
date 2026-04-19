@@ -36,6 +36,52 @@ argument-hint: [submodule]
 ---
 ```
 
+## `allowed-tools` Path Patterns
+
+The `allowed-tools` field uses Claude Code's permission rule syntax (e.g., `Bash(gh *)`). When scoping rules to paths, follow these conventions.
+
+### Use `*/` not `*` as the leading wildcard
+
+Anchor the literal portion to a path boundary. `*/.claude/skills/<name>/**` is preferred over `*.claude/skills/<name>/**`: the trailing slash on the wildcard requires the prefix to end at a separator, so the rule cannot match a sibling named `not.claude/skills/...`. Real paths always have a separator before the literal anchor (the skills directory always sits under a parent — `~/`, `/c/Users/.../`, etc.), so the extra constraint costs nothing.
+
+```yaml
+# Correct
+allowed-tools:
+  - Read(*/.claude/skills/myskill/**)
+
+# Avoid — allows look-alike siblings
+allowed-tools:
+  - Read(*.claude/skills/myskill/**)
+```
+
+### One pattern handles all cross-platform path forms
+
+A single command can appear as `~/path/`, `/c/Users/.../path/` (git-bash on Windows), or Windows-native backslashes. The leading `*/` wildcard absorbs all prefixes uniformly — write one rule per script, not three.
+
+```yaml
+# Correct — one rule covers all path forms
+allowed-tools:
+  - Bash(python */.claude/skills/myskill/scripts/helper.py *)
+```
+
+### Symlinked skills need rules for both paths
+
+If you develop a skill in a separate repo and symlink it into `~/.claude/skills/<name>/`, path matchers may resolve the symlink before matching. A rule scoped to `*/.claude/skills/<name>/**` then fails because the resolved path no longer contains that substring.
+
+Add a parallel rule covering the source repo path so both forms match:
+
+```yaml
+allowed-tools:
+  - Read(*/.claude/skills/myskill/**)        # symlink path
+  - Read(*/myskill-repo/**)                  # symlink target / direct clone
+  - Glob(*/.claude/skills/myskill/**)
+  - Glob(*/myskill-repo/**)
+  - Grep(*/.claude/skills/myskill/**)
+  - Grep(*/myskill-repo/**)
+```
+
+When the skill is installed via the plugin marketplace (no symlink), the second pattern is unused but harmless. Drop it once the skill ships as a plugin.
+
 ## Shell Injection
 
 Shell injection runs commands **before Claude sees the skill content**. The output replaces the placeholder inline. This is preprocessing — Claude receives the rendered result, not the command.
