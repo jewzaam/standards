@@ -1,0 +1,4 @@
+[project]
+name = "fixture-stdlib-only"
+version = "0.0.1"
+dependencies = []

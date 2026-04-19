@@ -56,6 +56,16 @@ See [templates/Makefile](../python/templates/Makefile) for the canonical variabl
 - `python3` works on all platforms via [cross-platform shims](../python/cross-platform.md)
 - All variables must be declared at the top of the Makefile, before the first target
 
+### Pinning the venv interpreter (`PY_SYS`)
+
+The venv-creation target uses `$(PY_SYS) -m venv $(VENV_DIR)`, where `PY_SYS` defaults to `python3`. CI overrides `PY_SYS=python` to pin the venv to the matrix Python installed by `actions/setup-python`.
+
+**Why this matters:** `setup-python` prepends its install to `PATH` and creates a stable `python` symlink pointing at the matrix version, but `python3` is not always rebound. On hosted `ubuntu-latest` runners this usually works for `python3` too; under [act](local-workflow-testing.md) with `catthehacker/ubuntu:act-22.04`, the container ships Python 3.11 as the default `python3` and `setup-python` only adjusts `python`. A matrix leg running Python 3.12+ then falls back to 3.11 when `make install-dev` runs `python3 -m venv .venv`, producing a 3.11 venv. `pip install -e ".[dev]"` subsequently fails with `requires-python >=3.12`.
+
+`python` is the safe choice in CI because `setup-python` always rebinds it; `python3` is the safe local default because distro Pythons ship it but not the unversioned `python`. Using `PY_SYS` as a variable keeps both paths clean without duplicating targets.
+
+The variable only governs venv *creation* — all other targets invoke `$(PYTHON)` (the venv interpreter), so once the venv exists the matrix version is baked in.
+
 ### Dependencies
 
 Targets that need the package installed should depend on `install-dev`, which itself depends on the venv existing. Targets that use `$(PYTHON)` but don't need packages installed (e.g., `links`, `install`, `uninstall`, `mutation-report`, `run`) should depend on `$(PYTHON)` directly.

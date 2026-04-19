@@ -23,6 +23,7 @@ EXCLUDED_PREFIXES = (
     ".",
     ".github/",
     "scripts/",
+    "tests/",
 )
 EXCLUDED_EXACT = {
     "ANALYSIS.md",

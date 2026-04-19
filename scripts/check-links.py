@@ -13,8 +13,12 @@ HEADING_PATTERN = re.compile(r"^#{1,6}\s+(.+)$", re.MULTILINE)
 def heading_to_anchor(heading):
     """Convert a markdown heading to a GitHub-style anchor slug."""
     text = heading.strip()
-    # Remove inline markdown: bold, italic, code, links
-    text = re.sub(r"[*_`]", "", text)
+    # Remove inline markdown: bold, code, links.
+    # Underscores are intentionally NOT stripped — GitHub preserves them
+    # inside words (e.g., `PY_SYS` -> `py_sys` in the slug). Stripping `_`
+    # here diverges from GitHub's actual anchor generation and breaks links
+    # to any heading that contains an underscored identifier.
+    text = re.sub(r"[*`]", "", text)
     text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
     text = text.lower()
     text = re.sub(r"[^\w\s-]", "", text)
