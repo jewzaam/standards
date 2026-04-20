@@ -125,6 +125,8 @@ Set `"disableSkillShellExecution": true` in settings.json. Each command is repla
 | `$N` | Shorthand for `$ARGUMENTS[N]` (e.g., `$0`, `$1`). |
 | `${CLAUDE_SESSION_ID}` | Current session ID. |
 | `${CLAUDE_SKILL_DIR}` | Directory containing the skill's `SKILL.md`. Use in shell injection to reference bundled scripts regardless of working directory. |
+| `${CLAUDE_PLUGIN_ROOT}` | Plugin install directory. Available only for plugin-packaged skills. Works in skill content, `allowed-tools`, and `!` commands. |
+| `${CLAUDE_PLUGIN_DATA}` | Persistent plugin data directory (survives updates). Available only for plugin-packaged skills. |
 
 ## Extended Thinking
 
@@ -142,6 +144,70 @@ my-skill/
 └── scripts/
     └── helper.py     # Utility script — executed, not loaded
 ```
+
+## `allowed-tools` and Shell Injection
+
+When a skill declares `allowed-tools`, `!` shell injection commands are also checked against the listed patterns. Skills without `allowed-tools` have unrestricted `!` command execution.
+
+For plugin skills that bundle scripts, add `**` globs covering both the skill directory and the plugin root:
+
+```yaml
+allowed-tools:
+  - Bash(bash ${CLAUDE_SKILL_DIR}/**)
+  - Bash(bash ${CLAUDE_PLUGIN_ROOT}/**)
+```
+
+`${CLAUDE_SKILL_DIR}` covers scripts under `skills/<name>/scripts/`. `${CLAUDE_PLUGIN_ROOT}` covers shared scripts at the plugin root (e.g., `scripts/bootstrap.sh`). Both variables are expanded in frontmatter.
+
+Without these entries, `!` commands that invoke plugin scripts fail with "Shell command permission check failed."
+
+## Permission Scope and Enforcement
+
+`allowed-tools` has a narrow, confirmed scope. Understanding its limits prevents wasted effort on entries that don't do what you expect.
+
+### What `allowed-tools` enforces
+
+1. **`!` shell injection gating (load-bearing).** When a skill declares `allowed-tools`, every `!` command in the skill content is checked against the listed patterns. This is the primary reason to declare `allowed-tools` — without it, pre-fetch injections that invoke plugin scripts fail. Skills that omit `allowed-tools` entirely get unrestricted `!` execution.
+
+2. **Main-agent tool calls (inconsistent enforcement).** The main agent running the skill may have its tool calls checked against `allowed-tools`, but enforcement is unreliable across Claude Code versions ([#14956](https://github.com/anthropics/claude-code/issues/14956), [#18837](https://github.com/anthropics/claude-code/issues/18837), [#29360](https://github.com/anthropics/claude-code/issues/29360)). Treat these entries as documentation of what the skill needs, not as a reliable permission grant.
+
+### What `allowed-tools` does NOT enforce
+
+1. **Sub-agent permissions.** `allowed-tools` does not propagate to sub-agents dispatched via the Agent tool ([#18950](https://github.com/anthropics/claude-code/issues/18950)). Sub-agents get their permissions exclusively from global (`~/.claude/settings.json`) or project (`.claude/settings.json`) settings.
+
+2. **Post-skill permissions.** `allowed-tools` applies only while the skill is active. It does not persist after the skill completes.
+
+### Reliable permission mechanism
+
+Global settings (`~/.claude/settings.json` > `permissions.allow`) and project settings (`.claude/settings.json` > `permissions.allow`) are the only mechanism that works across all contexts: pre-fetch injections, main agent, and sub-agents.
+
+For plugins that bundle scripts, the plugin README should document the required global permission entries so users can add them once and avoid per-invocation prompts.
+
+### Recommended `allowed-tools` structure
+
+Organize entries into three categories:
+
+```yaml
+allowed-tools:
+  # A: !-injection coverage (load-bearing — without these, pre-fetch breaks)
+  - Bash(bash ${CLAUDE_PLUGIN_ROOT}/**)
+  - Bash(python ${CLAUDE_PLUGIN_ROOT}/**)
+  - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/**)
+  # B: Main-agent tools (also covered by global settings)
+  - Bash(git remote -v)
+  - Bash(pwd)
+  # C: Skill file access (also covered by global settings)
+  - Read(${CLAUDE_SKILL_DIR}/**)
+  - Glob(${CLAUDE_SKILL_DIR}/**)
+  - Grep(${CLAUDE_SKILL_DIR}/**)
+  # D: Sub-agent output workspace (only for skills that dispatch writing sub-agents)
+  - Write(./.tmp-<skill-name>/raw/**)
+  - Write(**/.tmp-<skill-name>/raw/**)
+```
+
+- **Category A** is mandatory for any skill with `!` injections that invoke plugin scripts. `${CLAUDE_PLUGIN_ROOT}/**` covers both plugin-root and skill-local scripts (since `${CLAUDE_SKILL_DIR}` is a subdirectory of `${CLAUDE_PLUGIN_ROOT}`).
+- **Categories B and C** are belt-and-suspenders — they document what the skill needs and may reduce prompts, but global settings are the reliable backstop.
+- **Category D** is only needed when the skill dispatches sub-agents that write output files (e.g., concern agents writing per-agent JSON). The two path variants (relative and glob-prefixed) cover different sub-agent CWD behaviors. Omit for skills that handle all writes in the main agent.
 
 ## What to Avoid
 

@@ -137,8 +137,8 @@ OAuth tokens).
 | `${CLAUDE_PLUGIN_DATA}` | Persistent directory for plugin state (deps, caches). Survives updates. Created on first reference. Resolves to `~/.claude/plugins/data/{id}/`. |
 
 Both are substituted inline in skill content, agent content, hook commands,
-and MCP/LSP server configs. Both are also exported as environment variables
-to subprocesses.
+MCP/LSP server configs, and `allowed-tools` frontmatter patterns. Both are
+also exported as environment variables to subprocesses.
 
 ### Persistent Data Pattern
 
@@ -163,6 +163,41 @@ Install dependencies once, reinstall only when manifest changes:
 
 Location: `skills/<name>/SKILL.md`. Same format as standalone skills (see
 [skills.md](skills.md)). Can include supporting files alongside `SKILL.md`.
+
+When a plugin skill declares `allowed-tools` and uses `!` shell injection,
+the injected commands are checked against the `allowed-tools` patterns. Add
+`**` globs for both `${CLAUDE_SKILL_DIR}` (skill-local scripts) and
+`${CLAUDE_PLUGIN_ROOT}` (shared plugin scripts):
+
+```yaml
+allowed-tools:
+  - Bash(bash ${CLAUDE_SKILL_DIR}/**)
+  - Bash(bash ${CLAUDE_PLUGIN_ROOT}/**)
+```
+
+See [skills.md — allowed-tools and Shell Injection](skills.md#allowed-tools-and-shell-injection) and [skills.md — Permission Scope and Enforcement](skills.md#permission-scope-and-enforcement).
+
+### Permission Guidance for Plugins
+
+`allowed-tools` in skill frontmatter gates `!` shell injection but does **not** propagate to sub-agents dispatched by the skill. Sub-agent permissions come exclusively from global or project `settings.json`.
+
+Plugins that bundle scripts users need to run should document required permission entries in the README:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash ~/.claude/plugins/cache/<plugin-name>/**)",
+      "Bash(python ~/.claude/plugins/cache/<plugin-name>/**)",
+      "Bash(python3 ~/.claude/plugins/cache/<plugin-name>/**)",
+      "Bash(~/.claude/plugins/cache/<plugin-name>/**)",
+      "Read(~/.claude/plugins/cache/<plugin-name>/**)"
+    ]
+  }
+}
+```
+
+Include both `cache/` and `marketplaces/` path variants if the plugin may be installed through either mechanism. These global entries cover all contexts: pre-fetch injections, main agent tool calls, and sub-agent tool calls.
 
 ### Agents
 
