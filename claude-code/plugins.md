@@ -187,17 +187,17 @@ Plugins that bundle scripts users need to run should document required permissio
 {
   "permissions": {
     "allow": [
-      "Bash(bash ~/.claude/plugins/cache/<plugin-name>/**)",
-      "Bash(python ~/.claude/plugins/cache/<plugin-name>/**)",
-      "Bash(python3 ~/.claude/plugins/cache/<plugin-name>/**)",
-      "Bash(~/.claude/plugins/cache/<plugin-name>/**)",
-      "Read(~/.claude/plugins/cache/<plugin-name>/**)"
+      "Bash(bash ~/.claude/plugins/cache/<marketplace-name>/**)",
+      "Bash(python ~/.claude/plugins/cache/<marketplace-name>/**)",
+      "Bash(python3 ~/.claude/plugins/cache/<marketplace-name>/**)",
+      "Bash(~/.claude/plugins/cache/<marketplace-name>/**)",
+      "Read(~/.claude/plugins/cache/<marketplace-name>/**)"
     ]
   }
 }
 ```
 
-Include both `cache/` and `marketplaces/` path variants if the plugin may be installed through either mechanism. These global entries cover all contexts: pre-fetch injections, main agent tool calls, and sub-agent tool calls.
+The cache path uses `<marketplace-name>` (from `marketplace.json`), not `<plugin-name>` (from `plugin.json`). Include both `cache/` and `marketplaces/` path variants if the plugin may be installed through either mechanism. These global entries cover all contexts: pre-fetch injections, main agent tool calls, and sub-agent tool calls.
 
 ### Agents
 
@@ -321,3 +321,4 @@ caching.
 - LSP server binary not installed on the user's machine.
 - Not bumping version after code changes (cache serves stale version).
 - Referencing files outside the plugin directory (breaks after cache copy).
+- **Marketplace name colliding with plugin name.** The marketplace `name` in `marketplace.json` must differ from the plugin `name` in `plugin.json`. When they match, the plugin cache directory (`~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`) is not created on disk — the plugin works in the installing session but fails to load in new sessions. Use a distinct marketplace name (e.g., `my-plugin-marketplace` for plugin `my-plugin`).
