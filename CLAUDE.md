@@ -103,6 +103,7 @@ When adding a new standard or template:
 - [claude-code/skills.md](claude-code/skills.md) — authoring Claude Code skills (SKILL.md files)
 - [claude-code/plugins.md](claude-code/plugins.md) — plugin structure, manifest schema, marketplace distribution
 - [claude-code/hook-state-transitions.md](claude-code/hook-state-transitions.md) — hook event types, state machines, configuration
+- [claude-code/agent-sdk-usage-data.md](claude-code/agent-sdk-usage-data.md) — extracting cost, token, context, and rate-limit data from the Agent SDK
 
 ## Planned (empty)
 
