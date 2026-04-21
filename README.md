@@ -111,6 +111,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Skills](claude-code/skills.md) | Authoring Claude Code skills (SKILL.md files) |
 | [Plugins](claude-code/plugins.md) | Plugin structure, manifest schema, marketplace distribution |
 | [Hook State Transitions](claude-code/hook-state-transitions.md) | Hook event types, state machines, and configuration |
+| [Agent SDK Usage Data](claude-code/agent-sdk-usage-data.md) | Extracting cost, token, context, and rate-limit data from the Agent SDK |
 
 ## Planned Sections
 
