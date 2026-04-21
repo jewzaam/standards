@@ -69,7 +69,7 @@ When adding a new standard or template:
 - [python/templates/Makefile](python/templates/Makefile) — standard Makefile with all required targets
 - [python/templates/pyproject.toml](python/templates/pyproject.toml) — package config with standard dev dependencies
 - [python/templates/TEST_PLAN.md](python/templates/TEST_PLAN.md) — testing strategy documentation template
-- [python/templates/pipx.mk](python/templates/pipx.mk) — CLI tool installation via pipx (includable `.mk`)
+- [python/templates/test.mk](python/templates/test.mk) — standard `test-*` target collection (includable `.mk`)
 - [python/templates/version-check.mk](python/templates/version-check.mk) — semver validation (includable `.mk`)
 - [python/templates/version-check.sh](python/templates/version-check.sh) — shell script for semver validation
 
@@ -88,13 +88,13 @@ When adding a new standard or template:
 - [build/fabcheck.md](build/fabcheck.md) — fabrication detection: every import must resolve to stdlib, local code, or declared dep
 - [build/templates/fabcheck.mk](build/templates/fabcheck.mk) — fabcheck include (optional `make fabcheck`, `make fabcheck-report`)
 - [build/templates/fabcheck.sh](build/templates/fabcheck.sh) — vendorable bash script for fabcheck (multi-language import resolution)
-- [build/templates/workflows/test.yml](build/templates/workflows/test.yml) — pytest on Python 3.12-3.14
-- [build/templates/workflows/lint.yml](build/templates/workflows/lint.yml) — flake8 linter
-- [build/templates/workflows/typecheck.yml](build/templates/workflows/typecheck.yml) — mypy type checker
-- [build/templates/workflows/format.yml](build/templates/workflows/format.yml) — black formatting check
-- [build/templates/workflows/coverage.yml](build/templates/workflows/coverage.yml) — 80% coverage threshold
-- [build/templates/workflows/mutation.yml](build/templates/workflows/mutation.yml) — mutmut mutation testing
-- [build/templates/workflows/reachability.yml](build/templates/workflows/reachability.yml) — document reachability check
+- [build/templates/workflows/test-unit.yml](build/templates/workflows/test-unit.yml) — pytest on Python 3.12-3.14
+- [build/templates/workflows/test-lint.yml](build/templates/workflows/test-lint.yml) — flake8 linter
+- [build/templates/workflows/test-typecheck.yml](build/templates/workflows/test-typecheck.yml) — mypy type checker
+- [build/templates/workflows/test-format.yml](build/templates/workflows/test-format.yml) — black formatting check
+- [build/templates/workflows/test-coverage.yml](build/templates/workflows/test-coverage.yml) — 80% coverage threshold
+- [build/templates/workflows/test-mutation.yml](build/templates/workflows/test-mutation.yml) — mutmut mutation testing
+- [build/templates/workflows/test-reachability.yml](build/templates/workflows/test-reachability.yml) — document reachability check
 - [build/templates/workflows/version-check.yml](build/templates/workflows/version-check.yml) — semver validation (optional)
 - [build/templates/workflows/fabcheck.yml](build/templates/workflows/fabcheck.yml) — fabcheck CI with annotated findings (optional)
 
