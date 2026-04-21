@@ -63,7 +63,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Makefile](python/templates/Makefile) | Standard Makefile with all required targets |
 | [pyproject.toml](python/templates/pyproject.toml) | Package config with standard dev dependencies |
 | [TEST_PLAN.md](python/templates/TEST_PLAN.md) | Testing strategy documentation template |
-| [pipx.mk](python/templates/pipx.mk) | CLI tool installation via pipx (includable `.mk`) |
+| [test.mk](python/templates/test.mk) | Standard `test-*` target collection (includable `.mk`) |
 | [version-check.mk](python/templates/version-check.mk) | Semver validation (includable `.mk`, optional `make version-check`) |
 | [version-check.sh](python/templates/version-check.sh) | Shell script for semver validation |
 
@@ -87,13 +87,13 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 
 | Template | Description |
 |----------|-------------|
-| [test.yml](build/templates/workflows/test.yml) | Run pytest on Python 3.12-3.14 |
-| [lint.yml](build/templates/workflows/lint.yml) | Run flake8 linter |
-| [typecheck.yml](build/templates/workflows/typecheck.yml) | Run mypy type checker |
-| [format.yml](build/templates/workflows/format.yml) | Verify black formatting |
-| [coverage.yml](build/templates/workflows/coverage.yml) | Enforce 80% coverage threshold |
-| [mutation.yml](build/templates/workflows/mutation.yml) | Run mutmut mutation testing |
-| [reachability.yml](build/templates/workflows/reachability.yml) | Verify document reachability from entry points |
+| [test-unit.yml](build/templates/workflows/test-unit.yml) | Run pytest on Python 3.12-3.14 |
+| [test-lint.yml](build/templates/workflows/test-lint.yml) | Run flake8 linter |
+| [test-typecheck.yml](build/templates/workflows/test-typecheck.yml) | Run mypy type checker |
+| [test-format.yml](build/templates/workflows/test-format.yml) | Verify black formatting |
+| [test-coverage.yml](build/templates/workflows/test-coverage.yml) | Enforce 80% coverage threshold |
+| [test-mutation.yml](build/templates/workflows/test-mutation.yml) | Run mutmut mutation testing |
+| [test-reachability.yml](build/templates/workflows/test-reachability.yml) | Verify document reachability from entry points |
 | [version-check.yml](build/templates/workflows/version-check.yml) | Validate semver (optional, copy when opting in) |
 | [fabcheck.yml](build/templates/workflows/fabcheck.yml) | Run fabcheck on push/PR, annotate missing findings, upload verdict |
 
