@@ -1,4 +1,4 @@
-name: Typecheck
+name: test-typecheck
 
 on:
   push:
@@ -22,4 +22,4 @@ jobs:
         run: make install-dev PY_SYS=python
 
       - name: Run type checker
-        run: make typecheck
+        run: make test-typecheck

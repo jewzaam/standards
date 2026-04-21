@@ -1,4 +1,4 @@
-name: Reachability
+name: test-reachability
 
 on:
   push:
@@ -19,4 +19,4 @@ jobs:
           python-version: "3.12"
 
       - name: Check reachability
-        run: make reachability
+        run: make test-reachability
