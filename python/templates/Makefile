@@ -1,9 +1,10 @@
 # Makefile template for Python projects
 # Replace <package_name> with the Python package name (e.g., my_tool)
 
-.PHONY: check help install install-dev install-no-deps uninstall clean format format-check lint typecheck test test-verbose coverage complexity mutation mutation-report
+.PHONY: check help clean format install install-dev install-pipx uninstall uninstall-pipx
 
 PACKAGE_NAME ?= <package_name>
+PROJECT_NAME ?= $(PACKAGE_NAME)
 
 ifeq ($(OS),Windows_NT)
     VENV_DIR ?= .venv
@@ -18,61 +19,41 @@ endif
 # instead of the container's system python3 (see build/makefile.md).
 PY_SYS ?= python3
 
+# Test targets are pulled into make/test.mk for readability.
+-include make/test.mk
+
 $(info venv: $(VENV_DIR))
 
-check: format lint typecheck test coverage  ## Run format, lint, typecheck, test, coverage (default)
+check: test-format test-lint test-typecheck test-unit test-coverage  ## Run full quality gate (default)
 
 .DEFAULT_GOAL := check
 
 help:  ## Show available targets
-	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-32s\033[0m %s\n", $$1, $$2}'
 
 $(PYTHON):
 	$(PY_SYS) -m venv $(VENV_DIR)
-
-install: $(PYTHON)  ## Install package
-	$(PYTHON) -m pip install .
-
-install-dev: $(PYTHON)  ## Install in editable mode with dev deps
-	$(PYTHON) -m pip install -e ".[dev]"
-
-install-no-deps: $(PYTHON)  ## Install in editable mode without dependencies
-	$(PYTHON) -m pip install -e . --no-deps
-
-uninstall: $(PYTHON)  ## Uninstall package
-	$(PYTHON) -m pip uninstall -y $(PACKAGE_NAME)
 
 clean:  ## Remove build artifacts and caches
 	rm -rf build/ dist/ *.egg-info
 	find . -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 
-format: install-dev  ## Format code with black
+format: install-dev  ## Rewrite sources with black
 	$(PYTHON) -m black $(PACKAGE_NAME) tests
 
-format-check: install-dev  ## Check formatting without modifying files
-	$(PYTHON) -m black --check $(PACKAGE_NAME) tests
+install: $(PYTHON)  ## Install into the local venv (mutate per project to compose subsystem installs)
+	$(PYTHON) -m pip install .
 
-lint: install-dev  ## Lint with flake8
-	$(PYTHON) -m flake8 --max-line-length=88 --extend-ignore=E203,W503 $(PACKAGE_NAME) tests
+install-dev: $(PYTHON)  ## Editable install + dev extras
+	$(PYTHON) -m pip install -e ".[dev]"
 
-typecheck: install-dev  ## Type check with mypy
-	$(PYTHON) -m mypy $(PACKAGE_NAME)
+# Library projects with no CLI entry points can delete install-pipx / uninstall-pipx.
+install-pipx:  ## Install globally via pipx
+	python3 -m pipx install . --force
 
-test: install-dev  ## Run pytest
-	$(PYTHON) -m pytest
+uninstall: $(PYTHON)  ## Uninstall from the local venv (mutate per project to compose subsystem uninstalls)
+	$(PYTHON) -m pip uninstall -y $(PACKAGE_NAME)
 
-test-verbose: install-dev  ## Run pytest with verbose output
-	$(PYTHON) -m pytest -v
-
-coverage: install-dev  ## Run pytest with coverage (80% threshold)
-	$(PYTHON) -m pytest --cov=$(PACKAGE_NAME) --cov-report=term --cov-fail-under=80
-
-complexity: install-dev  ## Check cyclomatic complexity (xenon, max-absolute B)
-	$(PYTHON) -m xenon $(PACKAGE_NAME) --max-absolute B --max-modules B --max-average A
-
-mutation: install-dev  ## Run mutation testing (not part of check — run in CI or on-demand)
-	$(PYTHON) -m mutmut run --CI --paths-to-mutate "$(PACKAGE_NAME)"
-
-mutation-report: $(PYTHON)  ## Show results of last mutation run
-	$(PYTHON) -m mutmut results
+uninstall-pipx:  ## Uninstall the pipx install
+	python3 -m pipx uninstall $(PROJECT_NAME)

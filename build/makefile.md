@@ -2,42 +2,147 @@
 
 Standard Makefile targets for Python projects.
 
+## Naming Grammar
+
+Every target name follows **verb‑[qualifier‑]noun**:
+
+- **verb:** `install` | `uninstall` | `run` | `test`
+- **qualifier (optional):** a mode or scope word (e.g. `dev`, `autostart`)
+- **noun:** the subsystem being acted on (e.g. `hooks`, `service`, `tray`,
+  `pipx`). For `test-*` the noun is the kind of test (`unit`, `lint`, etc.).
+
+The whitelist of unprefixed / standalone targets is small and exhaustive:
+
+| Target | Why exempt |
+|---|---|
+| `help` | Listing targets has no noun. |
+| `check` | Runs the full quality gate; "noun" is the whole repo. |
+| `clean` | Removes build artefacts; negates the build, not a subsystem. |
+| `format` | Rewrites source in place. The only source-mutating target. Idiomatic. |
+| `install` | Installs everything for end-user use (project-mutated; see below). |
+| `uninstall` | Inverse of `install`. |
+| `run` | Runs every process in normal usage (apps only). |
+
+Because every other target carries a verb prefix, alphabetic sort already groups
+related targets in `make help` — no section headers are required.
+
+### `.mk` files are noun-based
+
+Optional / non-common targets live in `make/<noun>.mk` fragments included by the
+root Makefile. **Each fragment is named after a subsystem (a noun)**, never
+after a verb. So `make/tray.mk`, `make/service.mk`, `make/hooks.mk` are correct;
+`make/autostart.mk` and `make/install.mk` are not — `autostart` and `install`
+are qualifiers/verbs that span multiple subsystems.
+
+Targets inside a noun fragment carry the full prefix grammar:
+
+```makefile
+# make/tray.mk
+run-tray:                  ## Start tray icon in the foreground
+install-autostart-tray:    ## Enable tray auto-start on login
+uninstall-autostart-tray:  ## Disable tray auto-start
+```
+
+The exception is `make/test.mk` — the `test-*` collection is verb-based and
+common enough to warrant its own fragment for readability. The user is
+expected to know this is the one allowed verb-named fragment; it keeps the root
+Makefile uncluttered.
+
+### `install`, `uninstall`, `run` are project-specific composites
+
+The standard template ships `install` as the venv install. App projects with
+multiple subsystems (hooks, autostart, tray, etc.) **mutate** `install` in their
+root Makefile to mean "install everything the end-user needs", composing
+`install-pipx` + `install-<noun>` targets. The same applies to `uninstall` and
+`run`.
+
+```makefile
+# Root Makefile in a project with hooks + service autostart:
+install: install-pipx install-hooks install-autostart-service
+uninstall: uninstall-autostart-service uninstall-hooks uninstall-pipx
+run: $(PYTHON)
+	@$(PYTHON) -m my_app.tray --config $(CONFIG_FILE) & \
+	 trap 'kill %1 2>/dev/null || true' EXIT; \
+	 $(PYTHON) -m my_app --config $(CONFIG_FILE)
+```
+
+To target a single subsystem the user calls it explicitly:
+`make install-hooks`, `make run-tray`, etc. There is no `install-all` /
+`uninstall-all` / `run-all` — the bare verbs serve that role.
+
+`install-dev` (editable venv for development) is orthogonal to `install` and
+remains a standard target.
+
 ## Default Target
 
-Running `make` without specifying a target runs the `check` target, which executes all validation steps (format, lint, typecheck, test, coverage). The `format` step applies formatting fixes automatically; use `make format-check` separately when you need a non-modifying check that exits non-zero on unformatted code (e.g., in CI workflows).
+Running `make` without arguments runs the `check` target, which executes
+`test-format`, `test-lint`, `test-typecheck`, `test-unit`, `test-coverage`.
+Each step is read-only — none rewrite source. Use `make format` separately to
+apply formatting fixes.
 
-Using `check` as the named default target allows safer permissions for AI tools — instead of permitting the broad `make` command, tools can be granted permission for the specific `make check` target.
+Using `check` as the named default allows safer permissions for AI tools —
+instead of permitting the broad `make` command, tools can be granted permission
+for the specific `make check` target.
 
 ```bash
-make           # Runs check target (all validations)
+make           # Runs check (all validations)
 make check     # Same as above (explicit)
 ```
 
 ## Required Targets
 
+### Utility (whitelist)
+
 | Target | Description |
 |--------|-------------|
-| `check` | Run format, lint, typecheck, test, coverage (default target) |
 | `help` | Show available targets with descriptions |
-| `install` | Install package |
-| `install-dev` | Install in editable mode with dev deps |
-| `install-no-deps` | Install in editable mode without dependencies |
-| `uninstall` | Uninstall package |
+| `check` | Run full quality gate (default target) |
 | `clean` | Remove build artifacts |
-| `format` | Format code with black |
-| `format-check` | Check formatting without modifying files (exits non-zero if changes needed) |
-| `lint` | Lint with flake8 |
-| `typecheck` | Type check with mypy |
-| `test` | Run pytest |
-| `coverage` | Run pytest with coverage |
-| `complexity` | Check cyclomatic complexity with xenon |
-| `mutation` | Run mutation testing with mutmut |
-| `mutation-report` | Show results of last mutation run |
-| `reachability` | Verify all content files are reachable from entry points |
+| `format` | Rewrite sources with black |
+
+### `test-*`
+
+| Target | Description |
+|--------|-------------|
+| `test-unit` | Run pytest |
+| `test-coverage` | Run pytest with coverage threshold |
+| `test-format` | Check formatting (exits non-zero if changes needed) |
+| `test-lint` | Lint with flake8 |
+| `test-typecheck` | Type check with mypy |
+| `test-complexity` | Check cyclomatic complexity with xenon (opt-in) |
+| `test-mutation` | Run mutation testing with mutmut (opt-in) |
+| `test-reachability` | Verify all content files are reachable from entry points (doc projects) |
+
+### `install-*` / `uninstall-*`
+
+| Target | Description |
+|--------|-------------|
+| `install` | Install everything for end-user use (project-mutated composite — see "Naming Grammar" above). |
+| `install-dev` | Editable install + dev extras (for local development; orthogonal to `install`). |
+| `install-pipx` | Install globally via pipx. |
+| `uninstall` | Inverse of `install`. |
+| `uninstall-pipx` | Uninstall the pipx install. |
+
+App-style projects (with subsystems like hooks, autostart, etc.) add their own
+`install-<noun>` / `uninstall-<noun>` pairs in `make/<noun>.mk` fragments and
+compose them into `install` / `uninstall` in the root Makefile. Every
+`install-X` should have a matching `uninstall-X` unless it's been deliberately
+decided to skip.
+
+### `run-*` (apps only)
+
+| Target | Description |
+|--------|-------------|
+| `run` | Run every process in normal usage (project-mutated composite). |
+| `run-<noun>` | Start the named subsystem in the foreground. |
+
+For single-process apps `run` and `run-<service>` may be the same recipe; for
+multi-process apps `run` orchestrates the subsystem `run-*` targets (typically
+foreground + background under a trap so Ctrl-C cleans them up).
 
 ## Virtual Environment
 
-By default, projects use a local `.venv` in the project root. The `install-no-deps` target is available for cases where you need to install a package without pulling its dependencies from the network.
+By default, projects use a local `.venv` in the project root.
 
 For `ap-*` projects that share a single venv, see [Shared Virtual Environment](../python/shared-venv.md).
 
@@ -68,17 +173,17 @@ The variable only governs venv *creation* — all other targets invoke `$(PYTHON
 
 ### Dependencies
 
-Targets that need the package installed should depend on `install-dev`, which itself depends on the venv existing. Targets that use `$(PYTHON)` but don't need packages installed (e.g., `links`, `install`, `uninstall`, `mutation-report`, `run`) should depend on `$(PYTHON)` directly.
+Targets that need the package installed should depend on `install-dev`, which itself depends on the venv existing. Targets that use `$(PYTHON)` but don't need packages installed (e.g., `install`, `uninstall`, `run-*`) should depend on `$(PYTHON)` directly.
 
-### format vs format-check
+### `format` vs `test-format`
 
-`format` applies black formatting in-place — safe for local development and used by `make check`. `format-check` runs `black --check` which exits non-zero if any file would be reformatted, without modifying files. Use `format-check` in CI workflows where you want to fail the build on unformatted code.
+`format` applies black formatting in-place — safe for local development. `test-format` runs `black --check` which exits non-zero if any file would be reformatted, without modifying files. `check` depends on `test-format` (read-only); CI workflows do too.
 
 ```makefile
-format: install-dev
+format: install-dev  ## Rewrite sources with black
 	$(PYTHON) -m black $(PACKAGE_NAME) tests
 
-format-check: install-dev
+test-format: install-dev  ## Check formatting (exits non-zero if changes needed)
 	$(PYTHON) -m black --check $(PACKAGE_NAME) tests
 ```
 
@@ -114,11 +219,11 @@ find . -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true
 at the Makefile level. It wraps [radon](https://github.com/rubik/radon) and exits
 non-zero when any module, function, or average exceeds the configured grade.
 
-`complexity` is **not** part of `check` — it's a separate validation step, similar
-to mutation testing. Run it on-demand or in CI.
+`test-complexity` is **not** part of `check` — it's a separate validation step,
+similar to mutation testing. Run it on-demand or in CI.
 
 ```makefile
-complexity: install-dev  ## Check cyclomatic complexity (xenon, max-absolute B)
+test-complexity: install-dev  ## Cyclomatic complexity check (xenon)
 	$(PYTHON) -m xenon $(PACKAGE_NAME) --max-absolute B --max-modules B --max-average A
 ```
 
@@ -131,19 +236,19 @@ functions exceed the limit.
 
 ### Reachability
 
-Every project with a `CLAUDE.md` should include the `reachability` target as
-part of `check`. This ensures all content files remain discoverable from entry
-points. See [Document Reachability](../common/reachability.md) for the full
-standard.
+Every project with a `CLAUDE.md` should include the `test-reachability` target
+as part of `check`. This ensures all content files remain discoverable from
+entry points. See [Document Reachability](../common/reachability.md) for the
+full standard.
 
 ```makefile
-reachability:  ## Verify all files are reachable from entry points
+test-reachability:  ## Verify all files are reachable from entry points
 	@echo "Checking document reachability..."
 	$(PYTHON) scripts/reachability.py --check
 ```
 
 The script only requires Python stdlib — no extra dependencies. Include
-`reachability` in the `check` target prerequisites.
+`test-reachability` in the `check` target prerequisites.
 
 ### Mutation testing
 
@@ -152,16 +257,17 @@ small faults into source code and checking whether tests detect them. A test sui
 can achieve 100% code coverage but catch almost none of the actual bugs — mutation
 testing reveals this gap.
 
-`mutation` is **not** part of `check` — mutation testing is computationally expensive
-(each mutant requires a test run) and is best run in CI or on-demand locally.
+`test-mutation` is **not** part of `check` — mutation testing is
+computationally expensive (each mutant requires a test run) and is best run in
+CI or on-demand locally.
 
 ```makefile
-mutation: install-dev  ## Run mutation testing
+test-mutation: install-dev  ## Run mutation testing
 	$(PYTHON) -m mutmut run --CI --paths-to-mutate "$(PACKAGE_NAME)"
-
-mutation-report:  ## Show results of last mutation run
-	$(PYTHON) -m mutmut results
 ```
+
+A separate "show results" target is intentionally not part of the standard —
+`python -m mutmut results` is short enough to run directly when needed.
 
 **Use mutmut 2.x** (`mutmut>=2.0,<3.0`). mutmut 3.x has a [decorator bug (#387)](https://github.com/boxed/mutmut/issues/387)
 that skips ALL decorated functions and classes — `@staticmethod`, `@classmethod`, `@property`,
@@ -228,56 +334,74 @@ Match black's default of 88 characters:
 
 ## Optional Targets
 
-Optional targets are implemented as standalone `.mk` files in a `make/` directory
-at the project root. Each `.mk` file is self-contained and included into the main
-Makefile with `-include`. This keeps the root directory clean and optional
-functionality modular.
+Optional / non-common targets are implemented as standalone `.mk` files in a
+`make/` directory at the project root. Each `.mk` file is self-contained and
+included into the main Makefile with `-include`. This keeps the root directory
+clean and optional functionality modular.
 
 Targets defined in included `.mk` files automatically appear in `make help` output
 because the help target uses `$(MAKEFILE_LIST)`, which includes all loaded files.
 
 ### `make/` directory structure
 
+Each fragment is named after a **subsystem (a noun)**, never after a verb. The
+sole exception is `make/test.mk`, which holds the standard `test-*` collection
+to keep the root Makefile uncluttered.
+
 ```
 project-root/
 ├── Makefile
 └── make/
-    ├── pipx.mk
-    ├── run.mk
+    ├── hooks.mk          # noun: hooks      → install-hooks, uninstall-hooks
+    ├── service.mk        # noun: service    → run-service, install-autostart-service
+    ├── tray.mk           # noun: tray       → run-tray, install-autostart-tray
+    ├── test.mk           # exception: test-* targets
     └── version-check.mk
 ```
 
-Include optional targets in your Makefile. `-include` lines can go at the top,
-before variable definitions — Make expands variables in rules and prerequisites
-after all files are parsed, so included `.mk` files can reference `$(PYTHON)` and
+Include fragments in the Makefile. `-include` lines can go at the top, before
+variable definitions — Make expands variables in rules and prerequisites after
+all files are parsed, so included `.mk` files can reference `$(PYTHON)` and
 other variables defined later in the main Makefile:
 
 ```makefile
--include make/pipx.mk
--include make/run.mk
+-include make/hooks.mk
+-include make/service.mk
+-include make/tray.mk
+-include make/test.mk
 -include make/version-check.mk
 ```
 
-### `run`
+### `run-*`
 
-For applications (as opposed to libraries), provide a `run` target that starts the
-app with `--log-file` pointing to a stable location. Use a `LOG_FILE` variable at
-the top of the `.mk` file and echo the path so the user knows where logs land.
-Support `DEBUG=1` to enable debug logging.
-
-Create `make/run.mk` with project-specific values:
+For applications (as opposed to libraries), each subsystem `.mk` file owns its
+own `run-<noun>` target. There is no `make/run.mk` — `run-service` lives in
+`make/service.mk`, `run-tray` lives in `make/tray.mk`, etc.
 
 ```makefile
-LOG_FILE := ~/.claude/my-app/app.log
+# make/service.mk
+run-service: $(PYTHON) ## Start service in the foreground
+	$(PYTHON) -m my_app --config $(CONFIG_FILE)
 
-.PHONY: run
-run: $(PYTHON) ## Start the app (use DEBUG=1 for debug logging)
-	@echo "Logging to $(LOG_FILE)"
-	$(PYTHON) -m my_app $(if $(DEBUG),--debug) --log-file $(LOG_FILE)
+# make/tray.mk
+run-tray: $(PYTHON) ## Start tray icon in the foreground
+	$(PYTHON) -m my_app.tray --config $(CONFIG_FILE)
 ```
 
-There is no template for `run.mk` — the module name, log path, and flags are
-entirely project-specific. The pattern above is the reference.
+The bare `run` target lives in the root Makefile and is project-specific —
+typically backgrounding all but one process under a trap:
+
+```makefile
+# Root Makefile (project-mutated)
+CONFIG_FILE ?= ~/.claude/my-app/config.json
+
+run: $(PYTHON)  ## Run service + tray (Ctrl-C exits both)
+	@$(PYTHON) -m my_app.tray --config $(CONFIG_FILE) & \
+	 trap 'kill %1 2>/dev/null || true' EXIT; \
+	 $(PYTHON) -m my_app --config $(CONFIG_FILE)
+```
+
+Single-process apps simply have `run` invoke the lone `run-<service>` target.
 
 ### `version-check`
 
@@ -349,26 +473,25 @@ and workflow.
 See [Versioning Standards](../common/versioning.md) for the full version location
 convention.
 
-### `pipx`
+### `install-pipx` / `uninstall-pipx`
 
 For projects that provide CLI entry points (defined in `[project.scripts]` in
-`pyproject.toml`), `pipx` installs the package into an isolated global environment
-and puts commands on PATH. This is the standard way to install CLI tools for
-day-to-day use without polluting the system site-packages or the project venv.
+`pyproject.toml`), `install-pipx` installs the package into an isolated global
+environment and puts commands on PATH. This is the standard way to install CLI
+tools for day-to-day use without polluting the system site-packages or the
+project venv.
 
-Create `make/pipx.mk`:
+`install-pipx` / `uninstall-pipx` live directly in the **root Makefile**
+alongside `install` / `install-dev` / `uninstall` — pipx is standard enough that
+it doesn't warrant its own `.mk` fragment:
 
 ```makefile
-.PHONY: pipx pipx-uninstall
-
-# Distribution name from [project] name in pyproject.toml.
-# May differ from PACKAGE_NAME (Python module) — e.g., my-tool vs my_tool.
 PROJECT_NAME ?= $(PACKAGE_NAME)
 
-pipx:  ## Install globally via pipx
-	python3 -m pipx install .
+install-pipx:  ## Install globally via pipx
+	python3 -m pipx install . --force
 
-pipx-uninstall:  ## Uninstall global pipx install
+uninstall-pipx:  ## Uninstall the pipx install
 	python3 -m pipx uninstall $(PROJECT_NAME)
 ```
 
@@ -379,11 +502,8 @@ tracks packages by distribution name, not module name.
 Use `python3 -m pipx` rather than bare `pipx` — the command may not be on PATH
 even when the module is installed.
 
-Include in your Makefile:
-
-```makefile
--include make/pipx.mk
-```
+Library projects with no CLI entry points can delete these two targets from
+their root Makefile.
 
 **When to use:** Projects that define CLI commands other tools or skills invoke by
 name (e.g., `meet-summarize-query`). Not needed for libraries or projects only used
@@ -400,11 +520,11 @@ Makefile with two targets: `markdown-lint` and `links`.
 
 | Target | Description |
 |--------|-------------|
-| `check` | Run markdown-lint, links, and reachability (default target) |
+| `check` | Run test-markdown, test-links, and test-reachability (default target) |
 | `install-dev` | Install dev deps from pyproject.toml |
-| `markdown-lint` | Lint markdown with pymarkdown |
-| `links` | Validate local markdown links and anchors |
-| `reachability` | Verify all files are reachable from entry points |
+| `test-markdown` | Lint markdown with pymarkdown |
+| `test-links` | Validate local markdown links and anchors |
+| `test-reachability` | Verify all files are reachable from entry points |
 | `help` | Show available targets |
 
 ### Link Checker
@@ -430,22 +550,22 @@ Copy `scripts/check-links.py` from the standards repo into your project.
 ```makefile
 PYTHON := python
 
-.PHONY: all check install-dev markdown-lint links reachability help
+.PHONY: all check install-dev test-markdown test-links test-reachability help
 
 all: check
 
-check: markdown-lint links reachability
+check: test-markdown test-links test-reachability
 
 install-dev:
 	$(PYTHON) -m pip install --quiet -e '.[dev]'
 
-markdown-lint: install-dev
+test-markdown: install-dev
 	$(PYTHON) -m pymarkdown --disable-rules MD013,MD024,MD031,MD036 scan .
 
-links: $(PYTHON)
+test-links: $(PYTHON)
 	$(PYTHON) scripts/check-links.py
 
-reachability:
+test-reachability:
 	@echo "Checking document reachability..."
 	$(PYTHON) scripts/reachability.py --check
 

@@ -2,22 +2,32 @@
 
 Standard CI workflows for ap-* projects.
 
+## Naming convention
+
+**Workflow filename and `name:` field both match the make target they invoke.**
+Lower-case, hyphenated, exact match. So `make test-unit` lives in
+`.github/workflows/test-unit.yml` with `name: test-unit`.
+
+This makes branch-protection setup trivial — searching for `test-` in the
+required-status-checks list surfaces every quality gate at once. It also
+removes any guesswork about which workflow runs which target.
+
 ## Required Workflows
 
 | Workflow | Template | Description |
 |----------|----------|-------------|
-| Test | [test.yml](templates/workflows/test.yml) | Run pytest on Python 3.12-3.14 |
-| Lint | [lint.yml](templates/workflows/lint.yml) | Run flake8 linter |
-| Typecheck | [typecheck.yml](templates/workflows/typecheck.yml) | Run mypy type checker |
-| Format Check | [format.yml](templates/workflows/format.yml) | Verify black formatting |
-| Coverage | [coverage.yml](templates/workflows/coverage.yml) | Enforce 80% coverage threshold |
+| `test-unit` | [test-unit.yml](templates/workflows/test-unit.yml) | Run pytest on Python 3.12-3.14 |
+| `test-lint` | [test-lint.yml](templates/workflows/test-lint.yml) | Run flake8 linter |
+| `test-typecheck` | [test-typecheck.yml](templates/workflows/test-typecheck.yml) | Run mypy type checker |
+| `test-format` | [test-format.yml](templates/workflows/test-format.yml) | Verify black formatting |
+| `test-coverage` | [test-coverage.yml](templates/workflows/test-coverage.yml) | Enforce 80% coverage threshold |
 
 ## Optional Workflows
 
 | Workflow | Template | Description |
 |----------|----------|-------------|
-| Mutation Testing | [mutation.yml](templates/workflows/mutation.yml) | Run mutmut mutation testing (post-merge only) |
-| Version Check | [version-check.yml](templates/workflows/version-check.yml) | Validate semver format, source consistency, and version bump |
+| `test-mutation` | [test-mutation.yml](templates/workflows/test-mutation.yml) | Run mutmut mutation testing (post-merge only) |
+| `version-check` | [version-check.yml](templates/workflows/version-check.yml) | Validate semver format, source consistency, and version bump |
 
 ### Mutation Testing
 
@@ -28,7 +38,7 @@ of queueing 1-2 hour jobs that will never be looked at. Use a README badge to su
 the current mutation score:
 
 ```markdown
-[![Mutation Testing](https://github.com/<owner>/<repo>/actions/workflows/mutation.yml/badge.svg?branch=main)](https://github.com/<owner>/<repo>/actions/workflows/mutation.yml)
+[![test-mutation](https://github.com/<owner>/<repo>/actions/workflows/test-mutation.yml/badge.svg?branch=main)](https://github.com/<owner>/<repo>/actions/workflows/test-mutation.yml)
 ```
 
 See [Makefile Standards — Mutation testing](makefile.md#mutation-testing) for the
