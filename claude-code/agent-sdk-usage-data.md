@@ -74,18 +74,49 @@ class SessionAccumulator:
     total_output_tokens: int = 0
     total_duration_ms: int = 0
 
-    def record_result(self, msg: ResultMessage) -> None:
-        if msg.total_cost_usd is not None:
-            self.total_cost_usd += msg.total_cost_usd
-        self.total_duration_ms += msg.duration_ms or 0
-        if msg.usage:
-            self.total_input_tokens += msg.usage.get("input_tokens") or 0
-            self.total_output_tokens += msg.usage.get("output_tokens") or 0
+    def record_result(
+        self,
+        *,
+        session_id: str,
+        total_cost_usd: float | None,
+        usage: dict[str, int] | None,
+        duration_ms: int,
+    ) -> None:
+        if total_cost_usd is not None:
+            self.total_cost_usd += total_cost_usd
+        self.total_duration_ms += duration_ms or 0
+        if usage:
+            # Lifetime input tokens = new + cache_read + cache_creation.
+            # Summing only input_tokens undercounts by 100–1000× once
+            # prompt caching kicks in, because the system prompt and
+            # recent history replay from cache every turn.
+            self.total_input_tokens += (
+                (usage.get("input_tokens") or 0)
+                + (usage.get("cache_read_input_tokens") or 0)
+                + (usage.get("cache_creation_input_tokens") or 0)
+            )
+            self.total_output_tokens += usage.get("output_tokens") or 0
+
+# Caller extracts fields from ResultMessage and passes them as kwargs:
+acc.record_result(
+    session_id=msg.session_id,
+    total_cost_usd=msg.total_cost_usd,
+    usage=msg.usage,
+    duration_ms=msg.duration_ms,
+)
 ```
 
-Cache tokens (`cache_read_input_tokens`, `cache_creation_input_tokens`) are a
-snapshot of what the current request *read from* or *wrote to* the cache —
-don't sum them. Keep the most recent values as "current context use."
+Keyword-only arguments keep the call site self-documenting and allow the
+accumulator to evolve (new optional fields) without breaking callers.
+
+For **per-turn context-window snapshots** — what feeds `used_percentage` —
+keep the most recent single-call usage separately (`last_input_tokens`,
+`last_cache_read_input_tokens`, `last_cache_creation_input_tokens`). These
+must *not* be summed: they represent the size of one API call and cannot
+exceed the window. `ResultMessage.usage` is aggregated across every API
+call in the turn (tool loops produce many) so it's only suitable for
+lifetime totals. Capture the snapshot from the last `AssistantMessage.usage`
+before the turn ended.
 
 **Do not reset the accumulator on `/clear` or session resume.** The Claude
 Code CLI's statusline is process-scoped — `/clear` rotates `session_id` but
@@ -203,7 +234,7 @@ Mapping from SDK → this shape:
 | `cost.total_duration_ms` | Cumulative `ResultMessage.duration_ms` |
 | `cost.total_api_duration_ms` | Cumulative `ResultMessage.duration_api_ms` |
 | `cost.total_lines_added` / `_removed` | — (leave null unless parsed from tool results) |
-| `context_window.total_input_tokens` | Cumulative `usage["input_tokens"]` |
+| `context_window.total_input_tokens` | Cumulative `usage["input_tokens"] + cache_read_input_tokens + cache_creation_input_tokens` |
 | `context_window.total_output_tokens` | Cumulative `usage["output_tokens"]` |
 | `context_window.used_percentage` | Computed — see formula above |
 | `context_window.context_window_size` | Model lookup table |
