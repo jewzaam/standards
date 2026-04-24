@@ -87,12 +87,8 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 
 | Template | Description |
 |----------|-------------|
-| [test-unit.yml](build/templates/workflows/test-unit.yml) | Run pytest on Python 3.12-3.14 |
-| [test-lint.yml](build/templates/workflows/test-lint.yml) | Run flake8 linter |
-| [test-typecheck.yml](build/templates/workflows/test-typecheck.yml) | Run mypy type checker |
-| [test-format.yml](build/templates/workflows/test-format.yml) | Verify black formatting |
-| [test-coverage.yml](build/templates/workflows/test-coverage.yml) | Enforce 80% coverage threshold |
-| [test-mutation.yml](build/templates/workflows/test-mutation.yml) | Run mutmut mutation testing |
+| [test.yml](build/templates/workflows/test.yml) | Run pytest with coverage (Python 3.14) |
+| [quality.yml](build/templates/workflows/quality.yml) | Format check + lint + type check (Python 3.14) |
 | [test-reachability.yml](build/templates/workflows/test-reachability.yml) | Verify document reachability from entry points |
 | [version-check.yml](build/templates/workflows/version-check.yml) | Validate semver (optional, copy when opting in) |
 | [fabcheck.yml](build/templates/workflows/fabcheck.yml) | Run fabcheck on push/PR, annotate missing findings, upload verdict |
