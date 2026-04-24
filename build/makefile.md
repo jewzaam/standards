@@ -165,7 +165,7 @@ See [templates/Makefile](../python/templates/Makefile) for the canonical variabl
 
 The venv-creation target uses `$(PY_SYS) -m venv $(VENV_DIR)`, where `PY_SYS` defaults to `python3`. CI overrides `PY_SYS=python` to pin the venv to the matrix Python installed by `actions/setup-python`.
 
-**Why this matters:** `setup-python` prepends its install to `PATH` and creates a stable `python` symlink pointing at the matrix version, but `python3` is not always rebound. On hosted `ubuntu-latest` runners this usually works for `python3` too; under [act](local-workflow-testing.md) with `catthehacker/ubuntu:act-22.04`, the container ships Python 3.11 as the default `python3` and `setup-python` only adjusts `python`. A matrix leg running Python 3.12+ then falls back to 3.11 when `make install-dev` runs `python3 -m venv .venv`, producing a 3.11 venv. `pip install -e ".[dev]"` subsequently fails with `requires-python >=3.12`.
+**Why this matters:** `setup-python` prepends its install to `PATH` and creates a stable `python` symlink pointing at the installed version, but `python3` is not always rebound. On hosted `ubuntu-latest` runners this usually works for `python3` too; under [act](local-workflow-testing.md) with `catthehacker/ubuntu:act-22.04`, the container ships an older Python as the default `python3` and `setup-python` only adjusts `python`. `make install-dev` then runs `python3 -m venv .venv` with the wrong interpreter, and `pip install -e ".[dev]"` fails with `requires-python >=3.14`.
 
 `python` is the safe choice in CI because `setup-python` always rebinds it; `python3` is the safe local default because distro Pythons ship it but not the unversioned `python`. Using `PY_SYS` as a variable keeps both paths clean without duplicating targets.
 
@@ -273,7 +273,7 @@ A separate "show results" target is intentionally not part of the standard —
 that skips ALL decorated functions and classes — `@staticmethod`, `@classmethod`, `@property`,
 `@dataclass`, etc. are all silently excluded. This makes 3.x unusable for most real codebases.
 mutmut 3.x also has a [`set_start_method` bug (#466)](https://github.com/boxed/mutmut/issues/466)
-on Python 3.12+ when invoked via `python -m`.
+on Python 3.12 and later when invoked via `python -m`.
 
 mutmut 2.x is slower (no parallelization, one test run per mutant) but actually mutates
 decorated code. The `--CI` flag makes mutmut return 0 for all non-fatal runs (surviving
@@ -317,12 +317,11 @@ def _patched(method, force=False):
 multiprocessing.set_start_method = _patched
 ```
 
-#### CI performance
+#### Performance
 
 Mutation testing is slow — expect 1-2 hours for a mid-size project (250+ tests,
-20+ source files). Since the workflow runs post-merge, use `concurrency` with
-`cancel-in-progress: true` in the GitHub workflow to avoid queueing stale runs
-during rapid-fire merges. See [GitHub Workflows — Mutation Testing](github-workflows.md#mutation-testing).
+20+ source files). Run locally on-demand, not in GitHub Actions. See
+[GitHub Workflows — Mutation Testing](github-workflows.md#mutation-testing).
 
 ### Line length
 

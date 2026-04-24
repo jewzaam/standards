@@ -1,48 +1,38 @@
 # GitHub Workflows
 
-Standard CI workflows for ap-* projects.
+Standard CI workflows for Python projects.
 
 ## Naming convention
 
-**Workflow filename and `name:` field both match the make target they invoke.**
-Lower-case, hyphenated, exact match. So `make test-unit` lives in
-`.github/workflows/test-unit.yml` with `name: test-unit`.
-
-This makes branch-protection setup trivial — searching for `test-` in the
-required-status-checks list surfaces every quality gate at once. It also
-removes any guesswork about which workflow runs which target.
+**Workflow filename and `name:` field describe the workflow's purpose.**
+For single-target workflows, the name matches the make target (e.g.,
+`test-coverage` → `make test-coverage`). Consolidated workflows use a
+short descriptive name and invoke multiple targets as sequential steps
+(e.g., `quality` runs `make test-format`, `make test-lint`,
+`make test-typecheck`).
 
 ## Required Workflows
 
 | Workflow | Template | Description |
 |----------|----------|-------------|
-| `test-unit` | [test-unit.yml](templates/workflows/test-unit.yml) | Run pytest on Python 3.12-3.14 |
-| `test-lint` | [test-lint.yml](templates/workflows/test-lint.yml) | Run flake8 linter |
-| `test-typecheck` | [test-typecheck.yml](templates/workflows/test-typecheck.yml) | Run mypy type checker |
-| `test-format` | [test-format.yml](templates/workflows/test-format.yml) | Verify black formatting |
-| `test-coverage` | [test-coverage.yml](templates/workflows/test-coverage.yml) | Enforce 80% coverage threshold |
+| `test` | [test.yml](templates/workflows/test.yml) | Run pytest with coverage |
+| `quality` | [quality.yml](templates/workflows/quality.yml) | Format check + lint + type check |
 
 ## Optional Workflows
 
 | Workflow | Template | Description |
 |----------|----------|-------------|
-| `test-mutation` | [test-mutation.yml](templates/workflows/test-mutation.yml) | Run mutmut mutation testing (post-merge only) |
 | `version-check` | [version-check.yml](templates/workflows/version-check.yml) | Validate semver format, source consistency, and version bump |
+| `test-reachability` | [test-reachability.yml](templates/workflows/test-reachability.yml) | Verify all content files are reachable from entry points |
+| `fabcheck` | [fabcheck.yml](templates/workflows/fabcheck.yml) | Foreign-API binding completeness check (migrate into `quality` when adopted) |
 
 ### Mutation Testing
 
-Runs on push to main only — not on PRs. Mutation testing is computationally expensive
-(each mutant requires a full test run) and should not block merges. Uses `concurrency`
-with `cancel-in-progress: true` so that rapid-fire merges cancel stale runs instead
-of queueing 1-2 hour jobs that will never be looked at. Use a README badge to surface
-the current mutation score:
-
-```markdown
-[![test-mutation](https://github.com/<owner>/<repo>/actions/workflows/test-mutation.yml/badge.svg?branch=main)](https://github.com/<owner>/<repo>/actions/workflows/test-mutation.yml)
-```
-
-See [Makefile Standards — Mutation testing](makefile.md#mutation-testing) for the
-Makefile target and mutmut version requirements.
+Do not run mutation testing in GitHub Actions. mutmut runs are slow (1-2 hours for
+a mid-size project), expensive in CI minutes, and the results are rarely reviewed.
+Use `make test-mutation` locally when investigating test suite quality. See
+[Makefile Standards — Mutation testing](makefile.md#mutation-testing) for the local
+target and mutmut version requirements.
 
 ### Version Check
 
@@ -53,19 +43,56 @@ for setup.
 
 ## Setup
 
-Copy all files from [templates/workflows/](templates/workflows/) to your project's `.github/workflows/` directory:
+Copy the required workflow files from [templates/workflows/](templates/workflows/) to your project's `.github/workflows/` directory:
 
 ```bash
-cp -r build/templates/workflows/* .github/workflows/
+cp build/templates/workflows/test.yml build/templates/workflows/quality.yml .github/workflows/
 ```
 
-No modifications needed - workflows use Makefile targets which handle project-specific paths.
+No modifications needed — workflows use Makefile targets which handle project-specific paths.
+
+Projects with system-level dependencies (e.g., `python3-tk` for Tkinter) should add
+an install step before `make install-dev` in their local copy of `test.yml`.
 
 ## Conventions
 
-### Python versions
+### Python version
 
-Test on Python 3.12 through 3.14. Use 3.12 for single-version jobs (lint, format, typecheck, coverage).
+Use Python 3.14 for all workflows. No version matrix — single-version testing reduces
+CI minutes without sacrificing signal for projects that only target one runtime.
+
+### pip caching
+
+All `actions/setup-python` steps include `cache: 'pip'`:
+
+```yaml
+- name: Set up Python
+  uses: actions/setup-python@v5
+  with:
+    python-version: "3.14"
+    cache: 'pip'
+```
+
+This caches pip's download cache (`~/.cache/pip`), keyed by OS + Python version +
+hash of `pyproject.toml`. On cache hit, pip uses locally cached wheels instead of
+downloading from PyPI. The `pip install` step still runs (it resolves and installs)
+but skips network downloads.
+
+**Limitation:** git-based dependencies (e.g., `pkg @ git+https://...`) are re-cloned
+on every run regardless of cache state.
+
+### Concurrency groups
+
+All workflows use concurrency groups to cancel in-progress runs when a new commit
+lands on the same branch:
+
+```yaml
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+```
+
+This prevents queueing stale runs during rapid-fire pushes to a PR branch.
 
 ### Actions versions
 
@@ -90,11 +117,11 @@ on:
 Workflows call Makefile targets, not duplicate commands:
 
 ```yaml
-- name: Run tests
-  run: make test
+- name: Run tests with coverage
+  run: make test-coverage
 ```
 
-This keeps CI configuration simple and ensures local `make test` matches CI behavior.
+This keeps CI configuration simple and ensures local `make check` matches CI behavior.
 
 ### Pin the venv to the matrix Python
 
@@ -105,4 +132,14 @@ The install step passes `PY_SYS=python` so the venv is bootstrapped with the Pyt
   run: make install-dev PY_SYS=python
 ```
 
-Without this, [act](local-workflow-testing.md) matrix legs targeting Python ≥3.12 fall back to the `catthehacker/ubuntu:act-22.04` image's default `python3` (3.11) and fail with `requires-python >=3.12`. See [Makefile Standards — Pinning the venv interpreter](makefile.md#pinning-the-venv-interpreter-py_sys) for the full rationale.
+Without this, [act](local-workflow-testing.md) falls back to the `catthehacker/ubuntu:act-22.04` image's default `python3` and fails with `requires-python >=3.14`. See [Makefile Standards — Pinning the venv interpreter](makefile.md#pinning-the-venv-interpreter-py_sys) for the full rationale.
+
+## Migration from individual workflows
+
+Projects using the old per-check workflow pattern (5 separate workflows: `test-unit`,
+`test-coverage`, `test-lint`, `test-format`, `test-typecheck`) should consolidate:
+
+1. Replace `test-unit.yml` + `test-coverage.yml` with `test.yml`
+2. Replace `test-lint.yml` + `test-format.yml` + `test-typecheck.yml` with `quality.yml`
+3. Update branch protection rules to require `test` and `quality` instead of the old names
+4. Delete the old workflow files

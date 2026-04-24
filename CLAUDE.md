@@ -88,12 +88,8 @@ When adding a new standard or template:
 - [build/fabcheck.md](build/fabcheck.md) — fabrication detection: every import must resolve to stdlib, local code, or declared dep
 - [build/templates/fabcheck.mk](build/templates/fabcheck.mk) — fabcheck include (optional `make fabcheck`, `make fabcheck-report`)
 - [build/templates/fabcheck.sh](build/templates/fabcheck.sh) — vendorable bash script for fabcheck (multi-language import resolution)
-- [build/templates/workflows/test-unit.yml](build/templates/workflows/test-unit.yml) — pytest on Python 3.12-3.14
-- [build/templates/workflows/test-lint.yml](build/templates/workflows/test-lint.yml) — flake8 linter
-- [build/templates/workflows/test-typecheck.yml](build/templates/workflows/test-typecheck.yml) — mypy type checker
-- [build/templates/workflows/test-format.yml](build/templates/workflows/test-format.yml) — black formatting check
-- [build/templates/workflows/test-coverage.yml](build/templates/workflows/test-coverage.yml) — 80% coverage threshold
-- [build/templates/workflows/test-mutation.yml](build/templates/workflows/test-mutation.yml) — mutmut mutation testing
+- [build/templates/workflows/test.yml](build/templates/workflows/test.yml) — pytest with coverage (Python 3.14)
+- [build/templates/workflows/quality.yml](build/templates/workflows/quality.yml) — format check + lint + typecheck (Python 3.14)
 - [build/templates/workflows/test-reachability.yml](build/templates/workflows/test-reachability.yml) — document reachability check
 - [build/templates/workflows/version-check.yml](build/templates/workflows/version-check.yml) — semver validation (optional)
 - [build/templates/workflows/fabcheck.yml](build/templates/workflows/fabcheck.yml) — fabcheck CI with annotated findings (optional)
