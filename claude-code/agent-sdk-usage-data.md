@@ -86,15 +86,18 @@ class SessionAccumulator:
             self.total_cost_usd += total_cost_usd
         self.total_duration_ms += duration_ms or 0
         if usage:
-            # Lifetime input tokens = new + cache_read + cache_creation.
-            # Summing only input_tokens undercounts by 100–1000× once
-            # prompt caching kicks in, because the system prompt and
-            # recent history replay from cache every turn.
-            self.total_input_tokens += (
-                (usage.get("input_tokens") or 0)
-                + (usage.get("cache_read_input_tokens") or 0)
-                + (usage.get("cache_creation_input_tokens") or 0)
-            )
+            # Lifetime totals mirror the Claude Code CLI's statusline
+            # semantics exactly: only `input_tokens` (uncached new input)
+            # and `output_tokens` are summed. Cache reads and cache
+            # creations are surfaced separately via the per-turn snapshot
+            # below — they feed `used_percentage` but never the lifetime
+            # totals. This is intentional: the CLI's lifetime field
+            # represents new-input pressure, not billable input volume,
+            # and downstream aggregators (e.g. AgentPulse) treat the
+            # field that way. Summing the cache fields here would
+            # desynchronize SDK-sourced data from CLI-sourced data and
+            # break cross-source comparisons.
+            self.total_input_tokens += usage.get("input_tokens") or 0
             self.total_output_tokens += usage.get("output_tokens") or 0
 
 # Caller extracts fields from ResultMessage and passes them as kwargs:
@@ -112,11 +115,23 @@ accumulator to evolve (new optional fields) without breaking callers.
 For **per-turn context-window snapshots** — what feeds `used_percentage` —
 keep the most recent single-call usage separately (`last_input_tokens`,
 `last_cache_read_input_tokens`, `last_cache_creation_input_tokens`). These
-must *not* be summed: they represent the size of one API call and cannot
-exceed the window. `ResultMessage.usage` is aggregated across every API
-call in the turn (tool loops produce many) so it's only suitable for
-lifetime totals. Capture the snapshot from the last `AssistantMessage.usage`
+must *not* be summed across turns: they represent the size of one API call
+and cannot exceed the window. `ResultMessage.usage` is aggregated across
+every API call in the turn (tool loops produce many) so it's only suitable
+for lifetime totals. Capture the snapshot from the last `AssistantMessage.usage`
 before the turn ended.
+
+The split is what enables `used_percentage` to reflect "how full is my
+context right now" while `total_input_tokens` tracks "how much new input
+pressure has this process taken across its lifetime." A common mistake is
+to push the snapshot's three-field sum into the lifetime accumulator;
+that turns the lifetime field into a roughly-monotonic estimate of
+billable input volume, which the CLI does not produce and downstream
+consumers do not expect. Verified empirically against the Claude Code CLI:
+its `total_input_tokens` ticks by `input_tokens` only — typically a
+handful of tokens per turn after the first, even in long sessions where
+each request replays hundreds of thousands of tokens via cache_read. Match
+that behaviour.
 
 **Do not reset the accumulator on `/clear` or session resume.** The Claude
 Code CLI's statusline is process-scoped — `/clear` rotates `session_id` but
@@ -234,7 +249,7 @@ Mapping from SDK → this shape:
 | `cost.total_duration_ms` | Cumulative `ResultMessage.duration_ms` |
 | `cost.total_api_duration_ms` | Cumulative `ResultMessage.duration_api_ms` |
 | `cost.total_lines_added` / `_removed` | — (leave null unless parsed from tool results) |
-| `context_window.total_input_tokens` | Cumulative `usage["input_tokens"] + cache_read_input_tokens + cache_creation_input_tokens` |
+| `context_window.total_input_tokens` | Cumulative `usage["input_tokens"]` only — mirrors CLI semantics; cache reads/creations are *not* added (see accumulator note above) |
 | `context_window.total_output_tokens` | Cumulative `usage["output_tokens"]` |
 | `context_window.used_percentage` | Computed — see formula above |
 | `context_window.context_window_size` | Model lookup table |
