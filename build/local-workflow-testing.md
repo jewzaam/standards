@@ -81,7 +81,7 @@ purpose-built runner images for act. The Dockerfiles are public and auditable.
 
 **Pinned digest (required):**
 
-```
+```text
 docker.io/catthehacker/ubuntu:act-22.04@sha256:d83455c10c9a31c9c944a4c5628360c6c374983fa6616bd2439ab88b05ae2046
 ```
 
@@ -145,7 +145,7 @@ Config file load order:
 Use for the runner image mapping. Required flags and other overrides
 are set explicitly where act is invoked.
 
-```
+```text
 -P ubuntu-latest=localhost/act-runner:local
 -P ubuntu-22.04=localhost/act-runner:local
 ```

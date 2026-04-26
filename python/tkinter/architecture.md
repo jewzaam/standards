@@ -62,7 +62,7 @@ class AppController:
 
 The `tk.Tk()` root is **always hidden**. All visible windows are `tk.Toplevel` instances:
 
-```
+```text
 tk.Tk (hidden root)
 ├── tk.Toplevel — MainWindow (primary display)
 ├── tk.Toplevel — SettingsWindow (created on demand, destroyed on close)
@@ -188,10 +188,10 @@ def main():
 
 ### Logging Setup
 
-The example uses `logging.basicConfig()` directly. Projects in the ap-* ecosystem
-should use `ap_common.setup_logging()` instead (see
-[Logging & Progress](../logging-progress.md)). Standalone tkinter apps outside the
-ap-* ecosystem use `basicConfig` as shown.
+The example uses `logging.basicConfig()` directly. If your project family
+provides a shared logging helper, use it instead (see
+[Logging & Progress](../logging-progress.md)). Otherwise, `basicConfig` as shown
+is the right default.
 
 ### Deferred Import
 

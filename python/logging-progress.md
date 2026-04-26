@@ -1,6 +1,6 @@
 # Logging, Progress, and Output Standards
 
-Guidelines for output methods in ap-* CLI tools. Based on industry best practices including the 12-Factor App methodology and Python logging conventions.
+Guidelines for output methods in CLI tools. Based on industry best practices including the 12-Factor App methodology and Python logging conventions.
 
 ## Overview
 
@@ -26,16 +26,7 @@ Use Python logging for **operational and diagnostic information**:
 
 ### Configuration
 
-**With `ap_common`** (ap-* tools):
-
-```python
-from ap_common import setup_logging
-
-def main():
-    logger = setup_logging(name="ap_my_tool", debug=args.debug, quiet=args.quiet)
-```
-
-**Without `ap_common`** (standalone projects):
+If your project family provides a shared logging helper (e.g., `setup_logging`), use it for consistency across the family. Otherwise, configure logging directly:
 
 ```python
 import logging
@@ -89,10 +80,10 @@ Use hierarchical names for filtering:
 
 ```python
 # Main module
-logger = setup_logging(name="ap_my_tool", debug=debug)
+logger = setup_logging(name="my_tool", debug=debug)
 
 # Submodules
-logger = logging.getLogger("ap_my_tool.submodule")
+logger = logging.getLogger("my_tool.submodule")
 ```
 
 ### What to Log
@@ -157,13 +148,13 @@ Use progress indicators for **long-running operations** that process multiple it
 | Unknown total count | `ProgressTracker` (manual mode) |
 | < 3 items or instant operations | None needed |
 
-### Using ap_common Progress Utilities
+### Progress Utilities
+
+Use a small wrapper around `tqdm` (or your project family's shared progress helper) so progress display can be enabled/disabled consistently. Typical patterns:
 
 **Simple iteration:**
 
 ```python
-from ap_common import progress_iter
-
 for f in progress_iter(files, desc="Processing", enabled=not quiet):
     process_file(f)
 ```
@@ -171,8 +162,6 @@ for f in progress_iter(files, desc="Processing", enabled=not quiet):
 **With status updates:**
 
 ```python
-from ap_common import ProgressTracker
-
 with ProgressTracker(files, desc="Processing", enabled=show_progress) as tracker:
     for f in tracker:
         tracker.set_status(os.path.basename(f))
@@ -219,7 +208,7 @@ parser.add_argument("--quiet", "-q", action="store_true",
 |-------|-----|
 | Manual dot printing (`print(".", end="")`) | Inconsistent, no metrics |
 | Logging progress updates | Wrong abstraction level |
-| Custom progress implementations | Duplicates ap_common functionality |
+| Per-project custom progress implementations | Duplicates the shared helper |
 
 ## Print Statements (stdout)
 
@@ -276,11 +265,9 @@ Use this matrix to choose the right output method:
 ### Standard CLI Tool Structure
 
 ```python
-from ap_common import setup_logging, progress_iter
-
 def main():
     args = parse_args()
-    logger = setup_logging(name="ap_my_tool", debug=args.debug, quiet=args.quiet)
+    logger = setup_logging(name="my_tool", debug=args.debug, quiet=args.quiet)
 
     logger.info("Starting processing")  # Suppressed by --quiet
 
@@ -330,8 +317,8 @@ except Exception as e:
 
 ## Summary Table
 
-| Output Type | Stream | Controlled By | ap_common Utility |
-|-------------|--------|---------------|-------------------|
+| Output Type | Stream | Controlled By | Helper |
+|-------------|--------|---------------|--------|
 | Logging (DEBUG) | stderr | `--debug` | `setup_logging()`, `get_logger()` |
 | Logging (INFO) | stderr | `--quiet` (suppresses) | `setup_logging()`, `get_logger()` |
 | Logging (WARNING+) | stderr | Always shown | `setup_logging()`, `get_logger()` |

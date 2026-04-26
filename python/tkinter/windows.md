@@ -109,7 +109,7 @@ treats them as application windows.
 
 Since `overrideredirect` removes the OS window border, use a colored outer `Frame` with padding to create a visible border:
 
-```
+```text
 ┌─ border_frame (colored bg, 2px padding) ─┐
 │ ┌─ content_frame (dark bg, padx/pady) ──┐ │
 │ │                                        │ │

@@ -62,21 +62,9 @@ Link to project-specific documentation if it exists:
 
 Omit this section if the project has no docs beyond the README.
 
-### ap-* projects
+### Multi-project families
 
-All `ap-*` projects include standard boilerplate linking back to ap-base for comprehensive documentation:
-
-```markdown
-## Documentation
-
-This tool is part of the astrophotography pipeline. For comprehensive documentation including workflow guides and integration with other tools, see:
-
-- **[Pipeline Overview](https://github.com/jewzaam/ap-base/blob/main/docs/index.md)** - Full pipeline documentation
-- **[Workflow Guide](https://github.com/jewzaam/ap-base/blob/main/docs/workflow.md)** - Detailed workflow with diagrams
-- **[ap-<name> Guide](https://github.com/jewzaam/ap-base/blob/main/docs/tools/ap-<name>.md)** - Detailed usage guide for this tool
-```
-
-Replace `<name>` with the actual project name (e.g., `ap-common`, `ap-cull-light`).
+Projects that belong to a larger family with shared documentation should include a documentation block linking back to the parent project's overview, workflow guides, and per-tool documentation. Keep the format consistent across all projects in the family.
 
 ## Overview
 

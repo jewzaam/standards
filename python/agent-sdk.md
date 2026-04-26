@@ -56,6 +56,7 @@ header errors from endpoints that don't support them.
 ## Streaming and Duplicate Messages
 
 When `include_partial_messages=True`, the SDK emits both:
+
 1. `StreamEvent` with `content_block_delta` events (incremental text)
 2. `AssistantMessage` with complete `TextBlock` content (final text)
 

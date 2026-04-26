@@ -17,7 +17,7 @@ cat .tmp-fabcheck/missing-precise/.tmp-fabcheck/verdict.json
 Run with:
 
 ```bash
-make test
+make test-fabcheck
 ```
 
 Or directly:

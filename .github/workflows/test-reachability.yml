@@ -1,4 +1,4 @@
-name: Reachability
+name: test-reachability
 
 on:
   push:
@@ -6,16 +6,22 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   reachability:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
+          cache: 'pip'
 
-      - name: Check document reachability
-        run: make reachability
+      - name: Check reachability
+        run: make test-reachability

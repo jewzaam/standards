@@ -1,12 +1,12 @@
 # Versioning Standards
 
-Semantic versioning conventions for ap-* projects.
+Semantic versioning conventions.
 
 ## Version Format
 
 All projects use [Semantic Versioning](https://semver.org/):
 
-```
+```text
 X.Y.Z
 ```
 
@@ -33,7 +33,7 @@ A breaking change is anything that causes existing usage to fail or produce diff
 
 ## Integration Surface
 
-The supported integration pattern for ap-* tools is the **command-line interface**.
+When a project's primary integration pattern is a **command-line interface**, the CLI is the public API and the only surface covered by semver.
 
 | Integration Method | Status | Versioning Applies? |
 |--------------------|--------|---------------------|
@@ -41,7 +41,7 @@ The supported integration pattern for ap-* tools is the **command-line interface
 | Python module import | Not supported | No - internal, may change without notice |
 | REST/HTTP API | Not yet available | TODO |
 
-**Do not import ap-* modules directly.** Internal function signatures, module layout, and return types may change in any release without a major version bump. The CLI is the contract.
+**Do not import internal modules directly when only the CLI is the supported surface.** Internal function signatures, module layout, and return types may change in any release without a major version bump. The CLI is the contract.
 
 <!-- TODO: Define an API layer for programmatic integration. Until then, CLI is the only stable interface. -->
 

@@ -2,4 +2,4 @@
 
 # Python Standards
 
-Python standards applicable to all projects. Astrophotography-specific conventions (ap-* naming, shared venv) are noted where applicable.
+Python standards applicable to all projects.

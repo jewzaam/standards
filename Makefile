@@ -1,30 +1,32 @@
-PYTHON := python
+PYTHON ?= python3
 
-.PHONY: all check install-dev markdown-lint links reachability test help
+.PHONY: check clean help install-dev test-fabcheck test-links test-markdown-lint test-reachability
 
-all: check  ## Run all checks (default)
+check: test-markdown-lint test-links test-reachability test-fabcheck  ## Run full quality gate (default)
 
-check: markdown-lint links reachability test  ## Run all validation
+.DEFAULT_GOAL := check
+
+help:  ## Show available targets
+	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-32s\033[0m %s\n", $$1, $$2}'
+
+clean:  ## Remove build artifacts and review/analysis output
+	rm -rf .tmp-*/
+	rm -f ANALYSIS.md Findings-*.md Findings-*.json Report-*.json
 
 install-dev:  ## Install development dependencies
-	$(PYTHON) -m pip install --quiet 'pymarkdownlnt>=0.9.36'
+	$(PYTHON) -m pip install --quiet 'pymarkdownlnt>=0.9.36,<1.0'
 
-markdown-lint: install-dev  ## Lint markdown files
+test-markdown-lint: install-dev  ## Lint markdown files
 	@echo "Linting markdown files..."
-	$(PYTHON) -m pymarkdown --disable-rules MD013,MD024,MD031,MD036 scan .
+	$(PYTHON) -m pymarkdown --set 'plugins.md010.code_blocks=$$!False' --disable-rules MD013,MD024,MD031,MD036 scan --recurse --respect-gitignore .
 
-links:  ## Validate local markdown links and anchors
+test-links:  ## Validate local markdown links and anchors
 	@echo "Validating local links..."
 	$(PYTHON) scripts/check-links.py
 
-reachability:  ## Verify all files are reachable from README.md and CLAUDE.md
+test-reachability:  ## Verify all files are reachable from README.md and CLAUDE.md
 	@echo "Checking document reachability..."
 	$(PYTHON) scripts/reachability.py --check
 
-test:  ## Run fabcheck fixture tests
+test-fabcheck:  ## Run fabcheck fixture tests
 	@bash tests/fabcheck/run-tests.sh
-
-help:  ## Show this help message
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
-
-.DEFAULT_GOAL := all

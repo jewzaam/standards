@@ -1,6 +1,6 @@
 # CLI Standards
 
-Command-line interface conventions for ap-* tools.
+Command-line interface conventions.
 
 ## Options
 

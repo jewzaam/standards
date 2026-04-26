@@ -27,7 +27,7 @@ Start standalone in `.claude/`, convert to a plugin when ready to share.
 
 ## Directory Structure
 
-```
+```text
 my-plugin/
 ├── .claude-plugin/           # Metadata (optional)
 │   └── plugin.json             # Manifest

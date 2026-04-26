@@ -1,13 +1,13 @@
 # Project Structure
 
-Standard directory layout for ap-* Python projects.
+Standard directory layout for Python projects.
 
 ## Directory Layout
 
-```
-ap-<name>/
+```text
+<repo-name>/
 ├── .venv/                  # Virtual environment (created by make, git-ignored)
-├── ap_<name>/              # Package directory (underscores)
+├── <package_name>/         # Package directory (underscores)
 │   ├── __init__.py
 │   ├── __main__.py         # Entry point for python -m
 │   └── <module>.py
@@ -26,11 +26,10 @@ ap-<name>/
 ├── MANIFEST.in
 ├── Makefile
 ├── README.md
-├── TEST_PLAN.md
 └── pyproject.toml
 ```
 
-The `.venv/` directory is created automatically by `make install-dev` and must be git-ignored. When working in the ap-base monorepo, submodules share a single venv at the monorepo root instead. See [Shared Virtual Environment](shared-venv.md).
+The `.venv/` directory is created automatically by `make install-dev` and must be git-ignored. For project families that share a single venv across multiple repos, see [Shared Virtual Environment](shared-venv.md).
 
 ## Required Files
 
@@ -38,7 +37,6 @@ The `.venv/` directory is created automatically by `make install-dev` and must b
 |------|---------|
 | `LICENSE` | Project license |
 | `README.md` | Project documentation |
-| `TEST_PLAN.md` | Testing strategy and rationale (see [template](templates/TEST_PLAN.md)) |
 | `MANIFEST.in` | sdist inclusion rules |
 | `Makefile` | Build/test automation |
 | `pyproject.toml` | Package configuration |
@@ -48,53 +46,14 @@ The `.venv/` directory is created automatically by `make install-dev` and must b
 
 See [Naming](../common/naming.md) for the full naming taxonomy and pattern.
 
-- **Repository**: `ap-{verb}-{noun}` or `ap-{verb}-{noun}-to-{dest}` (hyphenated)
-- **Package directory**: Same as repository with underscores (e.g., `ap_cull_light`)
+- **Repository**: hyphenated (e.g., `my-tool`)
+- **Package directory**: Same as repository with underscores (e.g., `my_tool`)
 - **Module files**: lowercase, underscored
 - **Test files**: `test_<module>.py`
 
 ## pyproject.toml
 
-See [templates/pyproject.toml](templates/pyproject.toml) for the generic template. The ap-specific version below adds astrophotography classifiers and keywords:
-
-```toml
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "ap-<name>"
-version = "0.1.0"
-description = "<brief description>"
-readme = "README.md"
-requires-python = ">=3.14"
-license = {file = "LICENSE"}
-authors = [
-    {name = "Naveen Malik"}
-]
-keywords = ["astrophotography"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Science/Research",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.14",
-]
-dependencies = []
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
-    "pytest-mock>=3.0",
-    "black>=23.0",
-    "flake8>=6.0",
-    "mypy==1.11.2",
-]
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["ap_<name>*"]
-```
+See [templates/pyproject.toml](templates/pyproject.toml) for the generic template. Add domain-specific `keywords` and `classifiers` for your project family.
 
 ## .gitignore
 
@@ -133,8 +92,8 @@ venv/
 
 ## MANIFEST.in
 
-```
+```text
 include LICENSE
 include README.md
-recursive-include ap_<name> *.py
+recursive-include <package_name> *.py
 ```

@@ -181,7 +181,7 @@ there is deliberately no `.fabcheck.yml`.
 
 Fabcheck itself is tested by fixture scenarios in [../tests/fabcheck/](../tests/fabcheck/README.md).
 Each fixture is copied into a temp git repo and scanned; assertions run
-against the resulting `verdict.json`. Run with `make test` in this repo.
+against the resulting `verdict.json`. Run with `make test-fabcheck` in this repo.
 
 ## Adding a Language
 

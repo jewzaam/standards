@@ -136,7 +136,7 @@ Include the word `ultrathink` anywhere in skill content to activate extended thi
 
 Skills can include supporting files. Reference them from `SKILL.md` so Claude knows when to load them.
 
-```
+```text
 my-skill/
 ├── SKILL.md          # Required — overview and navigation
 ├── reference.md      # Detailed docs — loaded when needed
