@@ -63,7 +63,8 @@ CI minutes without sacrificing signal for projects that only target one runtime.
 
 ### pip caching
 
-All `actions/setup-python` steps include `cache: 'pip'`:
+`actions/setup-python` steps include `cache: 'pip'` **when the workflow actually
+invokes pip** (typically via `make install-dev`):
 
 ```yaml
 - name: Set up Python
@@ -77,6 +78,11 @@ This caches pip's download cache (`~/.cache/pip`), keyed by OS + Python version 
 hash of `pyproject.toml`. On cache hit, pip uses locally cached wheels instead of
 downloading from PyPI. The `pip install` step still runs (it resolves and installs)
 but skips network downloads.
+
+**Omit `cache: 'pip'` when the workflow never calls pip** (e.g., a workflow that
+runs only stdlib Python scripts like `test-reachability`). The post-job cache-save
+step fails when `~/.cache/pip` was never created, breaking the workflow even if
+the actual checks passed.
 
 **Limitation:** git-based dependencies (e.g., `pkg @ git+https://...`) are re-cloned
 on every run regardless of cache state.
