@@ -1,6 +1,6 @@
 # CLI Testing Standards
 
-Unit testing conventions for CLI entry points (main() functions) in ap-* projects.
+Unit testing conventions for CLI entry points (main() functions).
 
 ## Purpose
 
@@ -43,7 +43,7 @@ These bugs are invisible to:
 
 ## Required Coverage
 
-Every ap-* module with a CLI entry point MUST have tests covering:
+Every module with a CLI entry point MUST have tests covering:
 
 1. ✅ **Basic execution** - minimal required arguments
 2. ✅ **Each boolean flag individually** - test both enabled and disabled states
@@ -53,8 +53,6 @@ Every ap-* module with a CLI entry point MUST have tests covering:
 6. ✅ **Exit code validation** - verify EXIT_SUCCESS vs EXIT_ERROR
 
 ## Testing Pattern (Reference Implementation)
-
-Based on `ap-copy-master-to-blink/tests/test_main.py` (lines 101-117):
 
 ```python
 from unittest.mock import patch
@@ -185,11 +183,5 @@ When reviewing or adding CLI tests:
 - [ ] Error conditions tested (invalid args, missing paths)
 - [ ] Exit codes validated (EXIT_SUCCESS, EXIT_ERROR)
 - [ ] Tests run and pass: `pytest tests/test_main.py -v`
-
-## Reference Implementations
-
-**Best Practice Examples:**
-- `ap-copy-master-to-blink/tests/test_main.py` - Comprehensive, all flags, kwargs verification
-- `ap-empty-directory/tests/test_cli.py` - Alternative pattern with monkeypatch
 
 **See:** [Testing Standards](../python/testing.md) for general testing philosophy and patterns.

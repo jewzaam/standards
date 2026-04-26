@@ -1,8 +1,8 @@
 # Work Standards
 
-[![Markdown Lint](https://github.com/jewzaam/standards/actions/workflows/markdown-lint.yml/badge.svg)](https://github.com/jewzaam/standards/actions/workflows/markdown-lint.yml)
-[![Validate Links](https://github.com/jewzaam/standards/actions/workflows/links.yml/badge.svg)](https://github.com/jewzaam/standards/actions/workflows/links.yml)
-[![Reachability](https://github.com/jewzaam/standards/actions/workflows/reachability.yml/badge.svg)](https://github.com/jewzaam/standards/actions/workflows/reachability.yml)
+[![test-markdown-lint](https://github.com/jewzaam/standards/actions/workflows/test-markdown-lint.yml/badge.svg)](https://github.com/jewzaam/standards/actions/workflows/test-markdown-lint.yml)
+[![test-links](https://github.com/jewzaam/standards/actions/workflows/test-links.yml/badge.svg)](https://github.com/jewzaam/standards/actions/workflows/test-links.yml)
+[![test-reachability](https://github.com/jewzaam/standards/actions/workflows/test-reachability.yml/badge.svg)](https://github.com/jewzaam/standards/actions/workflows/test-reachability.yml)
 
 Reusable software development standards. Reference these instead of recreating project-specific guidelines.
 
@@ -34,12 +34,11 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 |----------|-------------|
 | [Style](python/style.md) | Python coding style and best practices |
 | [Project Structure](python/project-structure.md) | Directory layout and required files |
-| [Testing](python/testing.md) | Unit testing conventions, TDD, and TEST_PLAN.md requirements |
+| [Testing](python/testing.md) | Unit testing conventions, TDD, and documenting untested areas |
 | [Complexity](python/complexity.md) | Cyclomatic complexity limit (10), ruff C901 enforcement |
 | [Subprocess Security](python/subprocess-security.md) | Subprocess and localhost server security rules |
 | [Cross-Platform](python/cross-platform.md) | Making python/python3 work across Linux, macOS, Windows |
-| [Shared Venv](python/shared-venv.md) | Venv setup for standalone and monorepo development |
-| [ap-common Usage](python/ap-common-usage.md) | Use shared constants from ap-common |
+| [Shared Venv](python/shared-venv.md) | Shared `~/.venv/<family>/` for related projects, local `.venv` fallback |
 | [Logging & Progress](python/logging-progress.md) | Logging, progress indicators, and output |
 | [Settings Persistence](python/settings-persistence.md) | Dataclass settings with atomic JSON I/O |
 | [Agent SDK Integration](python/agent-sdk.md) | Claude Agent SDK integration patterns |
@@ -62,7 +61,6 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 |----------|-------------|
 | [Makefile](python/templates/Makefile) | Standard Makefile with all required targets |
 | [pyproject.toml](python/templates/pyproject.toml) | Package config with standard dev dependencies |
-| [TEST_PLAN.md](python/templates/TEST_PLAN.md) | Testing strategy documentation template |
 | [test.mk](python/templates/test.mk) | Standard `test-*` target collection (includable `.mk`) |
 | [version-check.mk](python/templates/version-check.mk) | Semver validation (includable `.mk`, optional `make version-check`) |
 | [version-check.sh](python/templates/version-check.sh) | Shell script for semver validation |

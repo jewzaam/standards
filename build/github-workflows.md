@@ -97,6 +97,7 @@ This prevents queueing stale runs during rapid-fire pushes to a PR branch.
 ### Actions versions
 
 Use current major versions:
+
 - `actions/checkout@v4`
 - `actions/setup-python@v5`
 

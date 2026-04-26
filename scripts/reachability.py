@@ -5,9 +5,9 @@
 import argparse
 import os
 import re
-import subprocess
 import sys
 from collections import deque
+from pathlib import Path
 
 # --- Repo-specific configuration ---
 
@@ -32,18 +32,47 @@ EXCLUDED_EXACT = {
     "pyproject.toml",
 }
 
+# Mirrors the .gitignore patterns relevant to enumeration. Avoids
+# `git ls-files` because actions/checkout@v4 in act on Windows leaves
+# .git/ missing in the container — git would fail and the script
+# would silently report 0 content files.
+_EXCLUDED_DIR_PARTS = frozenset({
+    ".git", ".work", "__pycache__", "dist", ".eggs",
+    "venv", ".venv", "env", ".idea", ".vscode",
+    ".pytest_cache", "htmlcov", ".mypy_cache",
+})
+
 # --- End repo-specific configuration ---
 
 
+def _is_enum_excluded(rel_path: Path) -> bool:
+    for part in rel_path.parts:
+        if part in _EXCLUDED_DIR_PARTS:
+            return True
+        if part.startswith(".tmp-"):
+            return True
+    name = rel_path.name
+    if name == "ANALYSIS.md":
+        return True
+    if name.startswith("Findings-") or name.startswith("Report-"):
+        return True
+    return False
+
+
 def find_tracked_files(repo_root: str) -> list[str]:
-    """Find all tracked files using git ls-files (respects .gitignore)."""
-    result = subprocess.run(
-        ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
-        capture_output=True,
-        text=True,
-        cwd=repo_root,
-    )
-    return sorted(line for line in result.stdout.strip().splitlines() if line)
+    """Enumerate repo files, honouring the .gitignore patterns this tool
+    cares about. Avoids the `git ls-files` dependency so the script works
+    inside CI containers that may not preserve .git/ (e.g. act on Windows)."""
+    root = Path(repo_root)
+    files: list[str] = []
+    for p in root.rglob("*"):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(root)
+        if _is_enum_excluded(rel):
+            continue
+        files.append(rel.as_posix())
+    return sorted(files)
 
 
 def extract_links(filepath: str, repo_root: str) -> list[str]:

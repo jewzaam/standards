@@ -1,4 +1,4 @@
-name: Markdown Lint
+name: test-markdown-lint
 
 on:
   push:
@@ -6,16 +6,22 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  markdownlint:
+  markdown-lint:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
+          cache: 'pip'
 
       - name: Lint markdown files
-        run: make markdown-lint
+        run: make test-markdown-lint

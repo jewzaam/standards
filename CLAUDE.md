@@ -16,7 +16,7 @@ Run `make help` for available validation targets.
 Every non-infrastructure file in this repo must be linked directly from this
 file. No file should require traversing intermediate documents to discover.
 
-Run `make reachability` (or `python scripts/reachability.py --check`) to
+Run `make test-reachability` (or `python scripts/reachability.py --check`) to
 verify. It fails if any content file is missing a direct link from CLAUDE.md
 or README.md.
 
@@ -25,7 +25,7 @@ When adding a new standard or template:
 1. Add the file
 2. Add a direct link here under the appropriate section with a short description
 3. Add a link in [README.md](README.md) under the matching section
-4. Run `make reachability` to confirm
+4. Run `make test-reachability` to confirm
 
 ## Common
 
@@ -43,12 +43,11 @@ When adding a new standard or template:
 - [python/README.md](python/README.md)
 - [python/style.md](python/style.md) — coding style, imports, type hints
 - [python/project-structure.md](python/project-structure.md) — directory layout, required files
-- [python/testing.md](python/testing.md) — pytest conventions, TDD, TEST_PLAN.md
+- [python/testing.md](python/testing.md) — pytest conventions, TDD, documenting untested areas
 - [python/complexity.md](python/complexity.md) — cyclomatic complexity limit (10), ruff C901 enforcement
 - [python/subprocess-security.md](python/subprocess-security.md) — subprocess and localhost server security rules
 - [python/cross-platform.md](python/cross-platform.md) — making python/python3 work across Linux, macOS, Windows
-- [python/shared-venv.md](python/shared-venv.md) — shared `~/.venv/ap/` for ap-* projects, local `.venv` for others
-- [python/ap-common-usage.md](python/ap-common-usage.md) — shared constants from ap-common
+- [python/shared-venv.md](python/shared-venv.md) — shared `~/.venv/<family>/` for related projects, local `.venv` fallback
 - [python/logging-progress.md](python/logging-progress.md) — logger setup, `--log-file`, progress bars
 - [python/settings-persistence.md](python/settings-persistence.md) — dataclass settings with atomic JSON I/O
 - [python/agent-sdk.md](python/agent-sdk.md) — Claude Agent SDK integration, threading with tkinter, permission control
@@ -68,9 +67,8 @@ When adding a new standard or template:
 
 - [python/templates/Makefile](python/templates/Makefile) — standard Makefile with all required targets
 - [python/templates/pyproject.toml](python/templates/pyproject.toml) — package config with standard dev dependencies
-- [python/templates/TEST_PLAN.md](python/templates/TEST_PLAN.md) — testing strategy documentation template
 - [python/templates/test.mk](python/templates/test.mk) — standard `test-*` target collection (includable `.mk`)
-- [python/templates/version-check.mk](python/templates/version-check.mk) — semver validation (includable `.mk`)
+- [python/templates/version-check.mk](python/templates/version-check.mk) — semver validation (includable `.mk`, optional `make version-check`)
 - [python/templates/version-check.sh](python/templates/version-check.sh) — shell script for semver validation
 
 ## CLI
@@ -92,7 +90,7 @@ When adding a new standard or template:
 - [build/templates/workflows/quality.yml](build/templates/workflows/quality.yml) — format check + lint + typecheck (Python 3.14)
 - [build/templates/workflows/test-reachability.yml](build/templates/workflows/test-reachability.yml) — document reachability check
 - [build/templates/workflows/version-check.yml](build/templates/workflows/version-check.yml) — semver validation (optional)
-- [build/templates/workflows/fabcheck.yml](build/templates/workflows/fabcheck.yml) — fabcheck CI with annotated findings (optional)
+- [build/templates/workflows/fabcheck.yml](build/templates/workflows/fabcheck.yml) — run fabcheck on push/PR, annotate missing findings, upload verdict (optional)
 
 ## Claude Code
 

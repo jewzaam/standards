@@ -20,7 +20,7 @@ share everything except the file tree and index).
 
 Place worktrees in a `git-worktrees/` directory at the same level as the repo:
 
-```
+```text
 ~/source/
 ├── my-project/              # main worktree
 └── git-worktrees/

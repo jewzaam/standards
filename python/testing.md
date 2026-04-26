@@ -1,6 +1,6 @@
 # Testing Standards
 
-Unit testing conventions for ap-* projects.
+Unit testing conventions for Python projects.
 
 ## Testing Philosophy
 
@@ -11,7 +11,7 @@ Tests exist to prevent regressions and validate functionality. A test that canno
 1. **Tests must have teeth** - Every test should be capable of failing when the code it tests is broken
 2. **TDD for bug fixes** - Write a failing test before fixing a bug to prove the test catches the defect
 3. **Functionality over coverage** - 80% meaningful coverage beats 100% superficial coverage
-4. **Document the "why"** - Each project maintains a TEST_PLAN.md explaining testing rationale
+4. **Document the "why"** - Record intentional test gaps and the reasoning behind them where future contributors will see them
 
 ## Unit vs Integration Tests
 
@@ -40,7 +40,7 @@ def test_normalize_date_iso_format(self):
 **Example - Unit test with mocking:**
 
 ```python
-@patch("ap_common.move_file")
+@patch("my_pkg.utils.move_file")
 def test_reject_image_moves_file(self, mock_move_file, tmp_path):
     """Test that reject_image calls move_file with correct arguments."""
     source = tmp_path / "source" / "test.fits"
@@ -98,7 +98,7 @@ TDD is **required** for bug fixes to existing functionality. New features follow
 
 ### TDD Workflow for Bug Fixes
 
-```
+```text
 1. Reproduce    - Confirm the bug exists
 2. Write test   - Create a test that exposes the bug
 3. Verify red   - Run test, confirm it FAILS
@@ -114,13 +114,11 @@ Link tests to the bug they validate:
 ```python
 def test_filename_override_takes_precedence(self):
     """
-    Regression test for https://github.com/jewzaam/ap-common/issues/15
+    Regression test for https://github.com/<owner>/<repo>/issues/<n>
 
-    Bug: Master dark with EXPOSURE in filename used FITS header value
-    instead of filename value.
+    Bug: <one-line bug description>.
 
-    Fix: Filename-parsed values now take precedence over FITS headers
-    when file_naming_override=True.
+    Fix: <one-line description of what the fix does>.
     """
     # ... test implementation
 ```
@@ -180,17 +178,17 @@ pytest tests/test_module.py -k "test_for_bug"  # Should FAIL
 git checkout .                    # Restore fix
 ```
 
-## TEST_PLAN.md
+## Documenting Untested Areas
 
-Each project **must** have a `TEST_PLAN.md` in the repository root documenting testing rationale.
+Tests, docstrings, and coverage reports describe what *is* tested. They cannot describe what was deliberately *not* tested or why — that information has no other home and tends to be relitigated every time someone new looks at the code.
 
-See [TEST_PLAN.md Template](templates/TEST_PLAN.md) for the required structure.
+Capture intentional gaps in `tests/README.md` (preferred — colocated with the tests) or a dedicated section of the project README. Keep it short:
 
-The TEST_PLAN.md serves as:
+- The area or behavior that is not tested
+- Why it is not tested (cost, infeasibility, third-party responsibility, deferred to integration)
+- Any conditions under which that decision should be revisited
 
-- Single source of truth for testing decisions
-- Onboarding documentation for contributors
-- Audit trail for test coverage rationale
+Update the list when scope changes. Do not duplicate content already covered by the standards (philosophy, TDD protocol, coverage targets, framework choice) — link to those instead.
 
 ## Framework
 
@@ -198,7 +196,7 @@ Use pytest with pytest-cov for coverage.
 
 ## Directory Structure
 
-```
+```text
 tests/
 ├── __init__.py
 ├── conftest.py        # Shared fixtures
@@ -387,8 +385,8 @@ def create_minimal_fits(path, header_data=None):
 
 One test file per module:
 
-```
-ap_<name>/
+```text
+<package_name>/
 ├── move.py
 └── config.py
 
@@ -399,7 +397,7 @@ tests/
 
 For modules with significant integration testing needs:
 
-```
+```text
 tests/
 ├── test_move.py              # Unit tests
 ├── test_move_integration.py  # Integration tests

@@ -11,6 +11,7 @@ When calling functions with multiple parameters, especially optional parameters,
 ### Rationale
 
 Positional parameters are error-prone:
+
 - Parameter order changes can silently break code
 - Wrong values can be passed to wrong parameters with no type checking
 - Code is harder to understand without reading function signature
@@ -138,6 +139,93 @@ stats = process_blink_directory(lib_path, blink_path, "YYYY-MM-DD", True, False,
 - Python itself raises `TypeError` for violations — no linter needed
 - Code reviewers should flag function definitions that have optional parameters without `*`
 - Add `*` to existing functions opportunistically when making changes
+
+## Dict Access: Bracket vs `.get()`
+
+**Pick one access style per dict based on whether the shape is guaranteed,
+and apply it to every key in that dict consistently.**
+
+### Rule
+
+- **`d["key"]`** when the dict's shape is guaranteed by the producer
+  (internal code you control — a query helper, a derivation function, a
+  factory, a fixture).
+- **`d.get("key")`** only when the key might genuinely be absent
+  (external JSON, parsed config, untrusted input, third-party dicts).
+
+Within a single function reading a single dict, **do not mix**. Both
+styles are functionally identical when the key is always present, and the
+inconsistency creates a false signal — readers assume `.get()` means
+"this might be missing" and waste time tracing the producer to confirm.
+
+### Rationale
+
+`.get()` is a defensive idiom. Using it on a dict whose shape your own
+code guarantees:
+
+- Lies about the contract — implies optionality that doesn't exist.
+- Hides shape bugs — a missing key on a guaranteed-shape dict is a bug;
+  silently returning `None` swallows it.
+- Adds noise — `d.get("k", 0)` with a default is dead code when the
+  producer always sets `k`.
+
+Bracket access asserts the shape contract loudly. If the producer
+changes and stops setting a key, `KeyError` flags it immediately at
+the consumer instead of leaking `None` into downstream code.
+
+### Example
+
+```python
+# Producer — guarantees every key
+def _derive_session(...) -> dict:
+    return {
+        "session_id": ...,
+        "ended_at": ...,        # may be None, but key is always present
+        "agent_count": ...,
+        "epochs": ...,          # may be None, but key is always present
+    }
+
+
+# WRONG — inconsistent; misleads readers about which fields are optional
+def _to_response(d: dict) -> SessionResponse:
+    return SessionResponse(
+        session_id=d["session_id"],
+        ended_at=d.get("ended_at"),
+        agent_count=d.get("agent_count", 0),
+        epochs=d.get("epochs"),
+    )
+
+
+# CORRECT — bracket access throughout; producer guarantees the shape
+def _to_response(d: dict) -> SessionResponse:
+    return SessionResponse(
+        session_id=d["session_id"],
+        ended_at=d["ended_at"],
+        agent_count=d["agent_count"],
+        epochs=d["epochs"],
+    )
+```
+
+### Guidelines
+
+- **Producer-controlled dicts** (helpers, factories, query results from
+  your own code): bracket access for every key.
+- **External dicts** (JSON parsed from a request, env-derived config,
+  third-party API responses): `.get()` is fine, with explicit defaults
+  where defaulting is meaningful.
+- **None-vs-missing distinction is a code smell.** A producer that
+  sometimes omits a key and sometimes sets it to `None` should be
+  fixed to always set the key.
+- **Defaults on `.get()`** (`d.get("k", default)`) are only meaningful
+  when the key might genuinely be absent. On a guaranteed-shape dict
+  the default is dead code.
+
+### Enforcement
+
+- Code reviewers should flag mixed access styles within a single
+  function reading a single dict.
+- When a producer adds a new field, update consumers to use bracket
+  access — don't paper over with `.get()`.
 
 ## Imports: Every Import Must Resolve
 

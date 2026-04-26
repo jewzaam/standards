@@ -144,7 +144,7 @@ foreground + background under a trap so Ctrl-C cleans them up).
 
 By default, projects use a local `.venv` in the project root.
 
-For `ap-*` projects that share a single venv, see [Shared Virtual Environment](../python/shared-venv.md).
+For families of related projects that share a single venv, see [Shared Virtual Environment](../python/shared-venv.md).
 
 ## Template
 
@@ -189,7 +189,7 @@ test-format: install-dev  ## Check formatting (exits non-zero if changes needed)
 
 ### Self-documenting help target
 
-The `help` target greps for `## ` comments on target lines and prints a formatted list. Every target that should appear in `make help` output must have a `## description` comment on its rule line:
+The `help` target greps for `##` followed by a space on target lines and prints a formatted list. Every target that should appear in `make help` output must have a `## description` comment on its rule line:
 
 ```makefile
 format: install-dev  ## Format code with black
@@ -203,7 +203,7 @@ The `-h` flag on grep suppresses filename prefixes when `$(MAKEFILE_LIST)` conta
 multiple files (e.g., from `-include make/*.mk`). Without it, the awk field split
 breaks and prints filenames instead of target names.
 
-Targets without `## ` comments (like the `$(PYTHON)` venv-creation target) are intentionally hidden from help output.
+Targets without a `##` description comment (like the `$(PYTHON)` venv-creation target) are intentionally hidden from help output.
 
 ### Quiet failures in clean
 
@@ -347,7 +347,7 @@ Each fragment is named after a **subsystem (a noun)**, never after a verb. The
 sole exception is `make/test.mk`, which holds the standard `test-*` collection
 to keep the root Makefile uncluttered.
 
-```
+```text
 project-root/
 ├── Makefile
 └── make/
@@ -462,7 +462,7 @@ The job requires `contents: write` permission.
 
 Consumers can pin to a version tag:
 
-```
+```bash
 pip install git+https://github.com/user/repo.git@v0.3.5
 ```
 

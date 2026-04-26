@@ -111,7 +111,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: make reachability
+      - run: make test-reachability
 ```
 
 ### CLI flags

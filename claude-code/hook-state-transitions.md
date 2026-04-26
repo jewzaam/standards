@@ -47,6 +47,7 @@ Hooks receive JSON on stdin with fields including:
 ## Hook Output
 
 Exit codes:
+
 - `0` — proceed (allow)
 - `2` — block (PreToolUse only)
 - Other — allow, but stderr is logged
@@ -87,7 +88,7 @@ Optional structured JSON output:
 
 ## Main Process State Machine
 
-```
+```text
 Unknown → Working (user sends prompt)
 Working → Ready (Stop event, no agent_id)
 Working → Permission Required (needs approval)
@@ -103,7 +104,7 @@ Permission → Working (approved or denied with feedback)
 Agents have a simpler lifecycle — they never receive `Stop`, never enter
 Ready/Idle.
 
-```
+```text
 [First event with agent_id] → Working
 Working → Permission Required (needs approval)
 Working → Awaiting Input (asks a question)
@@ -116,35 +117,44 @@ Awaiting Input → Working (answered)
 ## Critical Caveats
 
 ### SubagentStart is unreliable
+
 Sometimes does not fire for background agents. Register agents on the first
 hook event carrying an `agent_id` that is NOT `SubagentStop`.
 
 ### Deny without feedback (main process)
+
 Denying a tool on the main process without feedback text fires NO follow-up
 hook. No `PostToolUse`, no `Stop`. State remains at Permission Required until
 the user sends a new prompt. Known gap, no workaround.
 
 ### Deny without feedback (agent)
+
 Agent permission denial fires `SubagentStop` — the agent gives up cleanly. No
 stuck state.
 
 ### Auto-wake after agent completion
+
 Each `SubagentStop` triggers an automatic `UserPromptSubmit` → `Stop` on the
 main session. With N background agents, expect up to N such cycles.
 
 ### Agent clearing
+
 All tracked agents for a session are cleared when:
+
 1. `UserPromptSubmit` arrives (no `agent_id`) — new user turn
 2. Parent session PID dies
 
 ### Session crash
+
 No `SessionEnd` hook fires on crash. Detect via PID polling.
 
 ### Resumed sessions
+
 Hooks may fire with the original session ID rather than the new one. Match by
 CWD as a fallback.
 
 ### Out-of-order completion
+
 Agents can complete in any order regardless of start order. Handle interleaved
 `SubagentStop` → auto-wake cycles.
 
