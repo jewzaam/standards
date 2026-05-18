@@ -71,6 +71,14 @@ When adding a new standard or template:
 - [python/templates/version-check.mk](python/templates/version-check.mk) — semver validation (includable `.mk`, optional `make version-check`)
 - [python/templates/version-check.sh](python/templates/version-check.sh) — shell script for semver validation
 
+## .NET
+
+- [dotnet/README.md](dotnet/README.md)
+- [dotnet/style.md](dotnet/style.md) — async, nullable, .NET 8/10 features, MVVM
+- [dotnet/project-structure.md](dotnet/project-structure.md) — csproj layout, TFM choice, deps
+- [dotnet/testing.md](dotnet/testing.md) — xUnit/NUnit, Moq, FluentAssertions, STA/WPF tests
+- [dotnet/nina-plugin.md](dotnet/nina-plugin.md) — NINA 3.x C# plugin: build, MEF, mediators, options, HTTP, logging, publishing
+
 ## CLI
 
 - [cli/README.md](cli/README.md)
