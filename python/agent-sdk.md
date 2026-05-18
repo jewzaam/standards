@@ -135,6 +135,7 @@ class ChatClient:
 ```
 
 Key rules:
+
 - **Lock state transitions** in `start()`/`stop()` to prevent race conditions
 - **Close the event loop** after stopping — `loop.stop()` alone leaks resources
 - **Join the thread** with a timeout before closing the loop

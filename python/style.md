@@ -68,6 +68,7 @@ process_data(data, validate=True, strict=False, verbose=True)
 ### Exceptions
 
 Positional parameters are acceptable when:
+
 - Only 1-2 required parameters with clear, unambiguous meaning
 - Very common functions where positional usage is idiomatic (e.g., `print()`, `len()`)
 - All parameters are required (no defaults)

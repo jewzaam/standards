@@ -35,6 +35,7 @@ Common bugs:
 - Wrong delimiter: `args.scale.dark` when only `args.scale_dark` exists → AttributeError
 
 These bugs are invisible to:
+
 - Linters (flake8, pylint) - cannot validate dynamic Namespace attributes
 - Type checkers (mypy) - argparse.Namespace is untyped by default
 - Unit tests - business logic tests mock the args object, never parse real CLI
@@ -74,6 +75,7 @@ def test_flag_name(mock_validate, mock_business):
 ```
 
 **Why this pattern works:**
+
 - Patches `sys.argv` → tests real argparse behavior
 - Calls real `main()` → exercises actual attribute access
 - Mocks business function → isolates argparse logic, fast tests
