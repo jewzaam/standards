@@ -16,7 +16,7 @@ called out separately.
 
 ## Test project layout
 
-```
+```text
 <repo>/
 ├── <Project>.csproj
 └── tests/
