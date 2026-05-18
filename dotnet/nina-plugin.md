@@ -102,7 +102,7 @@ cross-context type identity) or a version mismatch surfacing as
 
 Do not copy any of these into the plugin folder:
 
-```
+```text
 NINA.Astrometry, NINA.Core, NINA.Equipment, NINA.Image,
 NINA.PlateSolving, NINA.Profile, NINA.Sequencer, NINA.WPF.Base,
 NINA.CustomControlLibrary,
@@ -602,7 +602,7 @@ Compiled against `NINA.Plugin 3.2.0.9001` → manifest declares
 
 ### 10.5 Folder structure
 
-```
+```text
 manifests\<first-letter><plugin-name>\<nina-version>\<plugin-version>\manifest.json
 ```
 

@@ -7,7 +7,7 @@ covered by the relevant subsystem standard — for NINA, see
 
 ## Solution and project layout
 
-```
+```text
 <repo-root>/
 ├── <Project>.sln
 ├── <Project>.csproj            ← main library / executable
