@@ -534,6 +534,7 @@ check external URLs. This avoids pulling in third-party dependencies for a
 narrow, stable task.
 
 The script:
+
 - Finds all `.md` files recursively (excluding `.git/`)
 - Checks `[text](relative/path.md)` — does the file exist?
 - Checks `[text](relative/path.md#anchor)` — does the heading exist?

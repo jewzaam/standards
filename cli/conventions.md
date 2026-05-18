@@ -96,11 +96,13 @@ parser.add_argument(
 ```
 
 **When to use:**
+
 - Features that can be enabled or disabled
 - Behavior that should be explicitly controllable
 - Replacing simple `action="store_true"` flags where negation is useful
 
 **Example:**
+
 - `--scale-dark` - Enable bias-compensated dark frame scaling
 
 ## Positional Arguments
@@ -152,6 +154,7 @@ def process(path_pattern: str = r".*accept.*"):  # Wrong!
 ```
 
 **Rationale:**
+
 - Prevents inconsistencies when defaults change
 - Clear separation: CLI layer sets policy, function layer implements logic
 - Function can be called programmatically with different defaults

@@ -14,7 +14,7 @@ clean:  ## Remove build artifacts and review/analysis output
 	rm -f ANALYSIS.md Findings-*.md Findings-*.json Report-*.json
 
 install-dev:  ## Install development dependencies
-	$(PYTHON) -m pip install --quiet 'pymarkdownlnt>=0.9.36,<1.0'
+	$(PYTHON) -m pip install --quiet 'pymarkdownlnt>=0.9.37,<1.0'
 
 test-markdown-lint: install-dev  ## Lint markdown files
 	@echo "Linting markdown files..."
