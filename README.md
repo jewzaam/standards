@@ -65,6 +65,15 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [version-check.mk](python/templates/version-check.mk) | Semver validation (includable `.mk`, optional `make version-check`) |
 | [version-check.sh](python/templates/version-check.sh) | Shell script for semver validation |
 
+## [.NET](dotnet/README.md)
+
+| Standard | Description |
+|----------|-------------|
+| [Style](dotnet/style.md) | Async, nullable, .NET 8/10 language features, MVVM |
+| [Project Structure](dotnet/project-structure.md) | csproj layout, TFM choice, deps |
+| [Testing](dotnet/testing.md) | xUnit/NUnit, Moq, FluentAssertions, STA/WPF tests |
+| [NINA Plugin](dotnet/nina-plugin.md) | NINA 3.x C# plugin: build, MEF, mediators, options, HTTP, logging, publishing |
+
 ## [CLI](cli/README.md)
 
 | Standard | Description |
