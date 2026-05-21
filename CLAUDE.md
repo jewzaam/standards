@@ -100,6 +100,14 @@ When adding a new standard or template:
 - [build/templates/workflows/version-check.yml](build/templates/workflows/version-check.yml) — semver validation (optional)
 - [build/templates/workflows/fabcheck.yml](build/templates/workflows/fabcheck.yml) — run fabcheck on push/PR, annotate missing findings, upload verdict (optional)
 
+## Kubernetes
+
+- [kubernetes/README.md](kubernetes/README.md)
+- [kubernetes/helm-values.md](kubernetes/helm-values.md) — verify Helm value overrides with `helm template` before pushing
+- [kubernetes/configmap-reload.md](kubernetes/configmap-reload.md) — restart Pods on ConfigMap/Secret content change (stakater/reloader, checksum annotation)
+- [kubernetes/job-sync-hooks.md](kubernetes/job-sync-hooks.md) — Jobs are immutable; use Argo CD sync hooks for delete-and-recreate
+- [kubernetes/kubectl-run-entrypoints.md](kubernetes/kubectl-run-entrypoints.md) — match `kubectl run -- <args>` to the image's ENTRYPOINT shape
+
 ## Claude Code
 
 - [claude-code/skills.md](claude-code/skills.md) — authoring Claude Code skills (SKILL.md files)
