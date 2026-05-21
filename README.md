@@ -107,6 +107,15 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [fabcheck.mk](build/templates/fabcheck.mk) | Import fabrication detection (includable `.mk`, optional `make fabcheck`) |
 | [fabcheck.sh](build/templates/fabcheck.sh) | Shell script for fabcheck (vendor into `scripts/`) |
 
+## [Kubernetes](kubernetes/README.md)
+
+| Standard | Description |
+|----------|-------------|
+| [Helm Values](kubernetes/helm-values.md) | Verify Helm value overrides with `helm template` before pushing |
+| [ConfigMap Reload](kubernetes/configmap-reload.md) | Restart Pods on ConfigMap/Secret content change (stakater/reloader, checksum annotation) |
+| [Job Sync Hooks](kubernetes/job-sync-hooks.md) | Jobs are immutable; use Argo CD sync hooks for delete-and-recreate |
+| [kubectl run Entrypoints](kubernetes/kubectl-run-entrypoints.md) | Match `kubectl run -- <args>` to the image's ENTRYPOINT shape |
+
 ## Claude Code
 
 | Standard | Description |
