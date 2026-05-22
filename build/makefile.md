@@ -331,6 +331,51 @@ Match black's default of 88 characters:
 --max-line-length=88
 ```
 
+### Compose tool autodetect
+
+Projects with a `docker-compose.yml` often need to validate or run it
+locally and in CI. Hardcoding one tool breaks one of the two
+environments: `docker compose` (Compose v2 plugin) is universal in CI
+runner images including `catthehacker/ubuntu:act-22.04`, but local
+machines may have only `podman-compose` (rootless podman on Fedora) or
+the legacy standalone `docker-compose`.
+
+Autodetect at Makefile parse time and let the same target work in both
+contexts:
+
+```makefile
+# Compose tool autodetect — prefer docker compose (universal in CI),
+# fall back to podman-compose, then docker-compose.
+COMPOSE := $(shell command -v docker > /dev/null 2>&1 \
+    && docker compose version > /dev/null 2>&1 \
+    && echo "docker compose" \
+    || command -v podman-compose 2>/dev/null \
+    || command -v docker-compose 2>/dev/null)
+
+test-lint-compose:  ## Validate docker-compose.yml syntax
+	@if [ -z "$(COMPOSE)" ]; then \
+	    echo "==> SKIP: no compose tool found"; \
+	else \
+	    echo "==> Validating docker-compose.yml using $(COMPOSE)"; \
+	    $(COMPOSE) -f docker-compose.yml config > /dev/null && echo "OK"; \
+	fi
+```
+
+**Why this matters:** the act runner image
+([catthehacker/ubuntu](local-workflow-testing.md#runner-image-differences-from-github-hosted-runners))
+has `docker compose` but no `podman` binary, so pip-installing
+`podman-compose` in CI fails with `FileNotFoundError: 'podman'`. A
+target that hardcodes `podman-compose` works locally but breaks CI; a
+target that hardcodes `docker compose` works in CI but breaks on
+podman-only Fedora workstations. Autodetect lets contributors keep
+their preferred local tool while CI runs whatever is universally
+available.
+
+The `command -v docker && docker compose version` two-step check
+distinguishes "docker CLI installed but Compose v2 plugin missing"
+from "docker CLI is fully functional" — without the second check a
+machine with only legacy `docker-compose` would be misidentified.
+
 ## Optional Targets
 
 Optional / non-common targets are implemented as standalone `.mk` files in a
