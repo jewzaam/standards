@@ -141,6 +141,51 @@ The install step passes `PY_SYS=python` so the venv is bootstrapped with the Pyt
 
 Without this, [act](local-workflow-testing.md) falls back to the `catthehacker/ubuntu:act-22.04` image's default `python3` and fails with `requires-python >=3.14`. See [Makefile Standards — Pinning the venv interpreter](makefile.md#pinning-the-venv-interpreter-py_sys) for the full rationale.
 
+### Tag-triggered workflows and `GITHUB_TOKEN`
+
+Tag pushes made by a job using the default `GITHUB_TOKEN` do **not** fire any
+`on: push: tags:` workflow. GitHub Actions suppresses re-triggering to prevent
+recursive runs. Splitting "auto-tag on push-to-main" and "build-release on
+tag-push" across two workflows under `GITHUB_TOKEN` silently never fires the
+second one.
+
+Pattern: either
+
+1. **Single workflow** on push to main creates the tag *and* builds/releases in
+   one run. Use when tagging and release are deterministic from main.
+2. **Personal Access Token (PAT) or GitHub App token** pushes the tag. The
+   non-`GITHUB_TOKEN` push event fires downstream tag workflows normally. Use
+   when tag and release must remain in separate workflows.
+
+When to apply: any release flow that wants tag pushes to drive a downstream
+job. Verify by checking the Actions tab — a silently-skipped run leaves no
+log trail.
+
+### Windows runner: `Get-FileHash` under `powershell.exe -File`
+
+`Get-FileHash` (from `Microsoft.PowerShell.Utility`, normally auto-loaded in
+Windows PowerShell 5.1) fails with `CommandNotFoundException` on the
+`windows-latest` GitHub Actions runner image when invoked via
+`powershell.exe -File <script>` in a non-interactive context. The cmdlet is
+documented as built-in but is not resolvable in that invocation mode.
+
+Pattern: compute SHA-256 via .NET directly:
+
+```powershell
+$sha256 = [System.Security.Cryptography.SHA256]::Create()
+try {
+    $stream = [System.IO.File]::OpenRead($Path)
+    try { $hashBytes = $sha256.ComputeHash($stream) }
+    finally { $stream.Dispose() }
+}
+finally { $sha256.Dispose() }
+$hash = ([BitConverter]::ToString($hashBytes)).Replace('-', '')
+```
+
+When to apply: any `windows-latest` workflow step that needs a file hash from
+a `.ps1` script. The `.NET` path has no dependency on cmdlet auto-loading and
+works identically on local Windows and CI.
+
 ## Migration from individual workflows
 
 Projects using the old per-check workflow pattern (5 separate workflows: `test-unit`,

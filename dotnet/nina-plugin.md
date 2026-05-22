@@ -10,7 +10,9 @@ itself. Authoritative primary sources for every claim below: the
 [plugin template](https://github.com/isbeorn/nina.plugin.template), the
 [`NINA.Plugin` NuGet package](https://www.nuget.org/packages/NINA.Plugin),
 and the
-[plugin manifest repository](https://bitbucket.org/Isbeorn/nina.plugin.manifests).
+[plugin manifest repository](https://github.com/isbeorn/nina.plugin.manifests)
+(formerly `bitbucket.org/Isbeorn/nina.plugin.manifests`, now archived and
+moved to GitHub).
 
 For host-independent .NET conventions, see [style.md](style.md),
 [project-structure.md](project-structure.md), and [testing.md](testing.md).
@@ -35,7 +37,7 @@ For host-independent .NET conventions, see [style.md](style.md),
 | Logger backend | Serilog (NOT log4net); static `NINA.Core.Utility.Logger` |
 | Embedded HTTP | `EmbedIO 3.5.2` with `HttpListenerMode.EmbedIO` |
 | Cleanup | Override `Task Teardown()`; unsubscribe / unregister; `base.Teardown()` last |
-| Publishing | PR to `bitbucket.org/Isbeorn/nina.plugin.manifests`; `manifest.json` per schema |
+| Publishing | PR to `github.com/isbeorn/nina.plugin.manifests`; `manifest.json` per schema |
 | Hash | SHA-256 over the installer file; recomputed if DLL changes |
 
 ## 1. Project layout and csproj
@@ -91,6 +93,14 @@ Rules:
 - The plugin template's checked-in csproj still targets .NET Framework
   4.8 for historical reasons — ignore it. The VS wizard generates a
   `net8.0-windows` project.
+- **Build output path depends on whether you build the sln or the
+  csproj.** With `<Platforms>x64</Platforms>` set, `dotnet build -c
+  Release` against the `.sln` resolves the `Release|x64` solution
+  configuration and emits to `bin\x64\Release\`. Building the `.csproj`
+  directly (no sln in cwd) emits to `bin\Release\`. Local builds and CI
+  typically diverge on this — pin scripts (install, package, ship-list
+  selection) to `bin\x64\Release` and always drive builds through the
+  sln so CI and local agree.
 
 ## 2. Do not bundle host-shipped assemblies
 
@@ -540,8 +550,10 @@ days and are shared during support.
 
 ## 10. Publishing
 
-Manifest PR target: `bitbucket.org/Isbeorn/nina.plugin.manifests`
-(mirrored on GitHub).
+Manifest PR target: `https://github.com/isbeorn/nina.plugin.manifests`. The
+former Bitbucket repo `bitbucket.org/Isbeorn/nina.plugin.manifests` is
+archived; do not open PRs there. Schema authority is `manifest.schema.json`
+at the GitHub repo root.
 
 ### 10.1 Schema (selected required fields)
 
@@ -602,12 +614,16 @@ Compiled against `NINA.Plugin 3.2.0.9001` → manifest declares
 
 ### 10.5 Folder structure
 
+On the GitHub-hosted manifest repo:
+
 ```text
-manifests\<first-letter><plugin-name>\<nina-version>\<plugin-version>\manifest.json
+manifests/<first-letter-lower>/<Plugin Name>/<X.Y.Z[.B]>/manifest.json
 ```
 
-Example: `manifests\PPixInsightTools\3.x\1.0.0\manifest.json`.
-`<nina-version>` can be omitted when a single version is supported.
+Example: `manifests/p/PixInsightTools/1.0.0/manifest.json`. The first-letter
+segment is lowercase; the plugin-name segment preserves the title casing
+matching `[AssemblyTitle]`; the version segment is the 3- or 4-segment plugin
+version (no NINA-version segment in the path).
 
 ### 10.6 Channels
 
