@@ -27,6 +27,8 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Git Worktrees](common/git-worktrees.md) | Worktree conventions, cleanup, AI-assisted parallel development |
 | [Reachability](common/reachability.md) | Document reachability enforcement from entry points |
 | [Temp Directories](common/tmp-dirs.md) | `.tmp-<slug>/` convention for named, git-ignored working directories |
+| [Local Config Split](common/local-config-split.md) | `.example` template + `.gitignore` for per-environment config (secrets, endpoints) |
+| [Git Remote Discovery](common/git-remote-discovery.md) | Discover remote names by URL match, not by hardcoded `origin`/`upstream` |
 
 ## [Python](python/README.md)
 
@@ -87,6 +89,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 |----------|-------------|
 | [Makefile](build/makefile.md) | Build targets and conventions |
 | [GitHub Workflows](build/github-workflows.md) | CI/CD pipeline configuration |
+| [JSON Schema Validation](build/json-schema-validation.md) | `npx ajv` invocation, required flags, Make target shape |
 | [Local Workflow Testing](build/local-workflow-testing.md) | Testing workflows locally with act |
 | [Fabcheck](build/fabcheck.md) | Detect hallucinated imports and missing file references |
 
@@ -115,6 +118,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [ConfigMap Reload](kubernetes/configmap-reload.md) | Restart Pods on ConfigMap/Secret content change (stakater/reloader, checksum annotation) |
 | [Job Sync Hooks](kubernetes/job-sync-hooks.md) | Jobs are immutable; use Argo CD sync hooks for delete-and-recreate |
 | [kubectl run Entrypoints](kubernetes/kubectl-run-entrypoints.md) | Match `kubectl run -- <args>` to the image's ENTRYPOINT shape |
+| [GitOps Polling vs Webhooks](kubernetes/gitops-polling-vs-webhooks.md) | Pair GitOps polling with webhooks day 1 (Argo CD, Flux); don't tighten poll interval |
 
 ## Claude Code
 

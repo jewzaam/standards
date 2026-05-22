@@ -37,6 +37,8 @@ When adding a new standard or template:
 - [common/git-worktrees.md](common/git-worktrees.md) — worktree conventions, cleanup, AI-assisted parallel development
 - [common/reachability.md](common/reachability.md) — document reachability enforcement from entry points
 - [common/tmp-dirs.md](common/tmp-dirs.md) — `.tmp-<slug>/` convention for named, git-ignored working directories
+- [common/local-config-split.md](common/local-config-split.md) — `.example` template + `.gitignore` for per-environment config (secrets, endpoints)
+- [common/git-remote-discovery.md](common/git-remote-discovery.md) — discover remote names by URL match, not by hardcoded `origin`/`upstream`
 
 ## Python
 
@@ -90,6 +92,7 @@ When adding a new standard or template:
 - [build/README.md](build/README.md)
 - [build/makefile.md](build/makefile.md) — Makefile conventions, required targets, `PACKAGE_NAME`, `VENV_DIR`
 - [build/github-workflows.md](build/github-workflows.md) — workflow conventions, Python versions, triggers
+- [build/json-schema-validation.md](build/json-schema-validation.md) — `npx ajv` invocation, required flags, Make target shape
 - [build/local-workflow-testing.md](build/local-workflow-testing.md) — testing GitHub Actions workflows locally with act, safe defaults
 - [build/fabcheck.md](build/fabcheck.md) — fabrication detection: every import must resolve to stdlib, local code, or declared dep
 - [build/templates/fabcheck.mk](build/templates/fabcheck.mk) — fabcheck include (optional `make fabcheck`, `make fabcheck-report`)
@@ -107,6 +110,7 @@ When adding a new standard or template:
 - [kubernetes/configmap-reload.md](kubernetes/configmap-reload.md) — restart Pods on ConfigMap/Secret content change (stakater/reloader, checksum annotation)
 - [kubernetes/job-sync-hooks.md](kubernetes/job-sync-hooks.md) — Jobs are immutable; use Argo CD sync hooks for delete-and-recreate
 - [kubernetes/kubectl-run-entrypoints.md](kubernetes/kubectl-run-entrypoints.md) — match `kubectl run -- <args>` to the image's ENTRYPOINT shape
+- [kubernetes/gitops-polling-vs-webhooks.md](kubernetes/gitops-polling-vs-webhooks.md) — pair GitOps polling with webhooks day 1 (Argo CD, Flux); don't tighten poll interval
 
 ## Claude Code
 

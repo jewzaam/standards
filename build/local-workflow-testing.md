@@ -304,6 +304,58 @@ Secret masking uses string replacement on log output. Secrets can leak
 through encoding (base64, hex, URL encoding), case differences, or
 structured output that splits values across fields.
 
+## Runner-image differences from GitHub-hosted runners
+
+Workflows that run cleanly on GitHub-hosted `ubuntu-latest` can fail
+under act because the runner images are not equivalent. Two recurring
+gotchas:
+
+### `apt-get update` before `apt-get install`
+
+GitHub-hosted `ubuntu-latest` ships with a pre-warmed apt cache, so a
+naked `apt-get install -y <pkg>` step works. The `catthehacker/ubuntu`
+act images ship with empty or stale `/var/lib/apt/lists/` and fail with
+`E: Unable to locate package <pkg>` for everything — even packages in
+default repos.
+
+Always pair the two:
+
+```yaml
+- name: Install system deps
+  run: |
+    apt-get update
+    apt-get install -y --no-install-recommends <pkg>
+```
+
+`apt-get update` is non-interactive; `-y` is a no-op on `update` (it
+is only meaningful for `install`/`upgrade`/`remove`). The
+[custom-runner Dockerfile](#custom-runner-image) above follows the
+same pattern.
+
+### Validate `docker-compose.yml` with `docker compose`, not `podman-compose`
+
+The act image (`catthehacker/ubuntu:act-22.04`) includes the
+`docker compose` plugin (Compose v2) but does **not** include the
+`podman` binary. Workflows that pip-install `podman-compose` then
+invoke it fail with `FileNotFoundError: 'podman'` because
+`podman-compose` requires podman as backend.
+
+For YAML validation (the most common compose-related CI need),
+`docker compose config -f docker-compose.yml` parses and validates
+without needing a running Docker daemon — only the CLI plugin, which
+is preinstalled on both GitHub-hosted `ubuntu-latest` and
+`catthehacker/ubuntu:act-22.04`:
+
+```yaml
+- name: Validate compose file
+  run: docker compose -f docker-compose.yml config > /dev/null
+```
+
+For local development on machines that only have podman, drive
+validation through a Makefile target that autodetects the available
+compose tool rather than hardcoding `docker compose` in the recipe.
+See [Makefile Standards — Compose tool autodetect](makefile.md#compose-tool-autodetect).
+
 ## Limitations
 
 - **Container runtime required** — needs Docker or Podman

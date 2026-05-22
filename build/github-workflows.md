@@ -186,6 +186,76 @@ When to apply: any `windows-latest` workflow step that needs a file hash from
 a `.ps1` script. The `.NET` path has no dependency on cmdlet auto-loading and
 works identically on local Windows and CI.
 
+### Cross-repo PR automation — credential scoping
+
+Fine-grained PATs cannot grant write permissions on repos the user does not
+own or administer. GitHub's UI restricts the per-repo permission selector to
+repos the token owner has admin access to, so a fine-grained PAT is not a
+viable credential for CI that needs to write to (or open PRs against) an
+upstream repo.
+
+The two remaining credentials for cross-repo CI automation are:
+
+1. **Classic PAT** — account-wide blast radius; the token has the granted
+   scopes (`repo`, `workflow`, etc.) against every repo the owner has
+   access to. Acceptable only when the blast radius is acceptable.
+2. **GitHub App with explicit installation on the upstream** — narrow scope,
+   but requires the upstream maintainer to install the app on their repo.
+   Usually impractical for casual cross-repo automation.
+
+Neither is acceptable for casual cross-repo automation against a repo the
+user does not control.
+
+**Resolution: orchestrate cross-repo PR submission from the developer's
+workstation using `gh` CLI, not from CI.** The workstation already holds a
+broadly-scoped `gh` auth that the user has accepted for interactive use; CI
+keeps its tightly-scoped default `GITHUB_TOKEN`. See the local-orchestrator
+pattern below.
+
+When to apply: any CI flow that proposes "PR into someone else's repo."
+Stop and re-architect as a local Make target before issuing or storing a
+classic PAT in CI secrets.
+
+### Local-orchestrator pattern for cross-repo PR submission
+
+When CI cannot get clean cross-repo write credentials (see above), implement
+the submission as a Make target driven from the workstation. The shape:
+
+1. **Make target** invokes a helper script (PowerShell on Windows, shell
+   elsewhere).
+2. **Read the version/identifier from the source-of-truth file** in this
+   project (e.g., `Properties/AssemblyInfo.cs` for .NET,
+   `pyproject.toml` for Python). Do not re-derive from git tags or release
+   metadata — the source file is authoritative.
+3. **Download the canonical release artifact from the just-cut GitHub
+   Release** (`gh release download`). Submitting a locally-rebuilt artifact
+   risks checksum drift against what was actually released; downloading the
+   release artifact guarantees the submitted metadata matches the bytes
+   users will install.
+4. **Re-validate the artifact against the target repo's schema before
+   submitting.** Catches drift between this project's manifest generator
+   and the upstream schema before opening a PR.
+5. **`cd` into a local clone of the target repo, verify a clean tree, hard-
+   reset local `main` to the upstream remote's `main`.** Stale local state
+   is the most common cause of force-pushing the wrong content; resetting
+   defensively avoids it.
+6. **Create a per-version branch with `git checkout -B <branch>`** so
+   re-runs of the same version reuse the same branch rather than piling up
+   stale branches on the fork.
+7. **Drop the artifact at the target path, commit, force-push to the user's
+   fork** (force-push is acceptable here because the branch is per-version
+   and owned by the script).
+8. **Call `gh pr create --repo <upstream> --head <fork-owner>:<branch>
+   --base main`**, or report an existing open PR for the same head if one
+   is already open.
+9. **Use the user's existing `gh` auth** — no long-lived credentials
+   anywhere, no secrets to rotate, no CI blast radius.
+
+When to apply: any release flow that must hand a generated artifact (plugin
+manifest, package index entry, registry submission) to a repo the user does
+not control. Project-specific applications of the pattern live in each
+project's own docs; this is the shape they share.
+
 ## Migration from individual workflows
 
 Projects using the old per-check workflow pattern (5 separate workflows: `test-unit`,
