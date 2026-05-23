@@ -119,6 +119,8 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Job Sync Hooks](kubernetes/job-sync-hooks.md) | Jobs are immutable; use Argo CD sync hooks for delete-and-recreate |
 | [kubectl run Entrypoints](kubernetes/kubectl-run-entrypoints.md) | Match `kubectl run -- <args>` to the image's ENTRYPOINT shape |
 | [GitOps Polling vs Webhooks](kubernetes/gitops-polling-vs-webhooks.md) | Pair GitOps polling with webhooks day 1 (Argo CD, Flux); don't tighten poll interval |
+| [ApplicationSet Safety](kubernetes/applicationset-safety.md) | Argo CD ApplicationSet: `preserveResourcesOnDeletion: true` for stateful generators, `goTemplateOptions: [missingkey=error]` for Go templates |
+| [PodSecurity Restricted Pod](kubernetes/podsecurity-restricted-pod.md) | Five required Pod fields for the PodSecurity `restricted` profile |
 
 ## Claude Code
 
