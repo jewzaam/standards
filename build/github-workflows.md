@@ -161,6 +161,61 @@ When to apply: any release flow that wants tag pushes to drive a downstream
 job. Verify by checking the Actions tab — a silently-skipped run leaves no
 log trail.
 
+### Reserved `GITHUB_*` runner env vars are read-only
+
+GitHub Actions reserves `GITHUB_*` env vars (`GITHUB_REF`, `GITHUB_REF_NAME`,
+`GITHUB_SHA`, `GITHUB_REPOSITORY`, `GITHUB_RUN_*`, `GITHUB_TOKEN`,
+`GITHUB_ACTOR`, `GITHUB_EVENT_*`, etc.) as system-assigned and read-only.
+Setting them in a step's `env:` block has no effect on what the running
+script reads — the runner-assigned value persists. The override does appear
+in the step's env listing in the run log, which is doubly misleading: it
+looks applied, but the script still reads the original runner value.
+
+Anti-pattern → fix:
+
+```yaml
+# BROKEN: GITHUB_REF_NAME stays "main" inside the script on push-to-main.
+- run: ./build-manifest.ps1  # reads $env:GITHUB_REF_NAME
+  env:
+    GITHUB_REF_NAME: ${{ steps.ver.outputs.version }}
+
+# FIXED: any non-GITHUB_* name works.
+- run: ./build-manifest.ps1  # reads $env:INSTALLER_URL
+  env:
+    INSTALLER_URL: https://.../${{ steps.ver.outputs.version }}/asset.zip
+```
+
+When to apply: any time a step needs to pass a computed value
+(`steps.*.outputs.*`, a derived version, a chosen tag) into a script. Pick a
+non-reserved env-var name. A silently-ignored override here produced a
+release manifest pointing at `/releases/download/main/...` instead of the
+real tag — a broken install for users that left no error in the logs.
+
+### Defensive URL-version assertion in release-artifact builders
+
+When a build script computes both a version string and a URL that should
+contain that version (manifest installer URL, release-notes link, redirect
+target, registry submission URL), assert the URL contains `/<version>/` (or
+the matching version literal) before writing the artifact to disk. One
+regex check at the source catches plumbing slips before publication;
+without it, the broken artifact ships and is only caught when users hit a
+404.
+
+```powershell
+if ($InstallerUrl -notmatch [regex]::Escape("/$ver/")) {
+    Write-Error "InstallerUrl '$InstallerUrl' does not contain '/$ver/'. Aborting."
+    exit 1
+}
+```
+
+When to apply: any release-time artifact builder where a version string
+and an artifact URL are computed independently and must agree — plugin
+manifests, package index entries, registry submissions, redirect maps. Pairs
+with the [local-orchestrator pattern](#local-orchestrator-pattern-for-cross-repo-pr-submission)
+step 4 (schema re-validation): schema validation catches structural drift,
+the URL-version assert catches semantic drift between the two values the
+script computed.
+
 ### Windows runner: `Get-FileHash` under `powershell.exe -File`
 
 `Get-FileHash` (from `Microsoft.PowerShell.Utility`, normally auto-loaded in
