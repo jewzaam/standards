@@ -11,3 +11,7 @@ projects (exporters, plugins, services that publish `/metrics`).
   pattern: `<prefix>_[<subsystem>_]<name>_<unit_or_role>` with unit
   suffixes, cardinality-via-labels rule, and migration guidance for
   existing non-conforming metrics.
+- [readiness-probes.md](readiness-probes.md) — `/readyz` semantic
+  split: mission-capability misconfig gates the probe; runtime
+  dependency state goes to metrics (avoids `ServiceMonitor` scrape
+  gaps during dependency flaps).

@@ -128,6 +128,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | Standard | Description |
 |----------|-------------|
 | [Metric Naming](observability/metric-naming.md) | Prometheus metric naming: `<prefix>_[<subsystem>_]<name>_<unit_or_role>`; unit suffixes; cardinality via labels |
+| [Readiness Probes](observability/readiness-probes.md) | `/readyz` gates on mission-capability misconfig only; dependency state lives in metrics |
 
 ## Claude Code
 
