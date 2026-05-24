@@ -127,6 +127,7 @@ When adding a new standard or template:
 - [claude-code/plugins.md](claude-code/plugins.md) — plugin structure, manifest schema, marketplace distribution
 - [claude-code/hook-state-transitions.md](claude-code/hook-state-transitions.md) — hook event types, state machines, configuration
 - [claude-code/agent-sdk-usage-data.md](claude-code/agent-sdk-usage-data.md) — extracting cost, token, context, and rate-limit data from the Agent SDK
+- [claude-code/oauth-tokens.md](claude-code/oauth-tokens.md) — Anthropic OAuth token taxonomy, endpoint compatibility, error-envelope quirks, K8s Secret tmpfs reset
 
 ## Planned (empty)
 

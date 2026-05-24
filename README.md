@@ -138,6 +138,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Plugins](claude-code/plugins.md) | Plugin structure, manifest schema, marketplace distribution |
 | [Hook State Transitions](claude-code/hook-state-transitions.md) | Hook event types, state machines, and configuration |
 | [Agent SDK Usage Data](claude-code/agent-sdk-usage-data.md) | Extracting cost, token, context, and rate-limit data from the Agent SDK |
+| [OAuth Tokens](claude-code/oauth-tokens.md) | Anthropic OAuth token taxonomy, endpoint compatibility, error-envelope quirks, K8s Secret tmpfs reset |
 
 ## Planned Sections
 
