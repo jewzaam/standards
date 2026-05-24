@@ -119,6 +119,7 @@ When adding a new standard or template:
 
 - [observability/README.md](observability/README.md)
 - [observability/metric-naming.md](observability/metric-naming.md) — Prometheus metric naming: `<prefix>_[<subsystem>_]<name>_<unit_or_role>`; unit suffixes (`_total`, `_seconds`, `_timestamp_seconds`, `_celsius`, `_percent`, ...); when to omit; rules for cardinality via labels.
+- [observability/readiness-probes.md](observability/readiness-probes.md) — `/readyz` gates on mission-capability misconfig only; runtime dependency state lives in metrics, not the probe (avoids `ServiceMonitor` scrape gaps during dependency flaps).
 
 ## Claude Code
 

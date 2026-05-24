@@ -228,6 +228,96 @@ def _to_response(d: dict) -> SessionResponse:
 - When a producer adds a new field, update consumers to use bracket
   access — don't paper over with `.get()`.
 
+## Black: Pin `target-version` to the Runtime Python
+
+**Pin `[tool.black] target-version` in `pyproject.toml` to the same Python
+version the project's runtime parses. Do not rely on black's default
+target.**
+
+### Rule
+
+Every project that uses black sets an explicit `target-version` in
+`pyproject.toml`:
+
+```toml
+[tool.black]
+target-version = ["py314"]
+```
+
+The version in the list matches the lowest Python version the project
+runs on (or the only one, for single-version projects). Update the pin
+in the same commit that changes the project's supported Python range.
+
+### Rationale
+
+Black's default target tracks a future Python version. Black 26.x with
+no explicit `target-version` currently targets py315. On an
+`except (X, Y):` clause, black 26.x rewrites the tuple form to the
+relaxed comma form because PEP-style relaxation makes the parens
+optional at the future target.
+
+Python 3.14 still parses the result without error, but the semantics
+flip:
+
+```python
+# Before black
+try:
+    fetch()
+except (urllib.error.URLError, TimeoutError) as exc:
+    handle(exc)
+
+# After black 26.x with no target-version pin (silently rewritten)
+try:
+    fetch()
+except urllib.error.URLError, TimeoutError as exc:
+    handle(exc)
+# Parsed as: catch ONLY URLError, bind to local name `TimeoutError`.
+# The TimeoutError arm is silently dropped from the catch.
+```
+
+The first exception class is caught; the second is silently demoted to a
+local variable name. The `except` no longer catches `TimeoutError`.
+Tests that don't exercise the `TimeoutError` arm of every except clause
+won't notice. Mutation testing would catch it.
+
+This is not a black bug — it's the documented behavior at the chosen
+target. The bug is letting black pick a target ahead of the runtime
+parser.
+
+### When to apply
+
+Every Python project that uses black and ships on a Python version older
+than black's current default target. Effectively all Python projects
+today.
+
+### Defense in depth
+
+For any `except (A, B):` clause that would survive a regression of the
+target pin (i.e., a clause whose second arm is rarely exercised),
+suffix `# fmt: skip` on the `except` line:
+
+```python
+except (urllib.error.URLError, TimeoutError) as exc:  # fmt: skip
+    handle(exc)
+```
+
+This stops black from rewriting the line even if `target-version`
+silently advances in a future config edit.
+
+### Enforcement
+
+- Code reviewers should flag any `pyproject.toml` that uses black
+  without `[tool.black] target-version`.
+- Grep the diff for changes to `except (` lines after a black version
+  bump — silent paren removal is the regression signature.
+
+### Provenance
+
+Surfaced while standardising
+<https://github.com/jewzaam/claude-quota-exporter>: `fetcher.py` had
+two paren-stripped except clauses landed by black 26.5.1 running with
+the default target.
+
 ## Imports: Every Import Must Resolve
 
 **Adding an import is an implicit dependency-contract change.** An import must
