@@ -64,6 +64,28 @@ The format string `%(asctime)s %(levelname)s %(name)s: %(message)s` is the requi
 | `--debug` | DEBUG | DEBUG, INFO, WARNING, ERROR, CRITICAL |
 | `--debug --quiet` | DEBUG | DEBUG, INFO, WARNING, ERROR, CRITICAL (debug overrides quiet) |
 
+### Resolving Log Levels from Config Strings
+
+When a project loads its log level from a config file as a string (e.g., `"INFO"`, `"DEBUG"`) and needs to pass the integer constant to `logging.basicConfig(level=...)` or `Logger.setLevel()`, use `logging.getLevelNamesMapping()` (Python 3.11+):
+
+```python
+import logging
+
+level = logging.getLevelNamesMapping().get(name.upper(), logging.INFO)
+logging.basicConfig(level=level, ...)
+```
+
+| Rule | Rationale |
+|------|-----------|
+| Use `getLevelNamesMapping()` for string→int | Returns `dict[str, int]`, correctly typed |
+| Do NOT use `logging.getLevelName(name)` for string→int | Typeshed stub returns `Any`, silently breaks `mypy --disallow-untyped-defs`; also symmetrical (string→int OR int→string), which is a footgun |
+| `.upper()` before lookup | Tolerates `"info"`, `"Info"`, `"INFO"` from config files |
+| `.get(..., logging.INFO)` with default | Unknown values fall back to INFO instead of raising `KeyError` |
+
+**When to apply:** any project that loads its log level from a config file (YAML, JSON, TOML, env var) and targets Python 3.11+. For projects pinned to older Pythons, fall back to a local `dict[str, int]` literal rather than `getLevelName`.
+
+Source: <https://github.com/jewzaam/claude-quota-exporter>
+
 ### Logger Variable Name
 
 The module-level logger variable must be named `logger`:

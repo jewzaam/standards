@@ -113,6 +113,12 @@ When adding a new standard or template:
 - [kubernetes/gitops-polling-vs-webhooks.md](kubernetes/gitops-polling-vs-webhooks.md) — pair GitOps polling with webhooks day 1 (Argo CD, Flux); don't tighten poll interval
 - [kubernetes/applicationset-safety.md](kubernetes/applicationset-safety.md) — Argo CD ApplicationSet safety defaults: `preserveResourcesOnDeletion: true` for stateful generators, `goTemplateOptions: [missingkey=error]` for Go templates
 - [kubernetes/podsecurity-restricted-pod.md](kubernetes/podsecurity-restricted-pod.md) — five required Pod fields for the PodSecurity `restricted` profile (runAsNonRoot, runAsUser, seccompProfile, allowPrivilegeEscalation, capabilities.drop)
+- [kubernetes/resource-limits.md](kubernetes/resource-limits.md) — set CPU request + memory request/limit; omit CPU limit (CFS throttling causes latency spikes with no node-protection benefit)
+
+## Observability
+
+- [observability/README.md](observability/README.md)
+- [observability/metric-naming.md](observability/metric-naming.md) — Prometheus metric naming: `<prefix>_[<subsystem>_]<name>_<unit_or_role>`; unit suffixes (`_total`, `_seconds`, `_timestamp_seconds`, `_celsius`, `_percent`, ...); when to omit; rules for cardinality via labels.
 
 ## Claude Code
 
