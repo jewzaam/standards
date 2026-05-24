@@ -121,6 +121,13 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [GitOps Polling vs Webhooks](kubernetes/gitops-polling-vs-webhooks.md) | Pair GitOps polling with webhooks day 1 (Argo CD, Flux); don't tighten poll interval |
 | [ApplicationSet Safety](kubernetes/applicationset-safety.md) | Argo CD ApplicationSet: `preserveResourcesOnDeletion: true` for stateful generators, `goTemplateOptions: [missingkey=error]` for Go templates |
 | [PodSecurity Restricted Pod](kubernetes/podsecurity-restricted-pod.md) | Five required Pod fields for the PodSecurity `restricted` profile |
+| [Resource Limits](kubernetes/resource-limits.md) | Set CPU request + memory request/limit; omit CPU limit (CFS throttling causes latency spikes) |
+
+## [Observability](observability/README.md)
+
+| Standard | Description |
+|----------|-------------|
+| [Metric Naming](observability/metric-naming.md) | Prometheus metric naming: `<prefix>_[<subsystem>_]<name>_<unit_or_role>`; unit suffixes; cardinality via labels |
 
 ## Claude Code
 
