@@ -91,6 +91,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [GitHub Workflows](build/github-workflows.md) | CI/CD pipeline configuration |
 | [JSON Schema Validation](build/json-schema-validation.md) | `npx ajv` invocation, required flags, Make target shape |
 | [Local Workflow Testing](build/local-workflow-testing.md) | Testing workflows locally with act |
+| [GHCR Publishing](build/ghcr-publish.md) | GHCR auth options (fine-grained PAT unsupported), OCI source label, default-private visibility |
 | [Fabcheck](build/fabcheck.md) | Detect hallucinated imports and missing file references |
 
 ### Workflow Templates
@@ -122,6 +123,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [ApplicationSet Safety](kubernetes/applicationset-safety.md) | Argo CD ApplicationSet: `preserveResourcesOnDeletion: true` for stateful generators, `goTemplateOptions: [missingkey=error]` for Go templates |
 | [PodSecurity Restricted Pod](kubernetes/podsecurity-restricted-pod.md) | Five required Pod fields for the PodSecurity `restricted` profile |
 | [Resource Limits](kubernetes/resource-limits.md) | Set CPU request + memory request/limit; omit CPU limit (CFS throttling causes latency spikes) |
+| [Image Tag Immutability](kubernetes/image-tag-immutability.md) | Tags are build identifiers, not versions; rotate the tag or pin by digest per build (kubelet `IfNotPresent` caches by tag) |
 
 ## [Observability](observability/README.md)
 

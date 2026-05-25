@@ -376,6 +376,47 @@ distinguishes "docker CLI installed but Compose v2 plugin missing"
 from "docker CLI is fully functional" — without the second check a
 machine with only legacy `docker-compose` would be misidentified.
 
+### Cross-platform bind-mount safety
+
+**Pattern.** Wrap every host-side path passed to `docker run -v` (or
+`podman run -v`) in Make's `$(abspath ...)` function so Make resolves
+the absolute path before the container runtime parses the mount
+spec.
+
+**Why.** Git Bash on Windows uses MSYS2 path translation. A recipe like:
+
+<!-- pyml disable-next-line md014 -->
+```makefile
+$(DOCKER) run -v $(CREDS_FILE):/var/run/creds:ro $(IMAGE)
+```
+
+…with `CREDS_FILE=./mint/creds.json` gets the colon-separated mount
+spec rewritten by MSYS2 into something like
+`\Program Files\Git\var\run\creds;ro`, corrupting both the path AND
+the `:ro` flag (the colon becomes a semicolon). The container
+runtime then errors with "invalid container path".
+
+**Fix.** Use `$(abspath $(CREDS_FILE))`. Make resolves to a clean
+Windows-style absolute path (`C:/Users/.../mint/creds.json`) before
+MSYS2 sees the recipe shell, and the absolute path bypasses the
+translation that mangles relative paths.
+
+<!-- pyml disable-next-line md014 -->
+```makefile
+$(DOCKER) run -v $(abspath $(CREDS_FILE)):/var/run/creds:ro $(IMAGE)
+```
+
+**When to apply.** Every Makefile that calls `docker run -v` or
+`podman run -v` with a path variable that could be relative, on any
+project that might be invoked from Git Bash / MSYS2 / Cygwin on
+Windows. Cheap to apply unconditionally — `$(abspath ...)` is a
+no-op on POSIX shells where the path is already absolute.
+
+**Concrete:** see the
+[claude-quota-exporter Makefile run-image target](https://github.com/jewzaam/claude-quota-exporter/blob/main/Makefile)
+— wraps `$(CREDS_FILE)` and `$(IMAGE_CONFIG_FILE)` in
+`$(abspath ...)` for exactly this reason.
+
 ## Optional Targets
 
 Optional / non-common targets are implemented as standalone `.mk` files in a
