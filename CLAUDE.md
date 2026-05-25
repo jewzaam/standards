@@ -94,6 +94,7 @@ When adding a new standard or template:
 - [build/github-workflows.md](build/github-workflows.md) — workflow conventions, Python versions, triggers
 - [build/json-schema-validation.md](build/json-schema-validation.md) — `npx ajv` invocation, required flags, Make target shape
 - [build/local-workflow-testing.md](build/local-workflow-testing.md) — testing GitHub Actions workflows locally with act, safe defaults
+- [build/ghcr-publish.md](build/ghcr-publish.md) — GHCR publishing: fine-grained PATs unsupported, classic PAT vs `GITHUB_TOKEN`, OCI source label, default private visibility
 - [build/fabcheck.md](build/fabcheck.md) — fabrication detection: every import must resolve to stdlib, local code, or declared dep
 - [build/templates/fabcheck.mk](build/templates/fabcheck.mk) — fabcheck include (optional `make fabcheck`, `make fabcheck-report`)
 - [build/templates/fabcheck.sh](build/templates/fabcheck.sh) — vendorable bash script for fabcheck (multi-language import resolution)
@@ -114,6 +115,7 @@ When adding a new standard or template:
 - [kubernetes/applicationset-safety.md](kubernetes/applicationset-safety.md) — Argo CD ApplicationSet safety defaults: `preserveResourcesOnDeletion: true` for stateful generators, `goTemplateOptions: [missingkey=error]` for Go templates
 - [kubernetes/podsecurity-restricted-pod.md](kubernetes/podsecurity-restricted-pod.md) — five required Pod fields for the PodSecurity `restricted` profile (runAsNonRoot, runAsUser, seccompProfile, allowPrivilegeEscalation, capabilities.drop)
 - [kubernetes/resource-limits.md](kubernetes/resource-limits.md) — set CPU request + memory request/limit; omit CPU limit (CFS throttling causes latency spikes with no node-protection benefit)
+- [kubernetes/image-tag-immutability.md](kubernetes/image-tag-immutability.md) — tags are build identifiers, not versions; rotate the tag or pin by digest per build (kubelet `IfNotPresent` caches by tag)
 
 ## Observability
 

@@ -63,3 +63,32 @@ With the shims on PATH, Makefiles no longer need `PYTHON_BOOTSTRAP` or platform-
 ## Effect on Scripts
 
 Scripts using `#!/usr/bin/env python3` shebangs work on all platforms without modification. Shell scripts calling `python3 -c` or `python3 -m` also work without platform checks.
+
+## Windows Smart App Control and pip entry-point .exe shims
+
+On Windows 11, **Smart App Control (SAC)** silently blocks unsigned pip-generated entry-point `.exe` launchers (e.g. `ai-guardian.exe` in `%LOCALAPPDATA%\Python\pythoncore-*\Scripts\`).
+
+**Symptom:** invoking the tool from bash returns `Permission denied` with exit code **126**, even though the file has rwx and has no `Zone.Identifier` alternate data stream.
+
+**Cause:** the `.exe` is a small pip-generated stub with no Microsoft cloud reputation. SAC blocks execution of unsigned binaries that lack established trust, and pip-built entry-point launchers fall into that category.
+
+**Confirm SAC is the cause:**
+
+```powershell
+Get-MpComputerStatus | Select-Object SmartAppControlState
+```
+
+If `SmartAppControlState` is `On`, SAC is enabled. SAC cannot be re-enabled after being turned off, so disabling it is one-way and is not the recommended fix.
+
+**Fix:** invoke the tool via its module entry point — `python -m <module>` — which bypasses the pip-generated `.exe` shim entirely. The Python interpreter itself is signed by Microsoft and trusted by SAC.
+
+Find the module name in the package's `pyproject.toml` under `[project.scripts]`. For example:
+
+```toml
+[project.scripts]
+ai-guardian = "ai_guardian.__main__:main"
+```
+
+Invoke as `python -m ai_guardian` instead of `ai-guardian`.
+
+This reinforces the existing global rule to use `python -m <module>` rather than naked entry-point commands. Combined with the `python` / `python3` PATH shims above, `python -m <module>` works identically on Linux, macOS, and Windows.
