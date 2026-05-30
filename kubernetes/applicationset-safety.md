@@ -2,31 +2,13 @@
 
 # Argo CD ApplicationSet: Safety Defaults
 
-An Argo CD `ApplicationSet` generates child `Application` objects from a
-generator (list, git, cluster, matrix, etc.). Two defaults of the
-controller are dangerous in multi-tenant or per-namespace patterns:
-removing a generator entry triggers cascade deletion of every resource
-the child rendered, and missing template keys render to empty strings
-rather than failing. Both have silent failure modes with large blast
-radius.
+> Why these defaults exist and what they protect against lives in
+> [knowledgebase/kubernetes/applicationset-safety.md](https://github.com/jewzaam/knowledgebase/blob/main/kubernetes/applicationset-safety.md).
 
 ## Rule 1: `preserveResourcesOnDeletion: true` on stateful generators
 
-When a generator entry is removed (e.g., an element drops out of
-`generators[*].list.elements`, a directory disappears from a git
-generator, a cluster is unlabeled), the controller deletes the child
-`Application`. By default that cascades to every resource the child
-rendered into the cluster — `Namespace`, `PersistentVolumeClaim`,
-`Secret`, and so on. With a `Delete` reclaim policy on the
-`StorageClass`, the underlying volume is destroyed too.
-
-`syncPolicy.automated.prune: false` on the **child Application template
-does not protect against this**. That field only governs pruning during
-normal sync (a resource disappears from the source path). Generator
-entry removal is a separate cleanup path on the parent `ApplicationSet`.
-
-The control is `syncPolicy.preserveResourcesOnDeletion: true` on the
-**ApplicationSet** spec (sibling of `generators` and `template`):
+Set `syncPolicy.preserveResourcesOnDeletion: true` on the **ApplicationSet**
+spec (sibling of `generators` and `template`):
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -42,44 +24,30 @@ spec:
       # ... child Application syncPolicy (prune, selfHeal) is unrelated to the above
 ```
 
-With this set, removing an entry orphans the rendered resources
-in-cluster. The operator must `kubectl delete ns <name>` (or
-equivalent) to actually reclaim. Two-step reclaim by design —
-destruction requires explicit human intent.
+With this set, removing a generator entry orphans the rendered resources
+in-cluster. The operator must `kubectl delete ns <name>` (or equivalent) to
+actually reclaim. Two-step reclaim by design — destruction requires explicit
+human intent.
 
 ### When to apply
 
-- Any `ApplicationSet` whose generated `Application` owns a
-  `Namespace`, `PersistentVolumeClaim`, `Secret`, or anything else
-  where accidental deletion is a data-loss event.
-- Multi-tenant patterns and per-app namespace patterns are the
-  canonical examples.
-- The blast radius is amplified: one PR change can wipe N tenants
-  atomically with no confirmation. Failure modes this protects
-  against: single-character typo in the elements list, accidental git
-  revert, merge conflict that drops an entry, refactor PR that "cleans
-  up" entries.
+- Any `ApplicationSet` whose generated `Application` owns a `Namespace`,
+  `PersistentVolumeClaim`, `Secret`, or anything else where accidental
+  deletion is a data-loss event.
+- Multi-tenant patterns and per-app namespace patterns are the canonical
+  examples.
 
 ### When skipping is acceptable
 
 - `ApplicationSet`s that generate purely stateless workloads with no
-  persistent data, where rebuilding the rendered resources from git is
-  free.
-- Short-lived preview or PR-environment generators where rapid
-  teardown is the desired behavior.
+  persistent data, where rebuilding the rendered resources from git is free.
+- Short-lived preview or PR-environment generators where rapid teardown is
+  the desired behavior.
 
 ## Rule 2: `goTemplateOptions: [missingkey=error]` on every Go-template ApplicationSet
 
-ApplicationSet supports Go `text/template` syntax via
-`spec.goTemplate: true`. Default Go template behavior on a missing map
-key is to substitute an empty string. Result: a typo in a generator
-entry produces a syntactically valid but broken child `Application`
-(e.g., name `tenant-` when the `name` key is missing).
-
-Set `spec.goTemplateOptions: [missingkey=error]` to make template
-rendering fail loudly instead. The controller surfaces the error in
-`.status.conditions` and refuses to generate the broken child
-`Application` until the source is fixed.
+Set `spec.goTemplateOptions: [missingkey=error]` to make template rendering
+fail loudly when a referenced key is missing:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -103,17 +71,5 @@ spec:
 
 ### When to apply
 
-- Always, on any `ApplicationSet` with `goTemplate: true`. There is no
-  reason not to fail fast on a typo.
-
-## Why this matters
-
-- The default cascade behavior turns a one-line YAML edit into an
-  unrecoverable data deletion, with no confirmation prompt and no
-  intermediate state to roll back from.
-- Silent empty-string substitution in Go templates produces child
-  `Application` names like `tenant-` that pass schema validation and
-  install into the cluster.
-- Both defaults privilege convenience over safety. The override
-  annotations and fields exist precisely because the safe behavior is
-  the right default for any stateful or multi-tenant use.
+- Always, on any `ApplicationSet` with `goTemplate: true`. There is no reason
+  not to fail fast on a typo.

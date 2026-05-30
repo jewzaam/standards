@@ -4,3 +4,16 @@
 
 Operational patterns for Kubernetes, Helm, and GitOps tooling. Topic-scoped
 to specific recurring failure modes rather than broad style guidance.
+
+## Contents
+
+- [helm-values.md](helm-values.md) — verify Helm value overrides with
+  `helm template` before pushing.
+- [applicationset-safety.md](applicationset-safety.md) — Argo CD
+  ApplicationSet safety defaults.
+- [windows-msys-kubectl.md](windows-msys-kubectl.md) — driving
+  `kubectl.exe` from MSYS / Git-Bash on Windows: stdin pipes replace
+  `kubectl cp`, relative paths inside `kubectl exec -- ...`.
+- [non-root-sidecar-scripts.md](non-root-sidecar-scripts.md) — node-based
+  non-root sidecars: `NPM_CONFIG_PREFIX` / `NPM_CONFIG_CACHE` for
+  `npm install -g`, busybox-only tools because `apk add` needs root.

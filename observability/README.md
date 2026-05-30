@@ -15,3 +15,8 @@ projects (exporters, plugins, services that publish `/metrics`).
   split: mission-capability misconfig gates the probe; runtime
   dependency state goes to metrics (avoids `ServiceMonitor` scrape
   gaps during dependency flaps).
+- Knowledgebase counterpart:
+  [exposition-format-consumption.md](https://github.com/jewzaam/knowledgebase/blob/main/observability/exposition-format-consumption.md)
+  — `prometheus_client` emits counters and timestamps with a `.0` float
+  suffix; shell scrapers must truncate (`${var%.*}`) before using POSIX
+  integer comparison operators.

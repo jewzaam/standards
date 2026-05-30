@@ -4,6 +4,10 @@
 
 Standards for authoring Claude Code skills (`SKILL.md` files).
 
+> Enforcement mechanics, shell-injection internals, frontmatter typo behavior,
+> and other discovered facts live in
+> [knowledgebase/claude-code/skills.md](https://github.com/jewzaam/knowledgebase/blob/main/claude-code/skills.md).
+
 ## Frontmatter
 
 All fields are optional. Only `name` and `description` are commonly used.
@@ -82,11 +86,13 @@ allowed-tools:
 
 When the skill is installed via the plugin marketplace (no symlink), the second pattern is unused but harmless. Drop it once the skill ships as a plugin.
 
-## Shell Injection
+## Shell Injection: Usage
 
-Shell injection runs commands **before Claude sees the skill content**. The output replaces the placeholder inline. This is preprocessing — Claude receives the rendered result, not the command.
+Shell injection runs commands **before Claude sees the skill content**. The
+output replaces the placeholder inline.
 
-Use this for context the skill always needs. It eliminates the failure mode where the agent skips a command it was told to run.
+Use this for context the skill always needs. It eliminates the failure mode
+where the agent skips a command it was told to run.
 
 ### Inline (single command)
 
@@ -111,26 +117,6 @@ git status --short
 ````
 
 Each line executes in sequence. Combined output replaces the block.
-
-### Disabling shell injection
-
-Set `"disableSkillShellExecution": true` in settings.json. Each command is replaced with `[shell command execution disabled by policy]`. Only affects user, project, plugin, and additional-directory skills — bundled (first-party) skills are not subject to this policy. Managed settings cannot be overridden by users.
-
-## String Substitutions
-
-| Variable | Description |
-|----------|-------------|
-| `$ARGUMENTS` | All arguments passed when invoking the skill. If not present in content, arguments are appended as `ARGUMENTS: <value>`. |
-| `$ARGUMENTS[N]` | Specific argument by 0-based index (e.g., `$ARGUMENTS[0]`). |
-| `$N` | Shorthand for `$ARGUMENTS[N]` (e.g., `$0`, `$1`). |
-| `${CLAUDE_SESSION_ID}` | Current session ID. |
-| `${CLAUDE_SKILL_DIR}` | Directory containing the skill's `SKILL.md`. Use in shell injection to reference bundled scripts regardless of working directory. |
-| `${CLAUDE_PLUGIN_ROOT}` | Plugin install directory. Available only for plugin-packaged skills. Works in skill content, `allowed-tools`, and `!` commands. |
-| `${CLAUDE_PLUGIN_DATA}` | Persistent plugin data directory (survives updates). Available only for plugin-packaged skills. |
-
-## Extended Thinking
-
-Include the word `ultrathink` anywhere in skill content to activate extended thinking mode for the skill's execution.
 
 ## File Structure
 
@@ -157,35 +143,11 @@ allowed-tools:
   - Bash(bash ${CLAUDE_PLUGIN_ROOT}/**)
 ```
 
-`${CLAUDE_SKILL_DIR}` covers scripts under `skills/<name>/scripts/`. `${CLAUDE_PLUGIN_ROOT}` covers shared scripts at the plugin root (e.g., `scripts/bootstrap.sh`). Both variables are expanded in frontmatter.
+`${CLAUDE_SKILL_DIR}` covers scripts under `skills/<name>/scripts/`. `${CLAUDE_PLUGIN_ROOT}` covers shared scripts at the plugin root. Both variables are expanded in frontmatter.
 
-Without these entries, `!` commands that invoke plugin scripts fail with "Shell command permission check failed."
+## Recommended `allowed-tools` structure
 
-## Permission Scope and Enforcement
-
-`allowed-tools` has a narrow, confirmed scope. Understanding its limits prevents wasted effort on entries that don't do what you expect.
-
-### What `allowed-tools` enforces
-
-1. **`!` shell injection gating (load-bearing).** When a skill declares `allowed-tools`, every `!` command in the skill content is checked against the listed patterns. This is the primary reason to declare `allowed-tools` — without it, pre-fetch injections that invoke plugin scripts fail. Skills that omit `allowed-tools` entirely get unrestricted `!` execution.
-
-2. **Main-agent tool calls (inconsistent enforcement).** The main agent running the skill may have its tool calls checked against `allowed-tools`, but enforcement is unreliable across Claude Code versions ([#14956](https://github.com/anthropics/claude-code/issues/14956), [#18837](https://github.com/anthropics/claude-code/issues/18837), [#29360](https://github.com/anthropics/claude-code/issues/29360)). Treat these entries as documentation of what the skill needs, not as a reliable permission grant.
-
-### What `allowed-tools` does NOT enforce
-
-1. **Sub-agent permissions.** `allowed-tools` does not propagate to sub-agents dispatched via the Agent tool ([#18950](https://github.com/anthropics/claude-code/issues/18950)). Sub-agents get their permissions exclusively from global (`~/.claude/settings.json`) or project (`.claude/settings.json`) settings.
-
-2. **Post-skill permissions.** `allowed-tools` applies only while the skill is active. It does not persist after the skill completes.
-
-### Reliable permission mechanism
-
-Global settings (`~/.claude/settings.json` > `permissions.allow`) and project settings (`.claude/settings.json` > `permissions.allow`) are the only mechanism that works across all contexts: pre-fetch injections, main agent, and sub-agents.
-
-For plugins that bundle scripts, the plugin README should document the required global permission entries so users can add them once and avoid per-invocation prompts.
-
-### Recommended `allowed-tools` structure
-
-Organize entries into three categories:
+Organize entries into categories:
 
 ```yaml
 allowed-tools:
@@ -206,13 +168,11 @@ allowed-tools:
 ```
 
 - **Category A** is mandatory for any skill with `!` injections that invoke plugin scripts. `${CLAUDE_PLUGIN_ROOT}/**` covers both plugin-root and skill-local scripts (since `${CLAUDE_SKILL_DIR}` is a subdirectory of `${CLAUDE_PLUGIN_ROOT}`).
-- **Categories B and C** are belt-and-suspenders — they document what the skill needs and may reduce prompts, but global settings are the reliable backstop.
-- **Category D** is only needed when the skill dispatches sub-agents that write output files (e.g., concern agents writing per-agent JSON). The two path variants (relative and glob-prefixed) cover different sub-agent CWD behaviors. Omit for skills that handle all writes in the main agent.
+- **Categories B and C** are belt-and-suspenders — they document what the skill needs and may reduce prompts, but global settings are the reliable backstop. See the knowledgebase counterpart for the enforcement caveats.
+- **Category D** is only needed when the skill dispatches sub-agents that write output files. The two path variants (relative and glob-prefixed) cover different sub-agent CWD behaviors. Omit for skills that handle all writes in the main agent.
 
 ## What to Avoid
 
-- **Undocumented frontmatter fields** — invalid fields are silently ignored, not validated. Typos like `disable-model-invocaton` do nothing.
 - **Relying on the agent to run setup commands** — if the skill always needs certain context (staged files, branch name, environment info), use shell injection instead of instructing the agent to gather it.
-- **Long descriptions** — past 250 characters, descriptions are truncated in skill listings. Put detail in the skill body.
 - **`context: fork` without `agent`** — defaults to `general-purpose`, which may not be what you want. Be explicit.
 - **Mutable commands in `allowed-tools`** — granting `Bash` without scope constraints gives the skill unrestricted shell access. Prefer scoped rules like `Bash(git *)` when possible.

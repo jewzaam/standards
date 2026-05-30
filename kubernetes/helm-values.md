@@ -2,10 +2,9 @@
 
 # Helm Values: Verify Keys With `helm template`
 
-Helm silently ignores unknown keys in `values.yaml`. A misspelled or
-mis-routed override produces no warning and no error — the chart renders
-with defaults and the override has no effect. Verify every new override by
-rendering the chart and confirming the override appears in the output.
+> Helm's silent-ignore behavior, subchart-key drift across versions, and the
+> grafana failure mode that surfaced this rule live in
+> [knowledgebase/kubernetes/helm-values.md](https://github.com/jewzaam/knowledgebase/blob/main/kubernetes/helm-values.md).
 
 ## The Rule
 
@@ -21,27 +20,6 @@ If the expected content is not in the rendered output, the key is wrong.
 Do not push and wait for Argo CD / Flux to surface the problem — the
 controller will reconcile happily and the bug is invisible until something
 downstream fails to behave.
-
-## Why this matters
-
-- Helm has no schema enforcement by default. `values.schema.json` is
-  optional and most charts ship without one.
-- Umbrella charts (e.g. kube-prometheus-stack) namespace subchart values
-  under the subchart name (`grafana.*`, `prometheus.*`). The subchart's
-  own value keys still apply — the umbrella does not rename them.
-- Subchart key names drift between major versions. An override that worked
-  in v11 of a subchart may be silently ignored in v12.
-
-## Concrete failure mode
-
-The grafana subchart at version 12.x uses `annotations` (top-level
-Deployment annotations), **not** `deploymentAnnotations`. Setting
-`grafana.deploymentAnnotations` in a kube-prometheus-stack values.yaml
-renders nothing onto the Deployment — Helm accepts the key and discards it.
-The symptom is that downstream controllers (e.g. a stakater/reloader
-annotation) never trigger.
-
-`helm template` would have caught this in seconds.
 
 ## When to apply
 

@@ -2,12 +2,16 @@
 
 # Claude Code Plugins
 
-> Source: <https://code.claude.com/docs/en/plugins-reference> (authoritative
-> reference), <https://code.claude.com/docs/en/plugins> (tutorial),
-> <https://code.claude.com/docs/en/plugin-marketplaces> (distribution).
-> If details here conflict, trust the upstream docs.
-
 Standards for authoring, structuring, and distributing Claude Code plugins.
+
+> Mechanics (caching, env vars, marketplace source types, CLI commands, common
+> failure modes) live in
+> [knowledgebase/claude-code/plugins.md](https://github.com/jewzaam/knowledgebase/blob/main/claude-code/plugins.md).
+>
+> Upstream docs:
+> [plugins-reference](https://code.claude.com/docs/en/plugins-reference),
+> [plugins](https://code.claude.com/docs/en/plugins),
+> [plugin-marketplaces](https://code.claude.com/docs/en/plugin-marketplaces).
 
 ## What Is a Plugin
 
@@ -103,7 +107,7 @@ both: `"skills": ["./skills/", "./extras/"]`.
 
 All paths must be relative and start with `./`.
 
-### User Configuration
+### User Configuration declaration
 
 Declare values prompted at install/enable time:
 
@@ -122,40 +126,7 @@ Declare values prompted at install/enable time:
 }
 ```
 
-Available as `${user_config.KEY}` in MCP/LSP configs, hook commands, and
-(non-sensitive only) skill/agent content. Also exported as
-`CLAUDE_PLUGIN_OPTION_<KEY>` environment variables.
-
-Sensitive values go to the system keychain (~2 KB total limit shared with
-OAuth tokens).
-
-## Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `${CLAUDE_PLUGIN_ROOT}` | Absolute path to plugin install directory. Changes on update — files written here do not survive updates. |
-| `${CLAUDE_PLUGIN_DATA}` | Persistent directory for plugin state (deps, caches). Survives updates. Created on first reference. Resolves to `~/.claude/plugins/data/{id}/`. |
-
-Both are substituted inline in skill content, agent content, hook commands,
-MCP/LSP server configs, and `allowed-tools` frontmatter patterns. Both are
-also exported as environment variables to subprocesses.
-
-### Persistent Data Pattern
-
-Install dependencies once, reinstall only when manifest changes:
-
-```json
-{
-  "hooks": {
-    "SessionStart": [{
-      "hooks": [{
-        "type": "command",
-        "command": "diff -q \"${CLAUDE_PLUGIN_ROOT}/package.json\" \"${CLAUDE_PLUGIN_DATA}/package.json\" >/dev/null 2>&1 || (cd \"${CLAUDE_PLUGIN_DATA}\" && cp \"${CLAUDE_PLUGIN_ROOT}/package.json\" . && npm install) || rm -f \"${CLAUDE_PLUGIN_DATA}/package.json\""
-      }]
-    }]
-  }
-}
-```
+Substitution and env-var mechanics live in the knowledgebase counterpart.
 
 ## Components
 
@@ -175,7 +146,7 @@ allowed-tools:
   - Bash(bash ${CLAUDE_PLUGIN_ROOT}/**)
 ```
 
-See [skills.md — allowed-tools and Shell Injection](skills.md#allowed-tools-and-shell-injection) and [skills.md — Permission Scope and Enforcement](skills.md#permission-scope-and-enforcement).
+See [skills.md — allowed-tools and Shell Injection](skills.md#allowed-tools-and-shell-injection).
 
 ### Permission Guidance for Plugins
 
@@ -205,15 +176,13 @@ Location: `agents/<name>.md`. Frontmatter fields: `name`, `description`,
 `model`, `effort`, `maxTurns`, `tools`, `disallowedTools`, `skills`, `memory`,
 `background`, `isolation` (only `"worktree"`).
 
-Not supported in plugin agents for security: `hooks`, `mcpServers`,
-`permissionMode`.
+Plugin-bundled agents cannot declare `hooks`, `mcpServers`, or `permissionMode`
+(blocked for security).
 
 ### Hooks
 
 Location: `hooks/hooks.json` or inline in `plugin.json`. Same event types as
-user-defined hooks (see [hook-state-transitions.md](hook-state-transitions.md)).
-
-Hook types: `command`, `http`, `prompt`, `agent`.
+user-defined hooks.
 
 ### MCP Servers
 
@@ -233,24 +202,6 @@ Optional: `args`, `transport` (`stdio` | `socket`), `env`,
 The language server binary must be installed separately — plugins configure
 the connection, they do not bundle the server.
 
-## Installation Scopes
-
-| Scope | Settings file | Use case |
-|-------|---------------|----------|
-| `user` | `~/.claude/settings.json` | Personal, all projects (default) |
-| `project` | `.claude/settings.json` | Team, committed to VCS |
-| `local` | `.claude/settings.local.json` | Project-specific, gitignored |
-| `managed` | Managed settings | Read-only, update only |
-
-## Plugin Caching
-
-Marketplace plugins are copied to `~/.claude/plugins/cache/`. Each version
-gets its own directory. Previous versions are orphaned and removed after 7
-days.
-
-Plugins cannot reference files outside their directory — `../` traversal
-does not work after installation. Use symlinks for shared files.
-
 ## Development Workflow
 
 1. Create directory with `.claude-plugin/plugin.json` and components.
@@ -259,9 +210,6 @@ does not work after installation. Use symlinks for shared files.
 4. Load multiple: `claude --plugin-dir ./one --plugin-dir ./two`.
 5. Validate with `claude plugin validate` or `/plugin validate`.
 6. Debug with `claude --debug` (shows loading, errors, registration).
-
-When `--plugin-dir` loads a plugin with the same name as an installed
-marketplace plugin, the local copy takes precedence for that session.
 
 ## Marketplace Distribution
 
@@ -282,28 +230,9 @@ A marketplace is a git repo with `.claude-plugin/marketplace.json`:
 }
 ```
 
-### Plugin Sources
-
-| Source | Type | Required fields |
-|--------|------|-----------------|
-| Relative path | string (`"./my-plugin"`) | — |
-| GitHub | object | `source: "github"`, `repo` |
-| Git URL | object | `source: "url"`, `url` |
-| Git subdirectory | object | `source: "git-subdir"`, `url`, `path` |
-| npm | object | `source: "npm"`, `package` |
-
-All object sources accept optional `ref` (branch/tag) and `sha` (pin to
-commit). npm accepts `version` and `registry` instead.
-
-### CLI Commands
-
-| Command | Description |
-|---------|-------------|
-| `claude plugin install <plugin> [-s scope]` | Install from marketplace |
-| `claude plugin uninstall <plugin> [-s scope] [--keep-data]` | Remove plugin |
-| `claude plugin enable <plugin> [-s scope]` | Enable disabled plugin |
-| `claude plugin disable <plugin> [-s scope]` | Disable without uninstalling |
-| `claude plugin update <plugin> [-s scope]` | Update to latest version |
+Plugin `source` types, optional `ref`/`sha` pins, npm registry handling, and
+CLI install/uninstall command shapes are documented in the knowledgebase
+counterpart.
 
 ## Versioning
 
@@ -312,13 +241,6 @@ before distributing changes — Claude Code uses the version to detect
 updates. If version does not change, users will not see new code due to
 caching.
 
-## Common Mistakes
-
-- Putting component directories inside `.claude-plugin/` instead of plugin root.
-- Using absolute paths instead of `./`-relative paths.
-- Forgetting `${CLAUDE_PLUGIN_ROOT}` in hook commands and MCP configs.
-- Hook scripts missing executable permission (`chmod +x`).
-- LSP server binary not installed on the user's machine.
-- Not bumping version after code changes (cache serves stale version).
-- Referencing files outside the plugin directory (breaks after cache copy).
-- **Marketplace name colliding with plugin name.** The marketplace `name` in `marketplace.json` must differ from the plugin `name` in `plugin.json`. When they match, the plugin cache directory (`~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`) is not created on disk — the plugin works in the installing session but fails to load in new sessions. Use a distinct marketplace name (e.g., `my-plugin-marketplace` for plugin `my-plugin`).
+The marketplace `name` must differ from the plugin `name` to avoid a known
+cache-directory collision — see the knowledgebase counterpart for the failure
+mode.
