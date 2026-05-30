@@ -157,11 +157,11 @@ Knowledgebase counterparts (mechanics, vendor behavior, failure modes) live in [
 - [observability/README.md](observability/README.md)
 - [observability/metric-naming.md](observability/metric-naming.md) — Prometheus metric naming: `<prefix>_[<subsystem>_]<name>_<unit_or_role>`; unit suffixes (`_total`, `_seconds`, `_timestamp_seconds`, `_celsius`, `_percent`, ...); when to omit; rules for cardinality via labels.
 - [observability/readiness-probes.md](observability/readiness-probes.md) — `/readyz` startup-prerequisite checklist; antipatterns
+- [observability/exposition-format-consumption.md](observability/exposition-format-consumption.md) — shell scrapers must truncate `prometheus_client` float values (`${var%.*}`) before POSIX `[ -gt ]` integer comparison; rationale framed by how the exposition format emits floats
 
-Knowledgebase counterparts (mechanics, vendor behavior) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
+Knowledgebase counterpart (mechanics, vendor behavior) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
 
 - `observability/readiness-probes.md` — why mission-capability vs dependency split matters (ServiceMonitor scrape gaps)
-- `observability/exposition-format-consumption.md` — `prometheus_client` emits counters/timestamps with `.0` float suffix; shell scraper truncation rule
 
 ## Claude Code
 
