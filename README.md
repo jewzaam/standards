@@ -142,8 +142,9 @@ Knowledgebase counterparts (mechanics, failure modes) live in [jewzaam/knowledge
 |----------|-------------|
 | [Metric Naming](observability/metric-naming.md) | Prometheus metric naming: `<prefix>_[<subsystem>_]<name>_<unit_or_role>`; unit suffixes; cardinality via labels |
 | [Readiness Probes](observability/readiness-probes.md) | `/readyz` startup-prerequisite checklist; antipatterns |
+| [Exposition Format Consumption](observability/exposition-format-consumption.md) | Shell scrapers must truncate `prometheus_client` float values (`${var%.*}`) before POSIX `[ -gt ]` integer comparison |
 
-Knowledgebase counterparts in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase): why readiness-probe split matters (ServiceMonitor scrape gaps), shell scraper truncation rule for `prometheus_client` float counters.
+Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase): why readiness-probe split matters (ServiceMonitor scrape gaps).
 
 ## Claude Code
 
