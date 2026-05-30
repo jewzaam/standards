@@ -11,6 +11,22 @@ tool-based lookup.
 
 Run `make help` for available validation targets.
 
+## What lives here vs in knowledgebase
+
+- **Here (standards):** prescriptive — "do it this way". Style, naming, project
+  structure, required Makefile targets, testing patterns, conventions.
+- **[jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):** descriptive
+  — "this is how X works". Vendor quirks, tool internals, API taxonomies,
+  discovered failure modes.
+- **[jewzaam/gws-cli-notes](https://github.com/jewzaam/gws-cli-notes):** topical
+  sub-area of knowledgebase, kept separate due to size and shared external audience.
+
+If the doc tells you *what to do in your code* it belongs here. If it tells
+you *how the outside world behaves* it belongs in knowledgebase.
+
+Many sections below have a "Knowledgebase counterparts" sub-list pointing at
+the descriptive companion docs.
+
 ## Maintaining this file
 
 Every non-infrastructure file in this repo must be linked directly from this
@@ -48,11 +64,11 @@ When adding a new standard or template:
 - [python/testing.md](python/testing.md) — pytest conventions, TDD, documenting untested areas
 - [python/complexity.md](python/complexity.md) — cyclomatic complexity limit (10), ruff C901 enforcement
 - [python/subprocess-security.md](python/subprocess-security.md) — subprocess and localhost server security rules
-- [python/cross-platform.md](python/cross-platform.md) — making python/python3 work across Linux, macOS, Windows
 - [python/shared-venv.md](python/shared-venv.md) — shared `~/.venv/<family>/` for related projects, local `.venv` fallback
 - [python/logging-progress.md](python/logging-progress.md) — logger setup, `--log-file`, progress bars
 - [python/settings-persistence.md](python/settings-persistence.md) — dataclass settings with atomic JSON I/O
 - [python/agent-sdk.md](python/agent-sdk.md) — Claude Agent SDK integration, threading with tkinter, permission control
+- [python/cross-platform.md](python/cross-platform.md) — PATH shims for `python`/`python3`, `python -m <module>` rule
 
 ## Tkinter UI
 
@@ -79,7 +95,10 @@ When adding a new standard or template:
 - [dotnet/style.md](dotnet/style.md) — async, nullable, .NET 8/10 features, MVVM
 - [dotnet/project-structure.md](dotnet/project-structure.md) — csproj layout, TFM choice, deps
 - [dotnet/testing.md](dotnet/testing.md) — xUnit/NUnit, Moq, FluentAssertions, STA/WPF tests
-- [dotnet/nina-plugin.md](dotnet/nina-plugin.md) — NINA 3.x C# plugin: build, MEF, mediators, options, HTTP, logging, publishing
+
+Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
+
+- `dotnet/nina-plugin.md` — NINA 3.x C# plugin: build, MEF, mediators, options, HTTP, logging, publishing
 
 ## CLI
 
@@ -92,10 +111,10 @@ When adding a new standard or template:
 - [build/README.md](build/README.md)
 - [build/makefile.md](build/makefile.md) — Makefile conventions, required targets, `PACKAGE_NAME`, `VENV_DIR`
 - [build/github-workflows.md](build/github-workflows.md) — workflow conventions, Python versions, triggers
+- [build/fabcheck.md](build/fabcheck.md) — fabcheck opt-in steps, Make include, CI workflow
+- [build/ghcr-publish.md](build/ghcr-publish.md) — GHCR publishing rules: classic PAT for manual, `GITHUB_TOKEN` for Actions, OCI source label, push recipes
 - [build/json-schema-validation.md](build/json-schema-validation.md) — `npx ajv` invocation, required flags, Make target shape
-- [build/local-workflow-testing.md](build/local-workflow-testing.md) — testing GitHub Actions workflows locally with act, safe defaults
-- [build/ghcr-publish.md](build/ghcr-publish.md) — GHCR publishing: fine-grained PATs unsupported, classic PAT vs `GITHUB_TOKEN`, OCI source label, default private visibility
-- [build/fabcheck.md](build/fabcheck.md) — fabrication detection: every import must resolve to stdlib, local code, or declared dep
+- [build/local-workflow-testing.md](build/local-workflow-testing.md) — act install (worktree fork), pinned runner digest, required flags, usage
 - [build/templates/fabcheck.mk](build/templates/fabcheck.mk) — fabcheck include (optional `make fabcheck`, `make fabcheck-report`)
 - [build/templates/fabcheck.sh](build/templates/fabcheck.sh) — vendorable bash script for fabcheck (multi-language import resolution)
 - [build/templates/workflows/test.yml](build/templates/workflows/test.yml) — pytest with coverage (Python 3.14)
@@ -104,32 +123,58 @@ When adding a new standard or template:
 - [build/templates/workflows/version-check.yml](build/templates/workflows/version-check.yml) — semver validation (optional)
 - [build/templates/workflows/fabcheck.yml](build/templates/workflows/fabcheck.yml) — run fabcheck on push/PR, annotate missing findings, upload verdict (optional)
 
+Knowledgebase counterparts (mechanics, vendor quirks) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
+
+- `build/fabcheck.md` — fabcheck language coverage, dist-name resolution modes, verdict.json shape, known gaps
+- `build/ghcr-publish.md` — why fine-grained PATs fail, classic PAT scoping, OCI label linkage mechanics, first-publish-private behavior
+- `build/local-workflow-testing.md` — how act works, runner image internals, security risks, runner-image differences from GitHub-hosted
+
 ## Kubernetes
 
 - [kubernetes/README.md](kubernetes/README.md)
 - [kubernetes/helm-values.md](kubernetes/helm-values.md) — verify Helm value overrides with `helm template` before pushing
-- [kubernetes/configmap-reload.md](kubernetes/configmap-reload.md) — restart Pods on ConfigMap/Secret content change (stakater/reloader, checksum annotation)
-- [kubernetes/job-sync-hooks.md](kubernetes/job-sync-hooks.md) — Jobs are immutable; use Argo CD sync hooks for delete-and-recreate
-- [kubernetes/kubectl-run-entrypoints.md](kubernetes/kubectl-run-entrypoints.md) — match `kubectl run -- <args>` to the image's ENTRYPOINT shape
-- [kubernetes/gitops-polling-vs-webhooks.md](kubernetes/gitops-polling-vs-webhooks.md) — pair GitOps polling with webhooks day 1 (Argo CD, Flux); don't tighten poll interval
 - [kubernetes/applicationset-safety.md](kubernetes/applicationset-safety.md) — Argo CD ApplicationSet safety defaults: `preserveResourcesOnDeletion: true` for stateful generators, `goTemplateOptions: [missingkey=error]` for Go templates
-- [kubernetes/podsecurity-restricted-pod.md](kubernetes/podsecurity-restricted-pod.md) — five required Pod fields for the PodSecurity `restricted` profile (runAsNonRoot, runAsUser, seccompProfile, allowPrivilegeEscalation, capabilities.drop)
-- [kubernetes/resource-limits.md](kubernetes/resource-limits.md) — set CPU request + memory request/limit; omit CPU limit (CFS throttling causes latency spikes with no node-protection benefit)
-- [kubernetes/image-tag-immutability.md](kubernetes/image-tag-immutability.md) — tags are build identifiers, not versions; rotate the tag or pin by digest per build (kubelet `IfNotPresent` caches by tag)
+- [kubernetes/configmap-reload.md](kubernetes/configmap-reload.md) — ConfigMap/Secret reload strategies (Reloader preferred, Helm checksum, manual)
+- [kubernetes/podsecurity-restricted-pod.md](kubernetes/podsecurity-restricted-pod.md) — five required Pod fields for PodSecurity `restricted` profile + template
+- [kubernetes/resource-limits.md](kubernetes/resource-limits.md) — set CPU request + memory request/limit; omit CPU limit
+- [kubernetes/windows-msys-kubectl.md](kubernetes/windows-msys-kubectl.md) — MSYS / Git-Bash on Windows rewrites POSIX paths in `kubectl.exe` argv; use stdin pipes instead of `kubectl cp`, relative paths inside `kubectl exec -- ...`
+- [kubernetes/non-root-sidecar-scripts.md](kubernetes/non-root-sidecar-scripts.md) — `node:*-alpine` (and similar) non-root sidecars: set `NPM_CONFIG_PREFIX` + `NPM_CONFIG_CACHE` for `npm install -g`; `apk add` unavailable, use busybox tools only
+
+Knowledgebase counterparts (mechanics, vendor behavior, failure modes) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
+
+- `kubernetes/applicationset-safety.md` — why these defaults are dangerous (cascade delete, silent empty-string substitution)
+- `kubernetes/helm-values.md` — Helm silent-ignore behavior, subchart key drift, grafana failure mode
+- `kubernetes/configmap-reload.md` — why the kubelet doesn't restart Pods on CM/Secret content change; Reloader direct-mount gotcha
+- `kubernetes/podsecurity-restricted-pod.md` — admission-rejection wall-of-text format and why it surfaces only at admission
+- `kubernetes/resource-limits.md` — CFS bandwidth controller throttling mechanics; why CPU limits hurt
+- `kubernetes/job-sync-hooks.md` — Jobs are immutable; Argo CD sync hooks for delete-and-recreate
+- `kubernetes/kubectl-run-entrypoints.md` — match `kubectl run -- <args>` to image's ENTRYPOINT shape
+- `kubernetes/gitops-polling-vs-webhooks.md` — Argo CD default 3-min poll latency; webhook setup
+- `kubernetes/image-tag-immutability.md` — tags are build identifiers; kubelet `IfNotPresent` cache behavior
 
 ## Observability
 
 - [observability/README.md](observability/README.md)
 - [observability/metric-naming.md](observability/metric-naming.md) — Prometheus metric naming: `<prefix>_[<subsystem>_]<name>_<unit_or_role>`; unit suffixes (`_total`, `_seconds`, `_timestamp_seconds`, `_celsius`, `_percent`, ...); when to omit; rules for cardinality via labels.
-- [observability/readiness-probes.md](observability/readiness-probes.md) — `/readyz` gates on mission-capability misconfig only; runtime dependency state lives in metrics, not the probe (avoids `ServiceMonitor` scrape gaps during dependency flaps).
+- [observability/readiness-probes.md](observability/readiness-probes.md) — `/readyz` startup-prerequisite checklist; antipatterns
+
+Knowledgebase counterparts (mechanics, vendor behavior) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
+
+- `observability/readiness-probes.md` — why mission-capability vs dependency split matters (ServiceMonitor scrape gaps)
+- `observability/exposition-format-consumption.md` — `prometheus_client` emits counters/timestamps with `.0` float suffix; shell scraper truncation rule
 
 ## Claude Code
 
 - [claude-code/skills.md](claude-code/skills.md) — authoring Claude Code skills (SKILL.md files)
 - [claude-code/plugins.md](claude-code/plugins.md) — plugin structure, manifest schema, marketplace distribution
-- [claude-code/hook-state-transitions.md](claude-code/hook-state-transitions.md) — hook event types, state machines, configuration
-- [claude-code/agent-sdk-usage-data.md](claude-code/agent-sdk-usage-data.md) — extracting cost, token, context, and rate-limit data from the Agent SDK
-- [claude-code/oauth-tokens.md](claude-code/oauth-tokens.md) — Anthropic OAuth token taxonomy, endpoint compatibility, error-envelope quirks, K8s Secret tmpfs reset
+
+Knowledgebase counterparts (descriptive mechanics, vendor quirks) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
+
+- `claude-code/skills.md` — `allowed-tools` enforcement detail, shell injection mechanics, frontmatter typo behavior
+- `claude-code/plugins.md` — plugin caching, env vars, marketplace source types, CLI commands, common failure modes
+- `claude-code/hook-state-transitions.md` — hook event types, state machines, configuration
+- `claude-code/agent-sdk-usage-data.md` — extracting cost, token, context, rate-limit data from the Agent SDK
+- `claude-code/oauth-tokens.md` — Anthropic OAuth token taxonomy, endpoint compatibility, error-envelope quirks, K8s Secret tmpfs reset
 
 ## Planned (empty)
 

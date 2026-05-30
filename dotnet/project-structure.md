@@ -2,8 +2,9 @@
 
 Applies to all C# projects. Plugin/host-specific csproj requirements
 (install paths, deploy targets, host-shipped assembly exclusions) are
-covered by the relevant subsystem standard — for NINA, see
-[nina-plugin.md](nina-plugin.md).
+covered by the relevant subsystem standard — for NINA, see the
+knowledgebase counterpart at
+[knowledgebase/dotnet/nina-plugin.md](https://github.com/jewzaam/knowledgebase/blob/main/dotnet/nina-plugin.md).
 
 ## Solution and project layout
 

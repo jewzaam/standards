@@ -362,7 +362,7 @@ test-lint-compose:  ## Validate docker-compose.yml syntax
 ```
 
 **Why this matters:** the act runner image
-([catthehacker/ubuntu](local-workflow-testing.md#runner-image-differences-from-github-hosted-runners))
+([catthehacker/ubuntu](https://github.com/jewzaam/knowledgebase/blob/main/build/local-workflow-testing.md#runner-image-differences-from-github-hosted-runners))
 has `docker compose` but no `podman` binary, so pip-installing
 `podman-compose` in CI fails with `FileNotFoundError: 'podman'`. A
 target that hardcodes `podman-compose` works locally but breaks CI; a

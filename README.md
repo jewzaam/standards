@@ -8,6 +8,14 @@ Reusable software development standards. Reference these instead of recreating p
 
 AI agents: see [CLAUDE.md](CLAUDE.md) for a flat file index optimized for tool-based lookup.
 
+## What lives here vs in knowledgebase
+
+- **Standards (this repo):** prescriptive — "do it this way". Style, naming, structure, required targets, testing patterns.
+- **[jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):** descriptive — "this is how X works". Vendor quirks, tool internals, discovered failure modes.
+- **[jewzaam/gws-cli-notes](https://github.com/jewzaam/gws-cli-notes):** topical sub-area of knowledgebase, kept separate due to size and shared external audience.
+
+Hybrid topics (where prescriptive rules and descriptive mechanics both exist) cross-link between the two.
+
 ## Usage
 
 Reference in your project:
@@ -39,11 +47,11 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Testing](python/testing.md) | Unit testing conventions, TDD, and documenting untested areas |
 | [Complexity](python/complexity.md) | Cyclomatic complexity limit (10), ruff C901 enforcement |
 | [Subprocess Security](python/subprocess-security.md) | Subprocess and localhost server security rules |
-| [Cross-Platform](python/cross-platform.md) | Making python/python3 work across Linux, macOS, Windows |
 | [Shared Venv](python/shared-venv.md) | Shared `~/.venv/<family>/` for related projects, local `.venv` fallback |
 | [Logging & Progress](python/logging-progress.md) | Logging, progress indicators, and output |
 | [Settings Persistence](python/settings-persistence.md) | Dataclass settings with atomic JSON I/O |
 | [Agent SDK Integration](python/agent-sdk.md) | Claude Agent SDK integration patterns |
+| [Cross-Platform](python/cross-platform.md) | PATH shims for `python`/`python3`, `python -m <module>` rule |
 
 ### [Tkinter UI](python/tkinter/README.md)
 
@@ -74,7 +82,8 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Style](dotnet/style.md) | Async, nullable, .NET 8/10 language features, MVVM |
 | [Project Structure](dotnet/project-structure.md) | csproj layout, TFM choice, deps |
 | [Testing](dotnet/testing.md) | xUnit/NUnit, Moq, FluentAssertions, STA/WPF tests |
-| [NINA Plugin](dotnet/nina-plugin.md) | NINA 3.x C# plugin: build, MEF, mediators, options, HTTP, logging, publishing |
+
+Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase): NINA 3.x C# plugin (build, MEF, mediators, options, HTTP, logging, publishing).
 
 ## [CLI](cli/README.md)
 
@@ -89,10 +98,12 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 |----------|-------------|
 | [Makefile](build/makefile.md) | Build targets and conventions |
 | [GitHub Workflows](build/github-workflows.md) | CI/CD pipeline configuration |
+| [Fabcheck](build/fabcheck.md) | Fabcheck opt-in steps, Make include, CI workflow |
+| [GHCR Publishing](build/ghcr-publish.md) | Classic PAT for manual, `GITHUB_TOKEN` for Actions, OCI source label, push recipes |
 | [JSON Schema Validation](build/json-schema-validation.md) | `npx ajv` invocation, required flags, Make target shape |
-| [Local Workflow Testing](build/local-workflow-testing.md) | Testing workflows locally with act |
-| [GHCR Publishing](build/ghcr-publish.md) | GHCR auth options (fine-grained PAT unsupported), OCI source label, default-private visibility |
-| [Fabcheck](build/fabcheck.md) | Detect hallucinated imports and missing file references |
+| [Local Workflow Testing](build/local-workflow-testing.md) | act install (worktree fork), pinned runner digest, required flags, usage |
+
+Knowledgebase counterparts (mechanics, vendor behavior) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase): fabcheck internals, GHCR auth mechanics + first-publish behavior, act internals + security risks.
 
 ### Workflow Templates
 
@@ -116,21 +127,23 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | Standard | Description |
 |----------|-------------|
 | [Helm Values](kubernetes/helm-values.md) | Verify Helm value overrides with `helm template` before pushing |
-| [ConfigMap Reload](kubernetes/configmap-reload.md) | Restart Pods on ConfigMap/Secret content change (stakater/reloader, checksum annotation) |
-| [Job Sync Hooks](kubernetes/job-sync-hooks.md) | Jobs are immutable; use Argo CD sync hooks for delete-and-recreate |
-| [kubectl run Entrypoints](kubernetes/kubectl-run-entrypoints.md) | Match `kubectl run -- <args>` to the image's ENTRYPOINT shape |
-| [GitOps Polling vs Webhooks](kubernetes/gitops-polling-vs-webhooks.md) | Pair GitOps polling with webhooks day 1 (Argo CD, Flux); don't tighten poll interval |
 | [ApplicationSet Safety](kubernetes/applicationset-safety.md) | Argo CD ApplicationSet: `preserveResourcesOnDeletion: true` for stateful generators, `goTemplateOptions: [missingkey=error]` for Go templates |
-| [PodSecurity Restricted Pod](kubernetes/podsecurity-restricted-pod.md) | Five required Pod fields for the PodSecurity `restricted` profile |
-| [Resource Limits](kubernetes/resource-limits.md) | Set CPU request + memory request/limit; omit CPU limit (CFS throttling causes latency spikes) |
-| [Image Tag Immutability](kubernetes/image-tag-immutability.md) | Tags are build identifiers, not versions; rotate the tag or pin by digest per build (kubelet `IfNotPresent` caches by tag) |
+| [ConfigMap Reload](kubernetes/configmap-reload.md) | ConfigMap/Secret reload strategies (Reloader preferred, Helm checksum, manual) |
+| [PodSecurity Restricted Pod](kubernetes/podsecurity-restricted-pod.md) | Five required Pod fields for the PodSecurity `restricted` profile + template |
+| [Resource Limits](kubernetes/resource-limits.md) | Set CPU request + memory request/limit; omit CPU limit |
+| [Windows MSYS `kubectl`](kubernetes/windows-msys-kubectl.md) | MSYS / Git-Bash on Windows rewrites POSIX paths in `kubectl.exe` argv; stdin pipes replace `kubectl cp`, relative paths inside `kubectl exec -- ...` |
+| [Non-Root Sidecar Scripts](kubernetes/non-root-sidecar-scripts.md) | `node:*-alpine` non-root sidecars: `NPM_CONFIG_PREFIX` + `NPM_CONFIG_CACHE` for `npm install -g`; busybox-only tools because `apk add` needs root |
+
+Knowledgebase counterparts (mechanics, failure modes) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase): why ApplicationSet/Helm defaults are dangerous, why the kubelet doesn't restart on CM change, PodSecurity admission rejection format, CFS throttling mechanics, Job immutability, `kubectl run` entrypoint shapes, GitOps polling vs webhooks, image tag caching.
 
 ## [Observability](observability/README.md)
 
 | Standard | Description |
 |----------|-------------|
 | [Metric Naming](observability/metric-naming.md) | Prometheus metric naming: `<prefix>_[<subsystem>_]<name>_<unit_or_role>`; unit suffixes; cardinality via labels |
-| [Readiness Probes](observability/readiness-probes.md) | `/readyz` gates on mission-capability misconfig only; dependency state lives in metrics |
+| [Readiness Probes](observability/readiness-probes.md) | `/readyz` startup-prerequisite checklist; antipatterns |
+
+Knowledgebase counterparts in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase): why readiness-probe split matters (ServiceMonitor scrape gaps), shell scraper truncation rule for `prometheus_client` float counters.
 
 ## Claude Code
 
@@ -138,9 +151,8 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 |----------|-------------|
 | [Skills](claude-code/skills.md) | Authoring Claude Code skills (SKILL.md files) |
 | [Plugins](claude-code/plugins.md) | Plugin structure, manifest schema, marketplace distribution |
-| [Hook State Transitions](claude-code/hook-state-transitions.md) | Hook event types, state machines, and configuration |
-| [Agent SDK Usage Data](claude-code/agent-sdk-usage-data.md) | Extracting cost, token, context, and rate-limit data from the Agent SDK |
-| [OAuth Tokens](claude-code/oauth-tokens.md) | Anthropic OAuth token taxonomy, endpoint compatibility, error-envelope quirks, K8s Secret tmpfs reset |
+
+Knowledgebase counterparts (descriptive mechanics, vendor quirks) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase): skills enforcement detail, plugin caching/env-vars/marketplace mechanics, hook state transitions, Agent SDK usage data, OAuth token taxonomy.
 
 ## Planned Sections
 

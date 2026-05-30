@@ -2,23 +2,15 @@
 
 # PodSecurity `restricted`: Five Required Pod Fields
 
-The Kubernetes PodSecurity admission plugin's `restricted` profile
-(namespace label `pod-security.kubernetes.io/enforce: restricted`)
-rejects any Pod missing the full security cocktail. The required fields
-are split between Pod-level `securityContext` and per-container
-`securityContext`. Forgetting any one rejects admission with a
-multi-line `violates PodSecurity` error.
-
-The most common context that hits this is a one-shot diagnostic Pod
-(`curl` tester, debug shell, `kubectl run`-style probe) created in a
-namespace that enforces `restricted`. Chart-managed workloads usually
-inherit the right defaults from chart values; ad-hoc Pods do not.
+> The wall-of-text admission error and why it surfaces only at admission
+> live in
+> [knowledgebase/kubernetes/podsecurity-restricted-pod.md](https://github.com/jewzaam/knowledgebase/blob/main/kubernetes/podsecurity-restricted-pod.md).
 
 ## The Rule
 
-Use this Pod template when creating any diagnostic Pod in a
-`restricted` namespace, or as a checklist when adopting `restricted`
-enforcement on an existing namespace.
+Use this Pod template when creating any diagnostic Pod in a `restricted`
+namespace, or as a checklist when adopting `restricted` enforcement on an
+existing namespace.
 
 ```yaml
 apiVersion: v1
@@ -49,53 +41,23 @@ The five fields that must be set:
 4. `spec.containers[*].securityContext.allowPrivilegeEscalation: false`
 5. `spec.containers[*].securityContext.capabilities.drop: [ALL]`
 
-`runAsUser` and `runAsNonRoot` may be set at either the Pod or
-container level; setting at the Pod level applies to all containers
-unless overridden.
-
-## Recognizing the rejection
-
-The error from the API server lists every violation in one message:
-
-```text
-pods "name" is forbidden: violates PodSecurity "restricted:latest":
-  privileged (...),
-  allowPrivilegeEscalation != false (...),
-  unrestricted capabilities (...),
-  runAsNonRoot != true (...),
-  seccompProfile (...)
-```
-
-Treat the bullet list as a direct checklist against the five required
-fields above. Each line maps to one missing or incorrect field.
-
-## Why this matters
-
-- The rejection happens at admission, so the Pod never starts. The
-  operator sees a wall of text and not a familiar `CrashLoopBackOff`.
-- Examples copy-pasted from the Kubernetes docs, blog posts, or
-  AI-generated snippets routinely omit one or more of the five
-  fields. They work in unlabeled namespaces and fail the moment
-  `restricted` is enforced.
-- Diagnostic Pods are the place this hurts most — the operator is
-  already debugging something else when the admission error appears.
+`runAsUser` and `runAsNonRoot` may be set at either the Pod or container
+level; setting at the Pod level applies to all containers unless overridden.
 
 ## When to apply
 
-- Any ad-hoc Pod (`curl` tester, debug shell, schema probe) created
-  in a namespace with `pod-security.kubernetes.io/enforce: restricted`.
-- Reviewing Helm chart values before deploying into a `restricted`
-  namespace for the first time. Most charts gate these fields behind
-  a `podSecurityContext` / `securityContext` values block — confirm
-  the chart sets all five.
-- Drafting a new chart or raw-manifest app that must work in
-  `restricted` namespaces by default.
+- Any ad-hoc Pod (`curl` tester, debug shell, schema probe) created in a
+  namespace with `pod-security.kubernetes.io/enforce: restricted`.
+- Reviewing Helm chart values before deploying into a `restricted` namespace
+  for the first time. Confirm the chart sets all five.
+- Drafting a new chart or raw-manifest app that must work in `restricted`
+  namespaces by default.
 
 ## When skipping is acceptable
 
-- Namespaces enforcing `baseline` or `privileged` profiles, which do
-  not require the full set.
+- Namespaces enforcing `baseline` or `privileged` profiles, which do not
+  require the full set.
 - Containers that legitimately need elevated capabilities (CNI agents,
-  storage drivers, low-level network tooling). Those belong in
-  namespaces with a relaxed PodSecurity profile, not in `restricted`
-  with exemptions per Pod.
+  storage drivers, low-level network tooling). Those belong in namespaces
+  with a relaxed PodSecurity profile, not in `restricted` with exemptions
+  per Pod.

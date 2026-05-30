@@ -17,4 +17,5 @@ truth for consumers of this repo.
 | [Style](style.md) | Async, nullable, .NET 8/10 language features, MVVM |
 | [Project Structure](project-structure.md) | csproj layout, TFM choice, deps |
 | [Testing](testing.md) | xUnit/NUnit, Moq, FluentAssertions, STA/WPF tests |
-| [NINA Plugin](nina-plugin.md) | NINA 3.x C# plugin: build, MEF, mediators, options, HTTP, logging, publishing |
+
+Knowledgebase counterpart: [NINA 3.x C# plugin (build, MEF, mediators, options, HTTP, logging, publishing)](https://github.com/jewzaam/knowledgebase/blob/main/dotnet/nina-plugin.md).
