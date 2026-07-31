@@ -31,6 +31,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Versioning](common/versioning.md) | Semantic versioning and release conventions |
 | [README Format](common/readme-format.md) | README structure and content |
 | [Naming](common/naming.md) | Project and package naming conventions |
+| [Commit Messages](common/commit-messages.md) | Conventional Commits 1.0.0 spec, valid types (8), what NOT to use (chore, style) |
 | [Git Submodules](common/submodules.md) | Git submodule conventions and workflows |
 | [Git Worktrees](common/git-worktrees.md) | Worktree conventions, cleanup, AI-assisted parallel development |
 | [Reachability](common/reachability.md) | Document reachability enforcement from entry points |

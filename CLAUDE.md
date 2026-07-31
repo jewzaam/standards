@@ -49,6 +49,7 @@ When adding a new standard or template:
 - [common/naming.md](common/naming.md) — repo, package, module, variable naming conventions
 - [common/versioning.md](common/versioning.md) — semver rules, version location in pyproject.toml and code
 - [common/readme-format.md](common/readme-format.md) — README structure, badges, descriptions
+- [common/commit-messages.md](common/commit-messages.md) — Conventional Commits 1.0.0 spec, valid types (8), what NOT to use (chore, style)
 - [common/submodules.md](common/submodules.md) — git submodule conventions and workflows
 - [common/git-worktrees.md](common/git-worktrees.md) — worktree conventions, cleanup, AI-assisted parallel development
 - [common/reachability.md](common/reachability.md) — document reachability enforcement from entry points
