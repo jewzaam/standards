@@ -61,3 +61,26 @@ level; setting at the Pod level applies to all containers unless overridden.
   storage drivers, low-level network tooling). Those belong in namespaces
   with a relaxed PodSecurity profile, not in `restricted` with exemptions
   per Pod.
+
+## Exception Discipline
+
+Any namespace relaxed off `restricted` must clear three bars:
+
+1. Relax to the **minimum** profile that works — prefer `baseline` over
+   `privileged`. `baseline` still blocks `hostPath`, `hostNetwork`,
+   privileged containers, and most capabilities.
+2. Document why `restricted` cannot work.
+3. List the compensating hardening applied instead.
+
+Scope every exception to a single namespace. An exception never loosens
+the cluster default.
+
+Worked example (minimum-relaxation principle): an app needing root only
+to seed a Samba password database used a short-lived root
+`initContainer` under `baseline`, while every long-running container
+stayed non-root with capabilities dropped, plus
+`automountServiceAccountToken: false`, no host namespaces, seccomp
+`RuntimeDefault` retained, and network exposure limited to a private
+overlay.
+
+`restricted` stays mandatory for anything running untrusted code.

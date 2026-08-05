@@ -29,5 +29,62 @@ resources:
 - Every container in every Pod the user authors: set CPU request, memory
   request, memory limit. Omit CPU limit.
 - Exception: hard multi-tenant boundaries where a chargeback model requires
-  a hard CPU ceiling per tenant. Use a `LimitRange` or a policy engine
-  (Kyverno / OPA) at the namespace boundary, not on individual workloads.
+  a hard CPU ceiling per tenant. Use a policy engine (Kyverno / OPA) to cap
+  `requests.cpu` at the namespace boundary — not a `LimitRange` CPU ceiling
+  (see below) and not on individual workloads.
+
+## LimitRange CPU Fields Are Banned
+
+Extends the rule above: `LimitRange.spec.limits[*].max.cpu` and
+`default.cpu` are banned for the same reason `resources.limits.cpu` is.
+
+- `max.cpu` imposes a per-Pod CPU ceiling on the whole namespace — the
+  identical CFS-throttling failure mode as a per-container `limits.cpu`.
+- `default.cpu` mints a CPU limit on every Pod in the namespace that
+  doesn't set one itself, silently reintroducing the banned field.
+
+Acceptable `LimitRange` fields: `defaultRequest.cpu`, `default.memory`,
+`defaultRequest.memory`, `max.memory`.
+
+If one Pod hoarding a namespace's CPU is a real problem, cap
+`requests.cpu` per container with admission tooling (Kyverno / OPA)
+rather than reintroducing `limits.cpu` through a `LimitRange`.
+
+## Low PriorityClass for Memory-Heavy Batch Workloads
+
+Memory-hungry interruptible workloads that share nodes with platform
+Pods (Prometheus, Argo CD, etcd) must carry a low **negative**
+`PriorityClass`:
+
+```yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: <workload>-low-priority
+value: -10
+globalDefault: false
+description: <why this workload preempts/evicts first>
+---
+# on the workload's Pod spec
+spec:
+  priorityClassName: <workload>-low-priority
+```
+
+The kubelet eviction manager and the scheduler's preemption logic both
+use priority as the primary tiebreaker, so a negative value makes this
+Pod the first eviction candidate ahead of any zero-or-positive-priority
+Pod. This pairs with the `limits.memory` rule above at a different
+scope: `limits.memory` gives a clean OOMKill of the container, while the
+low priority ensures that if node-level memory pressure is reached
+first, the kubelet evicts this Pod rather than a platform Pod.
+
+Apply when all three hold:
+
+- Memory limit is roughly 8Gi or greater.
+- The workload is interruptible (restart causes no data loss or
+  user-facing outage).
+- It shares nodes with platform services with no taint/toleration
+  isolation.
+
+Do not apply to platform services, user-facing services, or anything
+that must survive node pressure.

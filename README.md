@@ -38,6 +38,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Temp Directories](common/tmp-dirs.md) | `.tmp-<slug>/` convention for named, git-ignored working directories |
 | [Local Config Split](common/local-config-split.md) | `.example` template + `.gitignore` for per-environment config (secrets, endpoints) |
 | [Git Remote Discovery](common/git-remote-discovery.md) | Discover remote names by URL match, not by hardcoded `origin`/`upstream` |
+| [Documentation and Standards Authority](common/doc-authority.md) | Skills own their domain (link, don't copy); a repo with hands-on domain experience outranks the generalized cross-project standard |
 
 ## [Python](python/README.md)
 

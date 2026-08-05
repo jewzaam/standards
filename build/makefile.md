@@ -376,6 +376,36 @@ distinguishes "docker CLI installed but Compose v2 plugin missing"
 from "docker CLI is fully functional" — without the second check a
 machine with only legacy `docker-compose` would be misidentified.
 
+### Line-ending pinning for repos edited on Windows, executed on Linux
+
+**Pattern.** Add a `.gitattributes` at the repo root with:
+
+```gitattributes
+*.sh     text eol=lf
+*.mk     text eol=lf
+Makefile text eol=lf
+```
+
+After adding the file, normalize any already-committed CRLF content:
+
+```bash
+git add --renormalize .
+git commit -m "chore: normalize line endings via .gitattributes"
+```
+
+**Why.** Windows editors (VS Code, Notepad++) save files with CRLF by default.
+A CRLF shell script breaks under bash — `set -euo pipefail\r` yields
+`set: pipefail: invalid option name`, and the trailing `\r` corrupts other
+lines; a container running such a script CrashLoopBackOffs. Make recipes with
+CRLF can also misbehave. The descriptive failure mode (how bash/Make react to
+`\r`, how to diagnose it) is in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase).
+
+**When to apply.** Any repo whose `*.sh`, `*.mk`, or `Makefile` are run on
+Linux / WSL but may be edited on Windows. Cheap to apply unconditionally — the
+attributes are no-ops on repos that are only ever edited on POSIX systems.
+
+Discovered in a repo edited on Windows whose scripts run in Linux containers.
+
 ### Cross-platform bind-mount safety
 
 **Pattern.** Wrap every host-side path passed to `docker run -v` (or
