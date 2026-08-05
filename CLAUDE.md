@@ -56,6 +56,7 @@ When adding a new standard or template:
 - [common/tmp-dirs.md](common/tmp-dirs.md) — `.tmp-<slug>/` convention for named, git-ignored working directories
 - [common/local-config-split.md](common/local-config-split.md) — `.example` template + `.gitignore` for per-environment config (secrets, endpoints)
 - [common/git-remote-discovery.md](common/git-remote-discovery.md) — discover remote names by URL match, not by hardcoded `origin`/`upstream`
+- [common/doc-authority.md](common/doc-authority.md) — skills own their domain (project docs link, don't copy); a repo with hands-on domain experience outranks the generalized cross-project standard for that domain
 
 ## Python
 
