@@ -92,6 +92,7 @@ Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/
 | Standard | Description |
 |----------|-------------|
 | [Conventions](cli/conventions.md) | CLI argument and flag conventions |
+| [Shell Prompt](cli/shell-prompt.md) | PS1 segment architecture, ANSI color escapes, helper function conventions |
 | [Testing](cli/testing.md) | CLI entry point testing patterns |
 
 ## [Build and CI/CD](build/README.md)
