@@ -57,6 +57,11 @@ When adding a new standard or template:
 - [common/local-config-split.md](common/local-config-split.md) — `.example` template + `.gitignore` for per-environment config (secrets, endpoints)
 - [common/git-remote-discovery.md](common/git-remote-discovery.md) — discover remote names by URL match, not by hardcoded `origin`/`upstream`
 - [common/doc-authority.md](common/doc-authority.md) — skills own their domain (project docs link, don't copy); a repo with hands-on domain experience outranks the generalized cross-project standard for that domain
+- [common/documentation-diagrams.md](common/documentation-diagrams.md) — Mermaid diagram structure, port labeling, colors, legends, connectivity tables, ref arch layout, citation discipline
+
+Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
+
+- `common/mermaid-rendering.md` — Mermaid rendering behaviors: node placement via connections, style color inheritance, subgraph nesting contrast
 
 ## Python
 
@@ -106,6 +111,7 @@ Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/
 
 - [cli/README.md](cli/README.md)
 - [cli/conventions.md](cli/conventions.md) — argument naming, flags, `--log-file`, `--debug`
+- [cli/shell-prompt.md](cli/shell-prompt.md) — PS1 segment architecture, ANSI color escapes, helper function conventions
 - [cli/testing.md](cli/testing.md) — testing main() with sys.argv patching
 
 ## Build and CI/CD
