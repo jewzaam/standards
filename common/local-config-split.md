@@ -25,6 +25,18 @@ untracked working copy.
 4. Add a header comment to the `.example` file stating that the file
    is a template and the working copy is gitignored, so future readers
    know to copy-and-edit rather than edit the example in place.
+5. Where a value is needed in more than one shape — a full URL for a
+   health probe versus a host/port pair for a network policy — store
+   the richer form once in the config and derive the other shape in
+   code. Do not add a second config key for the derived shape.
+6. Never have the tool auto-create the working copy from the
+   `.example` on first run. If the working file is missing, exit
+   non-zero and print the exact fix, naming the file, the copy
+   command, and the reason it isn't automatic (see
+   [Startup validation](#startup-validation)).
+7. Treat every value in the working copy as required — no defaults,
+   no "skip this feature if absent." Validate all keys at startup and
+   exit on the first missing or empty one.
 
 ## Why this shape
 
@@ -39,12 +51,38 @@ untracked working copy.
   template" comment in the `.example` file, contributors edit the
   template directly, commit their personal endpoint, and the
   template's purpose collapses.
+- **One stored value, not two that can disagree** — two keys that
+  express the same fact (a full URL and its host/port split) will
+  eventually drift apart, and nothing checks them against each other.
+  Storing one and deriving the other makes drift structurally
+  impossible. Watch the implicit cases when deriving: a URL with no
+  explicit port yields 80 or 443 by scheme, and code that assumes an
+  explicit port will emit an empty value for it.
+- **Auto-creating the working copy is a worse failure than refusing
+  to run** — the `.example` template necessarily contains some site's
+  real-shaped values. A tool that silently copies it into place on
+  first run "just works" with no error, because every field is
+  present and well-formed — it just points at the wrong site's
+  endpoint. Exiting non-zero with the fix command is the same amount
+  of code and fails loud instead of quiet.
+- **A missing value must not look like a passing check** — if the
+  tool treats an absent key as "skip that feature," the skip is
+  invisible at runtime and reads exactly like success. Concretely: a
+  validation script probed two telemetry endpoints to confirm a
+  sandbox could not read them back; when their URLs were absent it
+  skipped both checks instead of failing, so a check against an
+  endpoint that was in fact reachable went unnoticed. Validating every
+  key at startup turns that into a startup error instead of a false
+  pass.
 
 ## When to use
 
 - Local stack config with personal hostnames (e.g.,
   [claude-otel-stack](https://github.com/jewzaam/claude-otel-stack)
   endpoints to tailnet hosts, Loki/Prometheus URLs).
+- Sandbox provisioning tools that point a per-machine container at a
+  per-machine telemetry endpoint (e.g.,
+  [openshell-sandbox](https://github.com/jewzaam/openshell-sandbox)).
 - `.env` files with API keys, database URLs, OAuth secrets.
 - Datasource provisioning files where the URL differs per machine.
 - Any config the tooling **must** read from a known path, but where the
@@ -73,6 +111,26 @@ datasources:
     url: http://prometheus.example.tailnet.ts.net:9090
     # ^ replace with your Prometheus URL
 ```
+
+## Startup validation
+
+When the working copy is missing, fail with the file name, the exact
+copy command, and the reason it isn't automatic:
+
+```text
+error: config/site.env does not exist.
+
+    cp config/site.env.example config/site.env
+    $EDITOR config/site.env
+
+It describes where THIS HOST sends and reads telemetry. It is not created
+automatically: the template's values are one site's, and silently adopting
+them would point a sandbox at a collector that may not exist here.
+```
+
+Once the file exists, validate every key before using any of them —
+do not defer validation to the point of use, where a missing value
+can be mistaken for "feature not configured."
 
 ## Relationship to other patterns
 
