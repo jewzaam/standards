@@ -171,6 +171,52 @@ allowed-tools:
 - **Categories B and C** are belt-and-suspenders — they document what the skill needs and may reduce prompts, but global settings are the reliable backstop. See the knowledgebase counterpart for the enforcement caveats.
 - **Category D** is only needed when the skill dispatches sub-agents that write output files. The two path variants (relative and glob-prefixed) cover different sub-agent CWD behaviors. Omit for skills that handle all writes in the main agent.
 
+## Deterministic Steps vs Model Instructions
+
+Rote extraction — parsing a known HTML structure, pulling links out of a
+page, tallying statuses — belongs in a script, not in skill instructions
+telling the model to do it. Two costs to the instruction form: it consumes
+prompt tokens on every run, and it depends on the model complying every
+time. Compliance is the weaker cost but the more damaging one — a skipped
+instruction leaves no trace.
+
+Reserve model instructions for judgment: routing, weighing conflicting
+sources, deciding what matters. If a step reads as "extract/collect/tally
+X" and X is derivable by parsing, write the parser.
+
+**Evidence:** in an agent-driven research pipeline, an instruction to
+harvest an encyclopedia article's reference list was replaced by ~40 lines
+of HTML parsing that emits a sidecar file of URLs. The parsing version
+cannot be skipped, costs nothing per run, and produced 56 references (World
+Bank, IMF, national statistics agencies) from a single article.
+
+Source: `scripts/fetch_url.py` in
+<https://github.com/jewzaam/claude-skill-cited-research>.
+
+## Reports Must Be Computed From Artifacts
+
+A skill or agent summarizing its own run reports what it remembers doing,
+which is not the same as what it did. Write a script that reads the run's
+artifacts and prints fixed metrics; have the model paste that output
+verbatim rather than narrate it.
+
+- The report must state missing inputs explicitly (for example "no agent
+  log — outcomes not recorded") rather than omitting the section. A
+  silently omitted section reads as a clean result.
+- Running a report command is not the same as showing it. Command output
+  reaches the model, not necessarily the user — the text must be pasted
+  into the response body. Descriptive mechanics behind this behavior are in
+  [knowledgebase/claude-code/websearch-and-subagent-tools.md](https://github.com/jewzaam/knowledgebase/blob/main/claude-code/websearch-and-subagent-tools.md).
+
+**Evidence:** a research run was described as multi-engine in its own
+summary while the on-disk artifacts showed the multi-engine search step had
+never executed. A generated report also showed 3 of 147 citations were
+machine-verifiable where the narrative claimed 36 checked and 33 verified.
+
+Source: report generator `scripts/run_report.py` in
+<https://github.com/jewzaam/claude-skill-cited-research>; the run is
+<https://github.com/jewzaam/cited-research>.
+
 ## What to Avoid
 
 - **Relying on the agent to run setup commands** — if the skill always needs certain context (staged files, branch name, environment info), use shell injection instead of instructing the agent to gather it.

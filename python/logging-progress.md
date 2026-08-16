@@ -348,6 +348,25 @@ except Exception as e:
 | Summary output | stdout | `--quiet` (suppresses) | None (built-in) |
 | Dry-run output | stdout | Always shown | None (built-in) |
 
+## Ordinal Categories in Reports
+
+When a summary table counts occurrences by category, check whether the
+category is ordinal (a tier scale, severity level, any ranked grading)
+before choosing a sort. Ordinal categories print in scale order, with
+absent values shown as zero. Reserve frequency sorting for nominal
+(unranked) categories.
+
+Sorting an ordinal scale by count hides the shape of the distribution and
+can bury the most significant row in the middle of the list.
+
+**Evidence:** a citation-tier summary printed as "Tier 2, Tier 3, Tier 1,
+Tier 4" because it was frequency-sorted, obscuring the tier distribution. A
+zero count for the highest-quality tier is itself a finding, and frequency
+sorting drops that row entirely.
+
+Source: report generator `scripts/run_report.py` in
+<https://github.com/jewzaam/claude-skill-cited-research>.
+
 ## File Output
 
 ### `--log-file` Flag
