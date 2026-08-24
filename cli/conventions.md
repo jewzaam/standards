@@ -159,6 +159,46 @@ def process(path_pattern: str = r".*accept.*"):  # Wrong!
 - Clear separation: CLI layer sets policy, function layer implements logic
 - Function can be called programmatically with different defaults
 
+## Output
+
+Status and progress go to stderr, data to stdout, so a caller can pipe the data
+without status mixed into it.
+
+| Rule | Detail |
+|------|--------|
+| Case | Sentence case — capital first letter. A line opening with a literal command, flag, filename, or variable keeps that literal's case (`gh pr view failed`, `open-prs.json is 12m old`) |
+| Column | Status lines start at column 0. Never indent to imply nesting |
+| Detail lines | Indent 4 spaces, lowercase fragment, no closing period. Explains the status line directly above it |
+| Density | One line per item. A per-item result is a line, not a block |
+| Prefixes | `Error:`, `Warning:`, `Note:` — capitalized, and the only prefixes |
+| Wrapping | Never hard-wrap one message across several print calls. One message, one line; the terminal wraps it |
+
+### Result marks
+
+| Mark | Meaning | Color |
+|------|---------|-------|
+| `✓` | Completed | green |
+| `✗` | Failed | red |
+| `⊘` | Skipped — nothing was wrong, the work was not needed | yellow |
+
+At column 0, one space, then the result. Color only when the stream is a TTY
+(`[[ -t 2 ]]` for stderr), so a redirected log keeps the glyph without escapes.
+
+A skipped item names what was skipped and why on its one line:
+
+```text
+⊘ Download skipped — OpenShell unchanged in the sandbox (--force to pull)
+```
+
+Skipped earns a mark for the reason failure does: unmarked, it is a bare line
+among marked ones, and reads as another success.
+
+### Wrapping another tool
+
+When a tool you invoke prints its own status, match its case and column so both
+read as one stream, and do not re-announce what it already announces. Print only
+what it cannot know — most often, why you skipped calling it at all.
+
 ## Exit Codes
 
 Define as module-level constants with `EXIT_` prefix:

@@ -5,6 +5,7 @@
 import argparse
 import os
 import re
+import subprocess
 import sys
 from collections import deque
 from pathlib import Path
@@ -59,6 +60,42 @@ def _is_enum_excluded(rel_path: Path) -> bool:
     return False
 
 
+def _git_ignored(root: Path, rel_paths: list[str]) -> set[str]:
+    """The subset of rel_paths git ignores.
+
+    _EXCLUDED_DIR_PARTS above mirrors this repo's own .gitignore, which is all
+    enumeration can do without git. It cannot see the two ignore sources that
+    live outside the repo: the user's global excludes (core.excludesFile, or
+    XDG ~/.config/git/ignore) and .git/info/exclude. A file ignored there is
+    still not repo content — tooling that drops artifacts into a checkout
+    (open-prs.json, from the openshell sandbox host) is exactly that case.
+
+    Asking git is safe here in a way `git ls-files` was not: this only ever
+    removes names from a list the walk already built, so a git that is missing,
+    broken, or checked out without .git/ returns nothing and enumeration is
+    unchanged. That is the act-on-Windows failure the walk exists for. And
+    check-ignore consults the index, so a TRACKED file matching an ignore
+    pattern is not reported (verified: rc=1, no output) — real content cannot
+    be dropped by adding a pattern that happens to match it."""
+    if not (root / ".git").exists() or not rel_paths:
+        return set()
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(root), "check-ignore", "--stdin"],
+            input="\n".join(rel_paths),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    # 0 = some path is ignored, 1 = none are. Anything else (128: not a repo,
+    # no git) is git declining to answer, not an answer of "nothing is ignored".
+    if proc.returncode not in (0, 1):
+        return set()
+    return {line.strip() for line in proc.stdout.splitlines() if line.strip()}
+
+
 def find_tracked_files(repo_root: str) -> list[str]:
     """Enumerate repo files, honouring the .gitignore patterns this tool
     cares about. Avoids the `git ls-files` dependency so the script works
@@ -72,7 +109,8 @@ def find_tracked_files(repo_root: str) -> list[str]:
         if _is_enum_excluded(rel):
             continue
         files.append(rel.as_posix())
-    return sorted(files)
+    ignored = _git_ignored(root, files)
+    return sorted(f for f in files if f not in ignored)
 
 
 def extract_links(filepath: str, repo_root: str) -> list[str]:
