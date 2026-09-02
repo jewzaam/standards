@@ -18,18 +18,21 @@ X.Y.Z
 
 ## What Counts as a Breaking Change
 
-A breaking change is anything that causes existing usage to fail or produce different results.
+A breaking change is anything that causes existing usage to fail or produce different results. General rule (see [Breaking Change Guidelines](breaking-changes.md) for the full cross-surface version, including non-CLI surfaces): narrowing what the CLI accepts is breaking (an existing invocation stops working); widening what it accepts is safe (an existing invocation keeps working, unchanged). The table below covers the common cases — apply the general rule to anything not listed.
 
 | Change | Breaking? | Rationale |
 |--------|-----------|-----------|
 | Rename a CLI argument | Yes | Existing scripts and automation break |
 | Remove a CLI argument | Yes | Existing scripts and automation break |
+| Rename or restructure a subcommand | Yes | Scripts invoking the old subcommand path break, same logic as renaming a URL path |
 | Change a CLI argument's default value | Yes | Existing behavior changes silently |
 | Change CLI exit code meanings | Yes | Scripting logic breaks |
 | Change output format (stdout/stderr) | No | Output is not a stable contract |
 | Add a new required CLI argument | Yes | Existing invocations fail |
 | Add a new optional CLI argument | No | Existing invocations still work |
 | Add a new feature behind a flag | No | No change to existing behavior |
+
+Before bumping major for a breaking change, check whether it can be delivered without breaking anything at all — e.g. add the new argument alongside the old one and deprecate the old one with a warning, instead of renaming in place. If a non-breaking path exists but isn't worth the extra effort, that's a fine call — just make it deliberately, not by default.
 
 ## Integration Surface
 

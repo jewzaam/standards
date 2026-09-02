@@ -29,6 +29,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | Standard | Description |
 |----------|-------------|
 | [Versioning](common/versioning.md) | Semantic versioning and release conventions |
+| [Breaking Changes](common/breaking-changes.md) | Cross-surface breaking-change definition, directionality rule, remedy trade-offs, assessment checklist |
 | [README Format](common/readme-format.md) | README structure and content |
 | [Naming](common/naming.md) | Project and package naming conventions |
 | [Commit Messages](common/commit-messages.md) | Conventional Commits 1.0.0 spec, valid types (8), what NOT to use (chore, style) |

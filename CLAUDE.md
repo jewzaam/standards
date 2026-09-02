@@ -48,6 +48,7 @@ When adding a new standard or template:
 - [common/README.md](common/README.md)
 - [common/naming.md](common/naming.md) — repo, package, module, variable naming conventions
 - [common/versioning.md](common/versioning.md) — semver rules, version location in pyproject.toml and code
+- [common/breaking-changes.md](common/breaking-changes.md) — cross-surface breaking-change definition: scope exclusions, surface areas, directionality rule, remedy-by-surface trade-offs, assessment checklist
 - [common/readme-format.md](common/readme-format.md) — README structure, badges, descriptions
 - [common/commit-messages.md](common/commit-messages.md) — Conventional Commits 1.0.0 spec, valid types (8), what NOT to use (chore, style)
 - [common/submodules.md](common/submodules.md) — git submodule conventions and workflows
