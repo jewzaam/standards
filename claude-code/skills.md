@@ -131,6 +131,10 @@ my-skill/
     └── helper.py     # Utility script — executed, not loaded
 ```
 
+A skill that also ships a lifecycle hook keeps the hook and its registration
+under `hooks/`. See
+[common/skill-hook-registration.md](../common/skill-hook-registration.md).
+
 ## `allowed-tools` and Shell Injection
 
 When a skill declares `allowed-tools`, `!` shell injection commands are also checked against the listed patterns. Skills without `allowed-tools` have unrestricted `!` command execution.

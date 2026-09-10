@@ -58,6 +58,7 @@ When adding a new standard or template:
 - [common/local-config-split.md](common/local-config-split.md) — `.example` template + `.gitignore` for per-environment config (secrets, endpoints)
 - [common/git-remote-discovery.md](common/git-remote-discovery.md) — discover remote names by URL match, not by hardcoded `origin`/`upstream`
 - [common/doc-authority.md](common/doc-authority.md) — skills own their domain (project docs link, don't copy); a repo with hands-on domain experience outranks the generalized cross-project standard for that domain
+- [common/skill-hook-registration.md](common/skill-hook-registration.md) — a skill ships its own `hooks/register.claude.json` / `hooks/register.codex.json`; the config repo globs and merges it; `# KEEP: <reason>` retention marker
 - [common/documentation-diagrams.md](common/documentation-diagrams.md) — Mermaid diagram structure, port labeling, colors, legends, connectivity tables, ref arch layout, citation discipline
 
 Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
@@ -182,6 +183,7 @@ Knowledgebase counterparts (descriptive mechanics, vendor quirks) live in [jewza
 - `claude-code/skills.md` — `allowed-tools` enforcement detail, shell injection mechanics, frontmatter typo behavior
 - `claude-code/plugins.md` — plugin caching, env vars, marketplace source types, CLI commands, common failure modes
 - `claude-code/hook-state-transitions.md` — hook event types, state machines, configuration
+- `claude-code/settings-json-rewrites.md` — what survives a `settings.json` rewrite: top-level unknown keys yes, keys nested in hook objects and rule entries no, command strings and their shell comments yes
 - `claude-code/agent-sdk-usage-data.md` — extracting cost, token, context, rate-limit data from the Agent SDK
 - `claude-code/oauth-tokens.md` — Anthropic OAuth token taxonomy, endpoint compatibility, error-envelope quirks, K8s Secret tmpfs reset
 
