@@ -52,7 +52,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Complexity](python/complexity.md) | Cyclomatic complexity limit (10), ruff C901 enforcement |
 | [Subprocess Security](python/subprocess-security.md) | Subprocess and localhost server security rules |
 | [Shared Venv](python/shared-venv.md) | Shared `~/.venv/<family>/` for related projects, local `.venv` fallback |
-| [Logging & Progress](python/logging-progress.md) | Logging, progress indicators, and output |
+| [Logging & Progress](python/logging-progress.md) | Logging, progress indicators, output, and per-step status records for multi-stage tools |
 | [Settings Persistence](python/settings-persistence.md) | Dataclass settings with atomic JSON I/O |
 | [Agent SDK Integration](python/agent-sdk.md) | Claude Agent SDK integration patterns |
 | [Cross-Platform](python/cross-platform.md) | PATH shims for `python`/`python3`, `python -m <module>` rule |

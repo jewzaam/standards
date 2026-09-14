@@ -367,6 +367,56 @@ sorting drops that row entirely.
 Source: report generator `scripts/run_report.py` in
 <https://github.com/jewzaam/claude-skill-cited-research>.
 
+## Per-Step Status Records for Multi-Stage Tools
+
+A tool that runs multiple stages must emit a machine-readable per-step
+record in its own structured output, not only log lines. A stage that
+loses work but lets the run continue leaves no trace in the result if the
+record lives only in logs — the operator then has to mine logs to
+reconstruct what happened, and any consumer relaying the result (a
+person, a downstream tool, an agent) cannot tell a complete run from a
+partial one.
+
+### Shape
+
+One entry per step:
+
+| Field | Value |
+|-------|-------|
+| `step` | step name |
+| `status` | one of `ok`, `degraded`, `skipped`, `failed` |
+| `detail` | human-readable; carries the counts and names — which agents failed, why a step was skipped, what was excluded |
+
+A run-level rollup status is the worst step status observed. `skipped`
+alone does not degrade a run.
+
+| Rule | Rationale |
+|------|-----------|
+| Record travels in the structured output, not a side file | Side files live in scratch directories the next run wipes; the record has to travel with the result it describes. Writing to both is fine — the side copy survives a run that dies before it can write its result. |
+| `failed` is reserved for a step that ends the run | A step that lost part of its work but let the run finish is `degraded`, not `failed`. Conflating them makes a run that completed and produced output report itself as failed, which is worse than saying nothing. |
+| Complements an errors/issues list, does not replace it | An issues list says what went wrong; the step record says what ran at all. A step can degrade without producing an issue — the case no other record covers. |
+
+**Evidence (degraded vs. failed):** losing every validation batch is
+`degraded` — the items pass through unchecked and the run still produces
+its result. Losing every analysis agent is `failed` — there is nothing
+left to produce a result from.
+
+### Rendering
+
+- Render the step table into the human-readable output **above** the
+  results, not appended below. A partial run is not the same run as a
+  complete one, and the reader needs to know before reading the results.
+- List the operational issues; do not count them. "4 issues recorded"
+  sends the reader back to the logs, which is the behavior this rule
+  exists to remove.
+- When the tool's output is relayed by something else (a wrapper that
+  tails a log, an agent that reports back), size the relayed window to
+  fit the whole summary. A tail that truncates drops the top of the
+  summary, which is usually the headline counts.
+
+Source: a multi-stage review pipeline that dispatches agents in parallel
+(internal, not public).
+
 ## File Output
 
 ### `--log-file` Flag
