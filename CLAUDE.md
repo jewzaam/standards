@@ -74,7 +74,7 @@ Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/
 - [python/complexity.md](python/complexity.md) — cyclomatic complexity limit (10), ruff C901 enforcement
 - [python/subprocess-security.md](python/subprocess-security.md) — subprocess and localhost server security rules
 - [python/shared-venv.md](python/shared-venv.md) — shared `~/.venv/<family>/` for related projects, local `.venv` fallback
-- [python/logging-progress.md](python/logging-progress.md) — logger setup, `--log-file`, progress bars
+- [python/logging-progress.md](python/logging-progress.md) — logger setup, `--log-file`, progress bars, per-step status records for multi-stage tools
 - [python/settings-persistence.md](python/settings-persistence.md) — dataclass settings with atomic JSON I/O
 - [python/agent-sdk.md](python/agent-sdk.md) — Claude Agent SDK integration, threading with tkinter, permission control
 - [python/cross-platform.md](python/cross-platform.md) — PATH shims for `python`/`python3`, `python -m <module>` rule
