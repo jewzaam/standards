@@ -50,6 +50,22 @@ The `--quiet` flag enables minimal output mode for scripting, automation, and cl
 
 See [Logging and Progress Standards](../python/logging-progress.md) for implementation patterns.
 
+### `--dryrun` Flag Behavior
+
+"Without side effects" means the filesystem is left exactly as it was. Writing a file is a side effect, even one the caller asked for and even if it touches none of the data the tool manages (a report, a cache, a generated script).
+
+| Allowed in a dry run | Not allowed in a dry run |
+|----------------------|--------------------------|
+| Reading files | Moving, copying, deleting, or modifying files |
+| Output on stdout/stderr, for people | Writing any file: reports, state, caches, generated scripts |
+| Log output (`--log-file`, see below) | Creating directories |
+
+**Options that write a file:** under `--dryrun` the file is not written. The tool says it would have written it (e.g. `[DRYRUN] Would write report to PATH`) and carries on. Dry-run output is for people and is never suppressed by `--quiet` (see above).
+
+**Handing results to another program:** don't make the caller parse stdout or logs; those are operational output, not an interface. Give the tool a separate, non-dry-run mode whose only effect is writing the result file, named for that intent (e.g. `--report-only-file PATH`: write the report, change nothing else). Under `--dryrun` that mode, too, only says what it would have written.
+
+Exception: `--log-file` still writes during a dry run. The user explicitly redirected log output there, and the log only records what the run did.
+
 ### `--log-file` Flag Behavior
 
 The `--log-file` flag redirects all log output to a file instead of stderr.
