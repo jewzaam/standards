@@ -112,7 +112,7 @@ Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/
 ## CLI
 
 - [cli/README.md](cli/README.md)
-- [cli/conventions.md](cli/conventions.md) — argument naming, flags, `--log-file`, `--debug`
+- [cli/conventions.md](cli/conventions.md) — argument naming, flags, `--dryrun` (no side effects, no file writes; report-only modes for results), `--log-file`, `--debug`
 - [cli/shell-prompt.md](cli/shell-prompt.md) — PS1 segment architecture, ANSI color escapes, helper function conventions
 - [cli/testing.md](cli/testing.md) — testing main() with sys.argv patching
 

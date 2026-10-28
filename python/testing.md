@@ -92,6 +92,19 @@ def test_workflow_darks_only(self, tmp_path):
 | Full file processing workflow | Integration | Tests real component interaction |
 | Directory traversal + filtering | Integration | Multiple modules cooperating |
 
+### Contract Tests for External Tools
+
+When code builds command lines for an external tool or parses its output or files, include at least one test that runs the real tool on a tiny generated fixture and feeds its real output to the parser. Keep the unit tests against a hand-written fake as well.
+
+**Why:** a fake written by the author of the code proves only that the code and the fake agree with each other. It cannot detect a tool that changed its output format or renamed or dropped a flag.
+
+**When to apply:** any module that shells out to a separately installed tool or parses that tool's output or files.
+
+- **Parser contract** - generate a minimal input, run the real tool, pass its actual output to the parser, assert on parsed values
+- **Command-line contract** - run every generated command in the tool's dry-run mode (or equivalent no-op flag) and fail on usage errors; this catches flags the tool renamed or dropped
+
+These tests must bypass the [subprocess guard](#command-execution) explicitly and follow [Optional Environment Dependencies](#optional-environment-dependencies) so they fail in CI when the tool is missing.
+
 ## Test-Driven Development (TDD)
 
 TDD is **required** for bug fixes to existing functionality. New features follow standard test-after development.
@@ -343,6 +356,44 @@ Not every project needs every guard. Match guards to the side effects the code a
 
 Start with the guards that match the project's dependencies. Add more as the codebase grows.
 
+## Optional Environment Dependencies
+
+Tests that need an optional environment (a real external tool installed, a display for GUI tests, an initialized git submodule) must **skip locally with a clear reason but fail in CI**.
+
+**Why:** a bare `pytest.importorskip` or `pytest.skip` leaves the contract with the real tool unverified exactly when the environment breaks. A CI image missing the tool or display server would turn the suite green with those tests skipped.
+
+**Pattern:** one environment variable, set only in CI (e.g. `<PROJECT>_REQUIRE_TOOLS=1`), read by small helpers in `conftest.py`. Contributors without the environment get a skip; CI gets a failure.
+
+```python
+import importlib
+import os
+import pytest
+
+def _required() -> bool:
+    return os.environ.get("MYPROJECT_REQUIRE_TOOLS") == "1"
+
+def skip_unless_required(reason: str) -> None:
+    """Fail in CI, skip locally."""
+    if _required():
+        pytest.fail(f"{reason} (MYPROJECT_REQUIRE_TOOLS=1)")
+    pytest.skip(reason)
+
+def require(module: str):
+    """Replacement for pytest.importorskip."""
+    try:
+        return importlib.import_module(module)
+    except ImportError:
+        skip_unless_required(f"{module} not installed")
+
+def require_display() -> None:
+    if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
+        skip_unless_required("no display available")
+```
+
+Set the variable in the CI workflow only. Use `require(...)` instead of `pytest.importorskip(...)` in these tests.
+
+**When to apply:** contract tests, GUI tests, submodule-dependent tests. Not needed for tests whose dependencies are always installed with the project.
+
 ## Test Data (Fixtures)
 
 **DO NOT USE GIT LFS**
@@ -477,6 +528,30 @@ def test_move_file(tmp_path):
     assert dest.exists()
     assert not source.exists()
 ```
+
+### Wait Helpers That Return Silently
+
+Helpers that wait for a background thread or process must assert the awaited condition was reached once the timeout expires.
+
+```python
+# BAD - returns silently on timeout; a test asserting "nothing changed" passes
+# even though the work never ran
+def wait_for(predicate, timeout=5.0):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline and not predicate():
+        time.sleep(0.01)
+
+# GOOD - timeout is a failure
+def wait_for(predicate, timeout=5.0):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if predicate():
+            return
+        time.sleep(0.01)
+    raise AssertionError(f"condition not reached within {timeout}s")
+```
+
+Prefer asserting on a completion marker (finished message, exit status) over elapsed-time bounds; time bounds are flaky and still pass vacuously when the work never started.
 
 ### Testing Logging Instead of Behavior
 

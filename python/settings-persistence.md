@@ -84,11 +84,13 @@ Define `APP_DIR_NAME` in the config module.
 
 ## Loading Settings
 
-Load with silent fallback to defaults on any failure. Validate each field individually:
+For disposable settings (window position, colors, polling interval), load with silent
+fallback to defaults on any failure. Validate each field individually. For user-authored
+content, see [User-Authored Content](#user-authored-content) — silent fallback is wrong there.
 
 ```python
 def load_settings(*, path: Path | None = None) -> Settings:
-    """Load settings from JSON. Returns defaults on any failure."""
+    """Load disposable settings from JSON. Returns defaults on any failure."""
     target = path or _settings_path()
 
     try:
@@ -147,6 +149,48 @@ if isinstance(val, int) and MIN_ALERT <= val <= MAX_ALERT:
 # else: keep default
 ```
 
+### User-Authored Content
+
+Silent fallback is wrong for content the user spent time building (a workflow, rules, a
+configuration). A corrupt or hand-edited file that falls back to defaults is replaced on
+the next save with no trace, and the work is gone. Apply this section to such files;
+keep the silent fallback above for disposable settings.
+
+Distinguish three load outcomes:
+
+| Outcome | Action |
+|---------|--------|
+| File missing | First launch. Use defaults, no warning |
+| File exists but unusable: unreadable, not valid JSON, wrong top-level type, or written by a newer format version | Copy it to `<name>.bad-<timestamp>`, log a warning, tell the user (dialog or equivalent), then continue with defaults |
+| File loads but entries were dropped: unknown keys, malformed entries | Keep everything readable, still back up the file, and tell the user what was dropped — the next save writes the reduced content back |
+
+```python
+def backup_unusable(target: Path) -> Path:
+    """Copy a file that could not be used to <name>.bad-<timestamp>."""
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    backup = target.with_name(f"{target.name}.bad-{stamp}")
+    shutil.copy2(target, backup)
+    logger.warning("settings unusable, backed up to %s", backup)
+    return backup
+```
+
+The loader returns the settings plus the warnings to show (e.g. a list of strings), so
+the UI layer decides how to tell the user. If the backup copy itself fails, report that too.
+
+#### Format Version
+
+Write a `version` integer into the file. A build that reads a version higher than it
+supports treats the file as unusable (back up, warn) instead of ignoring unknown fields
+and saving over them.
+
+- Bump the version for any change an older build cannot read, including adding a
+  persisted name an older build would flag as unknown.
+- Renaming a persisted identifier (step kind, field name) needs a migration from the
+  old name.
+
+This standard comes from a Windows desktop app whose user-built workflow file was lost
+on a corrupt load.
+
 ## Saving Settings
 
 Write atomically using a temp file and rename:
@@ -169,6 +213,7 @@ def save_settings(settings: Settings, *, path: Path | None = None) -> None:
             tmp.unlink(missing_ok=True)
         except OSError:
             pass
+        raise  # caller decides how to tell the user; see Save Failures in the UI
 ```
 
 ### Why Atomic Writes
@@ -178,6 +223,13 @@ If the app crashes mid-write, a partial JSON file is unreadable. The temp-then-r
 ### Cleanup on Failure
 
 If the rename fails, remove the temp file in a `try/except` block. Don't let temp files accumulate.
+
+### Save Failures in the UI
+
+A read-only or full disk, or a locked file, must not escape a UI callback as a traceback.
+Have `save_settings()` raise `OSError` (after temp cleanup) when the caller needs to
+report it, and in the callback catch `OSError`, show an error, and keep the new settings
+in use in memory for the session. The atomic write leaves the old file intact on failure.
 
 ## Testing Settings
 
@@ -216,10 +268,20 @@ def test_ignores_unknown_fields(self, tmp_path):
 - `bool` where `int` expected (skipped)
 - Missing directory (created on save)
 
+For user-authored content, also test:
+
+- Unreadable file keeps a `.bad-<timestamp>` backup copy and reports a warning
+- Newer `version` than supported is refused (backup, warning, defaults), not loaded
+- Dropped entries are reported and the file is backed up
+- Failed write keeps the old file intact and removes the temp file (e.g. make the
+  target directory read-only or patch `Path.replace` to raise `OSError`)
+
 ## What to Avoid
 
 - Saving settings on every UI interaction (save on explicit save/close)
-- Raising exceptions from `load_settings()` (always return defaults)
+- Raising exceptions from `load_settings()` for disposable settings (return defaults); for user-authored content, back up and report instead of silently discarding
+- Silently falling back to defaults on a file containing user-authored content
+- Letting a save `OSError` escape a UI callback as a traceback
 - Storing derived or computed values in settings
 - Using non-human-readable serialization formats (always use JSON)
 - Hardcoding default values in the dataclass instead of referencing config constants
