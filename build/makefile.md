@@ -415,10 +415,11 @@ spec.
 
 **Why.** Git Bash on Windows uses MSYS2 path translation. A recipe like:
 
-<!-- pyml disable-next-line md014 -->
+<!-- pyml disable md014 -->
 ```makefile
 $(DOCKER) run -v $(CREDS_FILE):/var/run/creds:ro $(IMAGE)
 ```
+<!-- pyml enable md014 -->
 
 …with `CREDS_FILE=./mint/creds.json` gets the colon-separated mount
 spec rewritten by MSYS2 into something like
@@ -431,10 +432,11 @@ Windows-style absolute path (`C:/Users/.../mint/creds.json`) before
 MSYS2 sees the recipe shell, and the absolute path bypasses the
 translation that mangles relative paths.
 
-<!-- pyml disable-next-line md014 -->
+<!-- pyml disable md014 -->
 ```makefile
 $(DOCKER) run -v $(abspath $(CREDS_FILE)):/var/run/creds:ro $(IMAGE)
 ```
+<!-- pyml enable md014 -->
 
 **When to apply.** Every Makefile that calls `docker run -v` or
 `podman run -v` with a path variable that could be relative, on any
