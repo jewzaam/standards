@@ -197,7 +197,8 @@ repeats it so a scrolled log still separates "done" from "you must do something"
 
 | Mark | Meaning | Color |
 |------|---------|-------|
-| `✓` | Completed | green |
+| `✓` | Completed work the operator was waiting on | green |
+| `✓` | Informational completion — something moved, no action required (`--upload`/`--download` transfers) | yellow |
 | `⊘` | Skipped — nothing was wrong, the work was not needed | green |
 | `⚠` | Action required — something remains unreconciled or unresolved | red |
 | `✗` | Failed | red |
