@@ -191,11 +191,16 @@ without status mixed into it.
 
 ### Result marks
 
+Colour is about the reader's next move: **green = no action needed, yellow =
+informational, red = action required.** The mark carries the meaning; the colour
+repeats it so a scrolled log still separates "done" from "you must do something".
+
 | Mark | Meaning | Color |
 |------|---------|-------|
 | `✓` | Completed | green |
+| `⊘` | Skipped — nothing was wrong, the work was not needed | green |
+| `⚠` | Action required — something remains unreconciled or unresolved | red |
 | `✗` | Failed | red |
-| `⊘` | Skipped — nothing was wrong, the work was not needed | yellow |
 
 At column 0, one space, then the result. Color only when the stream is a TTY
 (`[[ -t 2 ]]` for stderr), so a redirected log keeps the glyph without escapes.
