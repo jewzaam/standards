@@ -42,6 +42,8 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [PowerShell 5.1 Scripts](common/powershell-5-1.md) | ASCII source, parenthesize `ConvertFrom-Json` before piping, case-insensitive variables, no heredoc-through-interpreter patching, BOM-less UTF-8 data files |
 | [Documentation and Standards Authority](common/doc-authority.md) | Skills own their domain (link, don't copy); a repo with hands-on domain experience outranks the generalized cross-project standard |
 | [Skill Hook Registration](common/skill-hook-registration.md) | Skill ships `hooks/register.claude.json` / `hooks/register.codex.json` next to the hook; config repo reconcile globs and merges it; `# KEEP: <reason>` marker |
+| [Supply Chain](common/supply-chain.md) | Quarantine, publisher-API SHA-256 verification, scan, lockfile, `--ignore-scripts`, 14-day age |
+| [Secrets Handling](common/secrets-handling.md) | No tokens on command lines or in logs, token file ACL, pre-commit secret scan |
 
 ## [Python](python/README.md)
 
@@ -97,6 +99,7 @@ Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/
 |----------|-------------|
 | [Conventions](cli/conventions.md) | CLI argument and flag conventions |
 | [Shell Prompt](cli/shell-prompt.md) | PS1 segment architecture, ANSI color escapes, helper function conventions |
+| [PowerShell Scripting](cli/powershell-scripting.md) | Windows PowerShell 5.1 unattended scripts: timeouts, kill guard, `-File`, git stderr, BOM, headless launch |
 | [Testing](cli/testing.md) | CLI entry point testing patterns |
 
 ## [Build and CI/CD](build/README.md)
@@ -159,6 +162,7 @@ Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/
 |----------|-------------|
 | [Skills](claude-code/skills.md) | Authoring Claude Code skills (SKILL.md files) |
 | [Plugins](claude-code/plugins.md) | Plugin structure, manifest schema, marketplace distribution |
+| [Agent Harness Guardrails](claude-code/agent-harness-guardrails.md) | Hooks over instructions, fail-closed guards, absolute interpreter paths, real-layout tests, independent evaluator |
 
 Knowledgebase counterparts (descriptive mechanics, vendor quirks) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase): skills enforcement detail, plugin caching/env-vars/marketplace mechanics, hook state transitions, Agent SDK usage data, OAuth token taxonomy, `settings.json` rewrite behavior.
 

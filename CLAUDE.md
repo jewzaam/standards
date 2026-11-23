@@ -61,6 +61,8 @@ When adding a new standard or template:
 - [common/skill-hook-registration.md](common/skill-hook-registration.md) — a skill ships its own `hooks/register.claude.json` / `hooks/register.codex.json`; the config repo globs and merges it; `# KEEP: <reason>` retention marker
 - [common/powershell-5-1.md](common/powershell-5-1.md) — PowerShell 5.1 scripts: ASCII source, parenthesize `ConvertFrom-Json` before piping, case-insensitive variables, no heredoc-through-interpreter patching, BOM-less UTF-8 data files
 - [common/documentation-diagrams.md](common/documentation-diagrams.md) — Mermaid diagram structure, port labeling, colors, legends, connectivity tables, ref arch layout, citation discipline
+- [common/supply-chain.md](common/supply-chain.md) — quarantine, publisher-API SHA-256 verification, scan, lockfile, `--ignore-scripts`, 14-day age
+- [common/secrets-handling.md](common/secrets-handling.md) — no tokens on command lines or in logs, token file ACL, pre-commit secret scan with literal fixture exemptions
 
 Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
 
@@ -116,6 +118,7 @@ Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/
 - [cli/README.md](cli/README.md)
 - [cli/conventions.md](cli/conventions.md) — argument naming, flags, `--dryrun` (no side effects, no file writes; report-only modes for results), `--log-file`, `--debug`
 - [cli/shell-prompt.md](cli/shell-prompt.md) — PS1 segment architecture, ANSI color escapes, helper function conventions
+- [cli/powershell-scripting.md](cli/powershell-scripting.md) — Windows PowerShell 5.1 unattended scripts: subprocess timeout and kill guard, `-File`, git stderr, BOM, `conhost --headless`
 - [cli/testing.md](cli/testing.md) — testing main() with sys.argv patching
 
 ## Build and CI/CD
@@ -179,6 +182,7 @@ Knowledgebase counterpart (mechanics, vendor behavior) live in [jewzaam/knowledg
 
 - [claude-code/skills.md](claude-code/skills.md) — authoring Claude Code skills (SKILL.md files)
 - [claude-code/plugins.md](claude-code/plugins.md) — plugin structure, manifest schema, marketplace distribution
+- [claude-code/agent-harness-guardrails.md](claude-code/agent-harness-guardrails.md) — hooks over instructions, fail-closed guards, absolute interpreter paths, real-layout and state-isolated tests, independent evaluator
 
 Knowledgebase counterparts (descriptive mechanics, vendor quirks) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
 
