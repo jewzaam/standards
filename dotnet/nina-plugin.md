@@ -554,12 +554,16 @@ in the options UI (the reference exporter) or fall back to the next free port an
 `Port` (configured) and `CachedPort` (actually bound).
 
 Bind to loopback (`127.0.0.1`) by default. Loopback is not a trust boundary: any web page in
-the user's browser can reach it (cross-site request, DNS rebinding). Every endpoint that changes
-device or plugin state must therefore, regardless of bind address, require a per-install random
-bearer token (stored DPAPI-protected, compared in constant time) or, at minimum, reject requests
-whose `Host` is not the bound address and whose `Origin` header is present; send no permissive
-CORS headers. Read-only metrics may be unauthenticated. Non-loopback binding (`*`) must also
-(a) be off by default and an explicit user setting, (b) use the token above (plain HTTP on a LAN
+the user's browser can reach it (cross-site request, DNS rebinding), and DNS rebinding lets a
+page read responses. Therefore, on every endpoint (reads included), regardless of bind address,
+reject requests whose `Host` is not the bound address and reject any request that carries an
+`Origin` header; send no permissive CORS headers. Every endpoint that changes device or plugin
+state must additionally require a per-install random bearer token (stored DPAPI-protected,
+compared in constant time). An unauthenticated read-only endpoint (for example metrics) is
+acceptable only if its data is non-sensitive (no target names, coordinates, site or session
+data). Non-loopback binding (`*`) must also
+(a) be off by default and an explicit user setting, (b) require the token above on all endpoints,
+reads included (plain HTTP on a LAN
 exposes it to sniffing, so document that it is for trusted networks only or put a TLS reverse
 proxy in front), (c) show a visible warning in the options UI, and (d) be described in the
 README Security section (what is exposed, to whom, how to firewall it). Never block `Initialize()` on bind
