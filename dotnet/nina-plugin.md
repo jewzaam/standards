@@ -553,11 +553,16 @@ Port selection: a user-configurable port. NINA `release/3.2.x` has no port-probi
 in the options UI (the reference exporter) or fall back to the next free port and expose
 `Port` (configured) and `CachedPort` (actually bound).
 
-Bind to loopback (`127.0.0.1`) by default. Non-loopback binding (`*`) must (a) be off by
-default and an explicit user setting, (b) require authentication for any endpoint that changes
-device or plugin state (read-only metrics may be unauthenticated), (c) show a visible warning in
-the options UI, and (d) be described in the README Security section (what is exposed, to whom,
-how to firewall it). Never block `Initialize()` on bind
+Bind to loopback (`127.0.0.1`) by default. Loopback is not a trust boundary: any web page in
+the user's browser can reach it (cross-site request, DNS rebinding). Every endpoint that changes
+device or plugin state must therefore, regardless of bind address, require a per-install random
+bearer token (stored DPAPI-protected, compared in constant time) or, at minimum, reject requests
+whose `Host` is not the bound address and whose `Origin` header is present; send no permissive
+CORS headers. Read-only metrics may be unauthenticated. Non-loopback binding (`*`) must also
+(a) be off by default and an explicit user setting, (b) use the token above (plain HTTP on a LAN
+exposes it to sniffing, so document that it is for trusted networks only or put a TLS reverse
+proxy in front), (c) show a visible warning in the options UI, and (d) be described in the
+README Security section (what is exposed, to whom, how to firewall it). Never block `Initialize()` on bind
 probing (run it with `Task.Run`) and surface server status as a string in the
 options UI. `RunAsync(token)` as a held `Task` is equally acceptable to the
 dedicated thread above.
