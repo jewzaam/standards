@@ -51,26 +51,20 @@ For host-independent .NET conventions, see [style.md](style.md),
     <OutputType>Library</OutputType>
     <UseWPF>true</UseWPF>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>NU1701</WarningsNotAsErrors>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- NINA.Plugin version matches the target NINA stable.
          3.2.0.9001 for NINA 3.2 stable. -->
-    <PackageReference Include="NINA.Plugin" Version="3.2.0.9001">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <!-- third-party PackageReferences here -->
+    <PackageReference Include="NINA.Plugin" Version="3.2.0.9001" />
+    <!-- third-party PackageReferences here, exact versions -->
   </ItemGroup>
-
-  <Target Name="DeployToNinaPlugins" AfterTargets="Build">
-    <PropertyGroup>
-      <PluginDir>$(LocalAppData)\NINA\Plugins\3.0.0\$(AssemblyTitle)\</PluginDir>
-    </PropertyGroup>
-    <MakeDir Directories="$(PluginDir)" Condition="!Exists('$(PluginDir)')" />
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginDir)" />
-    <!-- copy third-party DLLs the plugin brings — NOT NINA-shipped -->
-  </Target>
 </Project>
 ```
 
@@ -81,15 +75,24 @@ Rules:
 - Reference `NINA.Plugin` only and rely on transitive resolution. Do not
   pull `NINA.Core`, `NINA.Equipment`, etc. as direct package references
   unless a specific reason applies.
-- `PrivateAssets=all` keeps NINA's own DLLs out of the published plugin
-  folder (NINA already ships them — see §2).
+- Pin `NINA.Plugin` to the exact version (no `3.2.*`); it must equal
+  `MinimumApplicationVersion` (§10.4). Commit the lock file and restore
+  with `--locked-mode` in CI.
+- `GenerateAssemblyInfo=false` is required when `Properties/AssemblyInfo.cs`
+  is used (§3); otherwise the SDK emits duplicate attributes (CS0579).
+- `NINA.Plugin` pulls net4x packages: keep `TreatWarningsAsErrors` but
+  exempt `NU1701`.
+- Do not rely on `PrivateAssets=all` to keep NINA's DLLs out of `bin`: the
+  reference exporter still sees ~84 DLLs there, 71 already in NINA. Use the
+  ship list (§2).
+- **Deploy by script or make target, not a post-build step.** A running
+  NINA locks the deployed DLL and would fail every build. Deploy with NINA
+  closed (`make install`; `install-dev-nina`: kill, install, relaunch).
+  Install path: `%LOCALAPPDATA%\NINA\Plugins\3.0.0\<AssemblyTitle>\`.
 - The install path's `<api-version>` is the **3-segment** `3.0.0`, not
   the 4-segment `3.0.0.9001` package version. All NINA 3.x plugins
   install under `\NINA\Plugins\3.0.0\` regardless of the running NINA
   build.
-- The VS post-build editor mangles `%localappdata%` tokens to
-  `%25localappdata%25`. Either author the `<Target>` directly in XML as
-  shown, or fix the encoding after the wizard touches the file.
 - The plugin template's checked-in csproj still targets .NET Framework
   4.8 for historical reasons — ignore it. The VS wizard generates a
   `net8.0-windows` project.
@@ -123,9 +126,11 @@ SQLite (SourceGear.sqlite3 / System.Data.SQLite),
 gRPC, Google.Protobuf, Accord.Math
 ```
 
-For each third-party package the plugin pulls in that is **not** on the
-list, add an explicit `<Copy>` element in the `DeployToNinaPlugins`
-target.
+Ship only what the plugin owns, through one **ship list** (a single file
+shared by the install script and the release packager): name each plugin-owned
+and third-party DLL, fail when a listed DLL is missing, and warn about any DLL
+in the output that is neither listed nor present in the NINA install
+directory. Do not ship `.pdb` files unless needed.
 
 **NINA does not ship log4net.** Logging is Serilog under the hood.
 Anything online that mentions log4net for NINA is out of date.
@@ -440,10 +445,22 @@ notifications when the active profile switches; otherwise the UI shows
 stale values from the previous profile:
 
 ```csharp
-profileService.ProfileChanged += (s, e) => RaisePropertyChanged(nameof(MySetting));
+profileService.ProfileChanged += OnProfileChanged;   // named method, not a lambda
+
+private void OnProfileChanged(object s, EventArgs e) {
+    RaisePropertyChanged(nameof(MySetting));          // every persisted property
+}
 ```
 
-Unsubscribe in `Teardown()`.
+Put persisted settings in a separate `BaseINPC` options class, built with
+`PluginOptionsAccessor.GetAssemblyGuid(typeof(MyPlugin)) ?? throw ...` (never
+via a throwaway `new MyPlugin()`), with a `DetachFromProfileService()` the
+plugin calls from `Teardown()`. Bind the options template through a property
+(`{Binding Options.Port}`). Settings that disrupt a running service (port, bind
+address) take effect only on an explicit **Apply** button.
+
+Secrets (API tokens) in options are stored DPAPI-encrypted
+(`ProtectedData`, `DataProtectionScope.CurrentUser`); profile files are plain text.
 
 ### 7.4 Convention: use `nameof()` for keys
 
@@ -470,7 +487,7 @@ public void StartServer() {
     serverToken = new CancellationTokenSource();
     serverThread = new Thread(() => {
         using var server = new WebServer(o => o
-            .WithUrlPrefix($"http://*:{Port}")
+            .WithUrlPrefix($"http://{BindAddress}:{Port}")   // default 127.0.0.1
             .WithMode(HttpListenerMode.EmbedIO));
         server.WithWebApi("/api", m => m.WithController<MyController>());
         server.RunAsync(serverToken.Token).Wait();
@@ -499,6 +516,12 @@ Port selection: a fixed user-configurable port with fallback via
 `CachedPort` (actually bound) properties so the user can see which port
 was used when the configured one was taken.
 
+Bind to loopback (`127.0.0.1`) by default; exposing on the LAN (`*`) is an explicit
+user setting with a documented security note. Never block `Initialize()` on bind
+probing (run it with `Task.Run`) and surface server status as a string in the
+options UI. `RunAsync(token)` as a held `Task` is equally acceptable to the
+dedicated thread above.
+
 Response encoding: write text responses with `new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)`.
 `Encoding.UTF8` emits a BOM, which shows up as garbage bytes and breaks strict
 scrapers (jewzaam/nina-prometheus-exporter#14). Test the first bytes of each response.
@@ -515,7 +538,7 @@ static class.
 ```csharp
 Logger.Info("Server started on port " + port);
 Logger.Warning("Configured port unavailable; bound " + cachedPort);
-try { ... } catch (Exception ex) { Logger.Error(ex, "Server failed to start"); }
+try { ... } catch (Exception ex) { Logger.Error("Server failed to start", ex); }
 
 if (Logger.IsEnabled(LogLevelEnum.Trace)) {
     Logger.Trace($"State dump: {ExpensiveDump()}");
@@ -524,8 +547,10 @@ if (Logger.IsEnabled(LogLevelEnum.Trace)) {
 
 - Methods: `Error`, `Warning`, `Info`, `Debug`, `Trace`,
   `SetLogLevel(LogLevelEnum)`, `IsEnabled(LogLevelEnum)`, `CloseAndFlush()`.
-- `Error` overloads: `(Exception)`, `(Exception, string)`, `(string)`.
-  The Exception-taking overload preserves the stack trace — prefer it.
+- `Error` overloads (NINA `release/3.2.x`): `(Exception)`, `(string customMsg, Exception)`,
+  `(string)`. There is **no** `(Exception, string)`: `Error(ex, "msg")` compiles but
+  binds the text to `memberName`. Always `Error("msg", ex)`; never `Error($"{ex.Message}")`
+  (drops the stack). `Warning/Info/Debug/Trace` take only a string.
 - `[CallerMemberName]`, `[CallerFilePath]`, `[CallerLineNumber]` optional
   params are auto-supplied — don't pass them.
 - Log file:
@@ -618,41 +643,34 @@ Compiled against `NINA.Plugin 3.2.0.9001` → manifest declares
 
 ### 10.5 Folder structure
 
-On the GitHub-hosted manifest repo:
-
-```text
-manifests/<first-letter-lower>/<Plugin Name>/<X.Y.Z[.B]>/manifest.json
-```
-
-Example: `manifests/p/PixInsightTools/1.0.0/manifest.json`. The first-letter
-segment is lowercase; the plugin-name segment preserves the title casing
-matching `[AssemblyTitle]`; the version segment is the 3- or 4-segment plugin
-version (no NINA-version segment in the path).
+The official sample workflow writes the manifest to
+`manifests/<first-letter-lower>/<Plugin Name>/manifest.<tag>.json` (flat, plugin
+version in the filename). Older entries use a NINA-API-version subfolder
+(`.../3.0.0/`). Follow the sample workflow; do not invent a layout.
 
 ### 10.6 Channels
 
-`"Channel": "Beta"` → beta channel. Users opt in via NINA
+Beta is selected by `CreateManifest.ps1 -beta` in the template workflow;
+`Channel` is not a property in `manifest.schema.json`. Users opt in via NINA
 Options > General > Plugin Repositories with URL
-`https://nighttime-imaging.eu/wp-json/nina/v1/beta`. Omit `Channel` for
-stable. There are no Nightly or Alpha channels at the manifest layer.
+`https://nighttime-imaging.eu/wp-json/nina/v1/beta`.
 
 ### 10.7 Validation before PR
 
-```bash
-winget install nodejs
-npm install
-node gather.js
-```
+Validate the generated manifest against `manifest.schema.json` with ajv
+(see [build/json-schema-validation.md](../build/json-schema-validation.md))
+or `node validate-latest-manifest.js` from the manifest repo. Add a
+`make test-manifest` target that does this.
 
-The manifest must validate cleanly against `manifest.schema.json` before
-opening the PR.
+### 10.8 Automation
 
-### 10.8 Recommended automation
-
-Wire the official GitHub Actions template (`./tools/github-action.yml`
-in the manifest repo) to fire on a version-tag push. It builds, hashes,
-generates the manifest, and opens the PR in one workflow — eliminating
-the recompile-invalidates-hash trap.
+Preferred: the template's `tools/github-action.yaml` on a version-tag push. It
+needs a PAT for the fork PR; a **fine-grained** token suffices. If CI must not
+hold a broad token, publish the manifest PR from a local `make publish-manifest`
+instead, using your own `gh` auth. Either way: build, hash and manifest are one
+transactional step, and the script asserts `Installer.URL` contains
+`/<version>/`. Compute SHA-256 with `System.Security.Cryptography`, not
+`Get-FileHash` (missing on some runners).
 
 ### 10.9 Release rules (from maintainer review)
 
@@ -730,6 +748,55 @@ Maintainers review plugin source, not only the manifest. Before submitting check
 15. **Do not** use `Encoding.UTF8` for HTTP or text responses — it emits a BOM that
     breaks scrapers (e.g. OTel Prometheus); use `new UTF8Encoding(false)` (§8).
 16. **Do not** put `/releases/download/main/` or a re-uploaded asset in `Installer.URL` (§10.9).
+
+## 12. Repository conventions
+
+Reference implementation: [jewzaam/nina-prometheus-exporter](https://github.com/jewzaam/nina-prometheus-exporter).
+Where this section and a generic standard disagree, the plugin-specific rule wins
+([common/doc-authority.md](../common/doc-authority.md)).
+
+- **Layout.** Flat (plugin csproj at root, `tests/` excluded via `DefaultItemExcludes`)
+  for one project; `src/` + `tests/` once there are three or more projects
+  ([project-structure.md](project-structure.md)).
+- **Logic separation.** Put NINA-free logic in a `net8.0` library (never `net10.0`: a
+  `net8.0-windows` plugin cannot reference it) and keep the plugin a thin adapter;
+  or keep one assembly, mock NINA interfaces with Moq and use `InternalsVisibleTo`.
+  Pick one per repo and say which in the README.
+- **Version.** `X.Y.Z.0`; `AssemblyVersion` == `AssemblyFileVersion`; tag is the bare
+  four-segment version (no `v`); a `version-check` target requires a bump versus the
+  base branch on PRs.
+- **Manifest metadata lives in `Properties/AssemblyInfo.cs`** (§3), not in csproj
+  items, so the manifest generator can parse it.
+- **Release asset** is `<AssemblyName>.<X.Y.Z.B>.zip` attached to a GitHub release by
+  CI. Tags pushed with `GITHUB_TOKEN` do not re-trigger workflows: tag inside the same run.
+- **Makefile** (see [build/makefile.md](../build/makefile.md)): default `check` runs
+  build, unit tests, format, reachability and version-check. NINA targets: `install`,
+  `uninstall`, `kill-nina`, `run-nina`, `install-dev-nina`, `build-package`,
+  `build-manifest`, `test-manifest`, `publish-manifest`.
+- **CI.** One workflow on `windows-latest`: a quality job on PR and main
+  (`make restore RESTORE_FLAGS=--locked-mode`, `make check`), and a main-only,
+  idempotent release job (skip if the tag exists).
+- **Docs.** README (Install, Configure, Security, License), CHANGELOG (Keep a Changelog),
+  LICENSE shipped in the zip, `.editorconfig`. `.gitignore` also covers `*.zip`,
+  `manifest.json`, `manifest.schema.json`.
+- **Logging and errors.** Every caught exception is logged with `Logger.Error("msg", ex)`;
+  never surface errors only as UI status text.
+- **Initialize vs constructor.** Constructors only store dependencies; subscribe, register
+  consumers and start services in `Initialize()`, one collector class per mediator
+  (`Subscribe()` / `Dispose()`), all disposed from `Teardown()`, which ends with `base.Teardown()`.
+- **Dockable panels.** `[Export(typeof(IDockableVM))]` on a `DockableVM` subclass; DataTemplate
+  key `<FullTypeName>_Dockable`; frozen icon `GeometryGroup`. Do not create a second plugin
+  instance to obtain the GUID; do not share state through static view models.
+- **Sequencer items.** `[Export(typeof(ISequenceItem))]` with `[ExportMetadata]` Name,
+  Description, Icon, Category; `[JsonObject(MemberSerialization.OptIn)]`; implement `Clone`
+  and `IValidatable`; template key `<FullTypeName>_Mini`.
+- **UI tests.** Every interactive control has `AutomationProperties.AutomationId`. NINA tab
+  content is not visible to UI Automation, so FlaUI tests against real NINA need an
+  in-plugin test hook (env var named `<PLUGIN>_TEST_*`, inert when unset). UI tests run
+  as a separate executable, close NINA first, and never kill unrelated NINA instances
+  without the screen lock. See knowledgebase `dotnet/windows-ui-testing.md`.
+- **Generated-file header.** AI-written files carry the header required by
+  [project-structure.md](project-structure.md).
 
 ## Appendix A: Canonical AssemblyInfo
 
