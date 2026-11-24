@@ -104,10 +104,11 @@ Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/
 - [dotnet/style.md](dotnet/style.md) — async, nullable, .NET 8/10 features, MVVM
 - [dotnet/project-structure.md](dotnet/project-structure.md) — csproj layout, TFM choice, deps
 - [dotnet/testing.md](dotnet/testing.md) — xUnit/NUnit, Moq, FluentAssertions, STA/WPF tests
+- [dotnet/nina-plugin.md](dotnet/nina-plugin.md) — NINA 3.x C# plugin standard: build, MEF, options, HTTP, logging, sequencer, testing, release
 
 Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
 
-- [dotnet/nina-plugin.md](dotnet/nina-plugin.md) — NINA 3.x C# plugin: build, MEF, mediators, options, HTTP, logging, publishing
+- `dotnet/nina-plugin.md` — descriptive NINA 3.x plugin mechanics (build, MEF, mediators, options, HTTP, logging, publishing) behind the standard above
 
 ## CLI
 

@@ -19,4 +19,4 @@ truth for consumers of this repo.
 | [Testing](testing.md) | xUnit/NUnit, Moq, FluentAssertions, STA/WPF tests |
 | [NINA Plugin](nina-plugin.md) | NINA 3.x plugin build, MEF, options, logging, publishing |
 
-Knowledgebase counterpart: [NINA 3.x C# plugin (build, MEF, mediators, options, HTTP, logging, publishing)](https://github.com/jewzaam/knowledgebase/blob/main/dotnet/nina-plugin.md).
+Knowledgebase counterpart (descriptive mechanics behind [NINA Plugin](nina-plugin.md), which is the prescriptive standard): [NINA 3.x C# plugin](https://github.com/jewzaam/knowledgebase/blob/main/dotnet/nina-plugin.md).
