@@ -520,18 +520,62 @@ private CancellationTokenSource serverToken;
 private Thread serverThread;
 
 public void StartServer() {
-    serverToken = new CancellationTokenSource();
+    StopServer();
+    var cts = serverToken = new CancellationTokenSource();
     serverThread = new Thread(() => {
-        using var server = new WebServer(o => o
-            .WithUrlPrefix($"http://{BindAddress}:{Port}")   // default 127.0.0.1
-            .WithMode(HttpListenerMode.EmbedIO));
-        server.WithWebApi("/api", m => m.WithController<MyController>());
-        server.RunAsync(serverToken.Token).Wait();
+        try {
+            using var server = new WebServer(o => o
+                .WithUrlPrefix($"http://{BindAddress}:{Port}")   // default 127.0.0.1
+                .WithMode(HttpListenerMode.EmbedIO));
+            server.WithModule(new GuardModule(AllowedHosts(), TokenProvider)); // before the API
+            server.WithWebApi("/api", m => m.WithController<MyController>());
+            ServerStatus = "Running";
+            server.RunAsync(cts.Token).Wait();
+        } catch (Exception ex) when (cts.IsCancellationRequested
+                                     && (ex is OperationCanceledException || ex is AggregateException)) {
+            // normal stop
+        } catch (Exception ex) {
+            // port in use etc.: an unhandled exception on this thread would terminate NINA
+            Logger.Error("Server failed to start", ex);
+            ServerStatus = $"Failed: {ex.Message}";
+        }
     }) { Name = "MyPlugin HTTP", IsBackground = true };
     serverThread.Start();
 }
 
-public void StopServer() => serverToken?.Cancel();
+public void StopServer() {
+    serverToken?.Cancel();
+    serverToken?.Dispose();
+    serverToken = null;
+}
+
+// Allowed Host values: bound loopback: "127.0.0.1:{Port}", "localhost:{Port}", "[::1]:{Port}".
+// Bound "*": the same plus the user-configured names/IPs (each with ":{Port}").
+// Reject everything else, including the empty or missing Host.
+private ISet<string> AllowedHosts() { /* build from settings, case-insensitive */ }
+
+// Runs before the API: Host allow-list, no Origin, bearer token on state-changing routes.
+private sealed class GuardModule : WebModuleBase {
+    private readonly ISet<string> hosts;
+    private readonly Func<byte[]> token;   // per-install secret, DPAPI-protected at rest
+    public GuardModule(ISet<string> hosts, Func<byte[]> token) : base("/") {
+        this.hosts = hosts; this.token = token;
+    }
+    public override bool IsFinalHandler => false;
+
+    protected override Task OnRequestAsync(IHttpContext ctx) {
+        var h = ctx.Request.Headers;
+        if (!hosts.Contains(h["Host"] ?? "")) throw HttpException.Forbidden();        // DNS rebinding
+        if (h["Origin"] != null) throw HttpException.Forbidden();                     // browser cross-site
+        bool readOnly = ctx.Request.HttpMethod is "GET" or "HEAD";
+        if (!readOnly || NonLoopbackBind) {                                            // reads too when bound to *
+            var given = Encoding.UTF8.GetBytes((h["Authorization"] ?? "").Replace("Bearer ", ""));
+            if (!CryptographicOperations.FixedTimeEquals(given, token()))
+                throw HttpException.Unauthorized();
+        }
+        return Task.CompletedTask;
+    }
+}
 ```
 
 Why this pattern:
@@ -542,7 +586,10 @@ Why this pattern:
 - A dedicated named `Thread` gives the debugger a useful identifier.
   `IsBackground = true` lets it die at process exit.
 - `serverToken.Cancel()` is registered on the listener and unblocks
-  `.Wait()` cleanly.
+  `.Wait()` cleanly; the catch blocks treat that as a normal stop and
+  turn a bind failure into a logged, visible status instead of a crash.
+- The guard module is part of the pattern, not an extra: it implements the
+  Host/Origin/token rules below.
 
 NuGet: `EmbedIO 3.5.2`, targets `.NETStandard 2.0`, no version conflicts
 with NINA's other dependencies.
@@ -556,7 +603,8 @@ in the options UI (the reference exporter) or fall back to the next free port an
 Bind to loopback (`127.0.0.1`) by default. Loopback is not a trust boundary: any web page in
 the user's browser can reach it (cross-site request, DNS rebinding), and DNS rebinding lets a
 page read responses. Therefore, on every endpoint (reads included), regardless of bind address,
-reject requests whose `Host` is not the bound address and reject any request that carries an
+reject requests whose `Host` (with port) is not in the allow-list shown above (loopback names for a
+loopback bind; loopback names plus the user-configured names or IPs for `*`) and reject any request that carries an
 `Origin` header; send no permissive CORS headers. Every endpoint that changes device or plugin
 state must additionally require a per-install random bearer token (stored DPAPI-protected,
 compared in constant time). An unauthenticated read-only endpoint (for example metrics) is
