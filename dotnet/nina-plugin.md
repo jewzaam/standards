@@ -27,7 +27,7 @@ For host-independent .NET conventions, see [style.md](style.md),
 | NuGet | `NINA.Plugin <matching-version>` only; rely on transitive deps |
 | `MinimumApplicationVersion` | Matches the `NINA.Plugin` NuGet version |
 | Install root | `%LOCALAPPDATA%\NINA\Plugins\<api-version>\<title>\` |
-| `<api-version>` segment | **3-part**, currently `3.0.0` for all NINA 3.x |
+| `<api-version>` segment | **3-part**, `3.0.0`: NINA derives it from its `PluginMinimumApplicationVersion` assembly metadata (`3.0.0.0` in `CommonAssemblyInfo.cs` on `release/3.2.x`); re-check on the 3.3 branch |
 | Plugin class | `[Export(typeof(IPluginManifest))] : PluginBase` |
 | Constructor | `[ImportingConstructor]` exactly once per class |
 | Persisted options | `new PluginOptionsAccessor(profileService, Guid.Parse(this.Identifier))` |
@@ -136,6 +136,17 @@ SQLite (SourceGear.sqlite3 / System.Data.SQLite),
 gRPC, Google.Protobuf, Accord.Math
 ```
 
+Verified against NINA `release/3.2.x` (commit 9c1661d) project files: `NINA.Core` references
+Accord.Math, CommunityToolkit.Mvvm, Google.Protobuf, Grpc.Core.Api, Newtonsoft.Json,
+OxyPlot.Core, Serilog.Sinks.Console/File, System.ComponentModel.Composition,
+System.Data.SQLite and ToastNotifications. The other NINA projects add Accord(.Statistics),
+ASCOM.*, Castle.Core(.AsyncInterceptor), CsvHelper, Fastenshtein, GrpcDotNetNamedPipes,
+Iconic.Zlib, K4os.Compression.LZ4, MdXaml, Nito.*, NJsonSchema, OxyPlot.Wpf,
+SharpGIS.NmeaParser, System.Management, System.Runtime.Caching, VVVV.FreeImage and
+ZstdSharp.Port. Treat all of these as host-provided: do not bundle them.
+MathNet and Microsoft.CodeAnalysis are **not** NINA dependencies and must be
+shipped by the plugin if used. NINA's source has no log4net reference.
+
 Ship only what the plugin owns, through one **ship list** (a single file
 shared by the install script and the release packager): name each plugin-owned
 and third-party DLL, fail when a listed DLL is missing, and warn about any DLL
@@ -144,6 +155,21 @@ directory. Do not ship `.pdb` files unless needed.
 
 **NINA does not ship log4net.** Logging is Serilog under the hood.
 Anything online that mentions log4net for NINA is out of date.
+
+### Verified against NINA source
+
+Checked on NINA `release/3.2.x` (commit 9c1661d), 2026-11-24:
+
+- `NINA.Core.Utility.RelayCommand` is `[Obsolete]` ("Use CommunityToolkit.Mvvm.Input.RelayCommand").
+- `PluginBase` reads `Identifier` from `[Guid]`, `Version` from **`AssemblyFileVersion`** (default
+  `1.0.0.0`), `Name` from `AssemblyTitle`, and the metadata keys in §3 from `AssemblyMetadata`.
+  An absent `MinimumApplicationVersion` silently becomes `1.11.0.0`, so always set it.
+- `PluginBase.Teardown()` is `virtual Task` returning `Task.CompletedTask`; calling `base.Teardown()`
+  is harmless but not required.
+- The loader refuses a plugin whose `MinimumApplicationVersion` is above the running NINA
+  and checks a compatibility map (deprecated / update required / built against too old).
+- Plugins load into a `PluginAssemblyLoadContext` that resolves dependencies from any DLL under the
+  plugin folder (`*.dll`, all subdirectories).
 
 ## 3. AssemblyInfo.cs — the manifest source of truth
 
@@ -521,10 +547,11 @@ Why this pattern:
 NuGet: `EmbedIO 3.5.2`, targets `.NETStandard 2.0`, no version conflicts
 with NINA's other dependencies.
 
-Port selection: a fixed user-configurable port with fallback via
-`CoreUtil.GetNearestAvailablePort(port)`. Expose `Port` (configured) and
-`CachedPort` (actually bound) properties so the user can see which port
-was used when the configured one was taken.
+Port selection: a user-configurable port. NINA `release/3.2.x` has no port-probing helper
+(no `CoreUtil.GetNearestAvailablePort`; checked 2026-11-24), so probe with your own
+`TcpListener` in a background task. On conflict either fail with a visible status string
+in the options UI (the reference exporter) or fall back to the next free port and expose
+`Port` (configured) and `CachedPort` (actually bound).
 
 Bind to loopback (`127.0.0.1`) by default. Non-loopback binding (`*`) must (a) be off by
 default and an explicit user setting, (b) require authentication for any endpoint that changes
