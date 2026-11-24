@@ -86,6 +86,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Style](dotnet/style.md) | Async, nullable, .NET 8/10 language features, MVVM |
 | [Project Structure](dotnet/project-structure.md) | csproj layout, TFM choice, deps |
 | [Testing](dotnet/testing.md) | xUnit/NUnit, Moq, FluentAssertions, STA/WPF tests |
+| [NINA Plugin](dotnet/nina-plugin.md) | NINA 3.x plugin build, MEF, options, logging, publishing |
 
 Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase): NINA 3.x C# plugin (build, MEF, mediators, options, HTTP, logging, publishing).
 

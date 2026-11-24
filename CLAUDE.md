@@ -107,7 +107,7 @@ Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/
 
 Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
 
-- `dotnet/nina-plugin.md` — NINA 3.x C# plugin: build, MEF, mediators, options, HTTP, logging, publishing
+- [dotnet/nina-plugin.md](dotnet/nina-plugin.md) — NINA 3.x C# plugin: build, MEF, mediators, options, HTTP, logging, publishing
 
 ## CLI
 
