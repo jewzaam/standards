@@ -21,7 +21,7 @@ For host-independent .NET conventions, see [style.md](style.md),
 
 | Aspect | Standard |
 |---|---|
-| TFM | `net8.0-windows` (NINA 3.2 stable). Bump only when `NINA.Plugin` does. |
+| TFM | `net8.0-windows` for the NINA 3.2 line; `net10.0-windows` for 3.3 (see §1a). Bump only when `NINA.Plugin` does. |
 | Platform | x64 |
 | `UseWPF` | `true` when the plugin includes XAML |
 | NuGet | `NINA.Plugin <matching-version>` only; rely on transitive deps |
@@ -104,6 +104,16 @@ Rules:
   typically diverge on this — pin scripts (install, package, ship-list
   selection) to `bin\x64\Release` and always drive builds through the
   sln so CI and local agree.
+
+### 1a. Which NINA line
+
+TFM, `NINA.Plugin` package version and `MinimumApplicationVersion` move together. The
+default branch targets the latest **stable** line (`net8.0-windows`, `NINA.Plugin
+3.2.0.9001`). A 3.3 build (`net10.0-windows`, `NINA.Plugin 3.3.x-nightly`, min version
+equal to the package) lives on a separate long-lived branch and ships its own manifest in
+the 3.3 bucket. Do not compile against a `-beta`/`-nightly` package for a stable release.
+The official template (`dotnet new`, .NET 10, NINA 3.3) is a useful reference for layout,
+`Plugin.props` identity and `docs/`, but this standard applies to both lines.
 
 ## 2. Do not bundle host-shipped assemblies
 
@@ -797,6 +807,84 @@ Where this section and a generic standard disagree, the plugin-specific rule win
   without the screen lock. See knowledgebase `dotnet/windows-ui-testing.md`.
 - **Generated-file header.** AI-written files carry the header required by
   [project-structure.md](project-structure.md).
+
+## 13. Sequencer entities
+
+Applies to items, triggers, conditions and containers (seen in every surveyed plugin).
+
+- Export the matching interface (`ISequenceItem`, `ISequenceTrigger`, `ISequenceCondition`,
+  `ISequenceContainer`) with `[ExportMetadata]` Name, Description, Icon, Category, and
+  `[JsonObject(MemberSerialization.OptIn)]`. Persisted properties carry `[JsonProperty]` and
+  raise `PropertyChanged` in the setter.
+- Category is the plugin's display name, or a host key (`Lbl_SequenceCategory_*`) when the
+  item belongs in a built-in category.
+- Provide an `[ImportingConstructor]`, a copy constructor, `Clone()` and `ToString()`.
+  **`Clone()` copies every persisted field**, not only metadata; test it with non-default values.
+- Implement `IValidatable`: `Validate()` builds a new `Issues` list, reassigns it and raises
+  `PropertyChanged(nameof(Issues))`; call it from setters and `AfterParentChanged()`.
+- Report failure by throwing `SequenceEntityFailedException` with a user-readable message so
+  NINA's retry and on-error behaviour applies; never report failure as success (§10.10).
+- `Execute` forwards its `CancellationToken` to every blocking call and to hardware moves.
+- Event-driven triggers hook in `SequenceBlockInitialize`, unhook in `SequenceBlockTeardown`,
+  handle being dropped into a running sequence in `AfterParentChanged`, ignore their own
+  kind's failures, and move work to `BackgroundQueueWorker<T>` so the sequence never blocks.
+- Containers deep-copy children and call `AttachNewParent`.
+- Saved sequences serialize type and assembly names. Renaming a class, namespace or assembly
+  breaks users' sequences; add an `ISequenceEntityUpgrader` (3.3) when it is unavoidable.
+- Templates: editor `<FullTypeName>_Mini` (and `_Dockable`, `_Options` per §6).
+- Capture pipeline: `CaptureImage` → `ToImageData` → `PrepareImage` →
+  `imageSaveMediator.Enqueue` (or `CaptureAndPrepareImage`). Do not reimplement it.
+
+Other extension points (`IEquipmentProvider<T>`, `IPluggableBehavior`, `IMessageBroker`,
+`ISymbolBroker`, `IOptionsVM` file patterns) are exported with `[Export]` the same way; ask in
+the NINA repo before reaching in by reflection.
+
+## 14. Shared state, settings scope and files
+
+- NINA composes the manifest and extension parts in **separate MEF containers**.
+  `CreationPolicy.Shared` is not a process-wide singleton: the plugin instance and a
+  `DockableVM` or sequence item do not share injected instances of your own types. Bridge them
+  with a static event, `IMessageBroker`, or a self-registering service, never an assumption.
+  Keep cleanup idempotent; the host may dispose the container as well as call `Teardown`.
+- Settings are per-profile (`PluginOptionsAccessor`, §7) or global (`Properties.Settings` with
+  `Upgrade()` and `CoreUtil.SaveSettings`, or a JSON file under `PluginSettings/<GUID>/`).
+  Never store credentials in either unencrypted.
+- Never write runtime data (cache, thumbnails, logs) into the plugin install folder; updates
+  replace it. Use `%LOCALAPPDATA%\NINA\<PluginName>\`.
+- Every `async void` handler and every `new Task(async ...)` is wrapped in try/catch with
+  `Logger.Error("msg", ex)`.
+- **Logging reconciliation:** use `NINA.Core.Utility.Logger` by default; a separate Serilog file
+  is allowed for heavy-logging plugins when it lives under
+  `%LOCALAPPDATA%\NINA\<PluginName>\Logs\`, has bounded retention, and users are told to attach it.
+- Do not reference every `NINA.*` package; reference `NINA.Plugin` only (§1). Remove upgrade-assistant
+  leftovers (`Microsoft.Windows.Compatibility`, `System.Data.DataSetExtensions`).
+
+## 15. Testing
+
+- NUnit or xUnit with Moq in a `*.Tests` project that references the plugin and the same
+  `NINA.Plugin` package ([testing.md](testing.md)). Run tests in CI and **gate the release on them**.
+- Composition test: build two `CompositionContainer`s (manifest and parts, as NINA does), assert
+  the exports resolve and `RegisterConsumer`/`RemoveConsumer` are paired.
+- Under STA (`[NonParallelizable]`) instantiate every exported `ResourceDictionary` and
+  `LoadContent()` every DataTemplate; a XAML binding contract test asserts each `{Binding X}`
+  resolves to a public property (typos otherwise fail silently at runtime).
+- Point `CoreUtil.APPLICATIONTEMPPATH` at a per-run directory so tests never touch real NINA data.
+- Astrometry or database code needs NINA's native libraries (NOVAS, SOFA, SQLite.Interop)
+  vendored into the test project.
+- `Clone()` tests use non-default values; init and teardown tests are paired.
+
+## 16. Release CI hardening
+
+- The version has one source. With `GenerateAssemblyInfo=false`, `-p:Version=<tag>` **does nothing**
+  and the tag and DLL can diverge (Target Scheduler, Hocus Focus, Ground Station). Either derive the tag from
+  `AssemblyInfo.cs` (the reference exporter) or have CI fail when tag and `AssemblyVersion` differ.
+- Pin actions to commit SHAs (Dependabot updates them); default `permissions: contents: read`, grant
+  `contents: write` only to the publish job.
+- Vendor `CreateManifest.ps1` and `manifest.schema.json` with a provenance note instead of curling
+  them from `main` at build time.
+- Build the manifest from the assets actually published, never from a rebuild.
+- Do not pipe a long-lived classic PAT into `gh auth login`; use a fine-grained token or the local
+  `make publish-manifest` flow (§10.8).
 
 ## Appendix A: Canonical AssemblyInfo
 
