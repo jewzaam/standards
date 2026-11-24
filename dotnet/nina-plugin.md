@@ -526,8 +526,11 @@ Port selection: a fixed user-configurable port with fallback via
 `CachedPort` (actually bound) properties so the user can see which port
 was used when the configured one was taken.
 
-Bind to loopback (`127.0.0.1`) by default; exposing on the LAN (`*`) is an explicit
-user setting with a documented security note. Never block `Initialize()` on bind
+Bind to loopback (`127.0.0.1`) by default. Non-loopback binding (`*`) must (a) be off by
+default and an explicit user setting, (b) require authentication for any endpoint that changes
+device or plugin state (read-only metrics may be unauthenticated), (c) show a visible warning in
+the options UI, and (d) be described in the README Security section (what is exposed, to whom,
+how to firewall it). Never block `Initialize()` on bind
 probing (run it with `Task.Run`) and surface server status as a string in the
 options UI. `RunAsync(token)` as a held `Task` is equally acceptable to the
 dedicated thread above.
