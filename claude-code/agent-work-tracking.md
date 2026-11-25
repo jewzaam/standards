@@ -72,6 +72,80 @@ time on small machines.
 Why: the budget is shared by every session using the same token; one greedy
 query can exhaust it for an hour.
 
+## One live owner per agent session
+
+Take a lock keyed by session id before starting or resuming an agent
+session; release it when the turn ends. Never resume a session another
+process may be running.
+
+Why: measured with Claude Code in print mode, a second `--session-id` with
+the same id is refused ("already in use"), but `--resume` on a busy session
+is not refused and runs a full parallel turn on the same session.
+
+## Changing a running agent's instructions
+
+To redirect an agent mid-turn, send an interrupt control request, then send
+the new instructions in the same session.
+
+- The interrupt ends the step in about 120 ms, kills the running tool, and
+  keeps the context; the process stays alive for the next message.
+- A plain message sent mid-turn lands only between model steps: after a
+  long tool call finishes, or after a running sub-agent hands back. A 40 s
+  tool delayed the reaction by the rest of the tool; the sub-agent was not
+  cancelled.
+- Interrupt only after the first tool use. Before the turn is persisted the
+  interrupt discards it and the follow-up has no context.
+
+Why: a plain message cannot be relied on to change course promptly, and an
+early interrupt silently loses work.
+
+## One worktree per agent session per repo
+
+Give each agent session its own git worktree in each repo it edits (see
+[git-worktrees.md](../common/git-worktrees.md)).
+
+- A branch can be checked out in only one worktree; a second checkout is
+  refused, which prevents two sessions on one branch.
+- Edits in one worktree do not appear in another.
+- A worktree with modified or untracked files is not removed without
+  `--force`; do not force it while the work item is open.
+- Sessions are looked up by id, not by working directory: resuming from a
+  different directory or from a worktree of the same repo works and appends
+  to the same transcript. Record the session id on the work item.
+
+Why: isolation is enforced by git instead of by convention, and a resumer
+does not need to reproduce the original cwd.
+
+## Restricting an agent to certain write paths
+
+To let a role (for example a specification curator) write only some paths:
+
+- Register a `PreToolUse` path-guard hook for the Edit, Write, MultiEdit,
+  NotebookEdit, and Bash tools, supplied through a session-scoped settings
+  file, and select the role with an environment variable the hook reads.
+  Fail closed on unparseable input. Deny with the JSON
+  `permissionDecision: "deny"` form so the agent sees a clean reason.
+- Cover Bash with a strict allowlist (read-only commands, no shell
+  metacharacters), or give the role no Bash.
+- Do not rely on an Edit/Write matcher alone, or on a Bash denylist.
+- Treat the result as a guard against mistakes, not a security boundary.
+
+Why: measured in bypass-permissions mode, an Edit/Write matcher left
+`echo x > ../other` working; a regex denylist for Bash still allowed a
+`node -e` file write; `--disallowedTools Edit Write` also left Bash open.
+Only an allowlist blocked the one-liner. Not tested: whether sub-agents
+inherit the hooks, and symlink or junction escapes (the check resolves the
+path but not links).
+
+## Single writer per artifact
+
+An agent that curates a specification does not write code; builders do not
+write the specification. Only meaning-changing specification edits are
+committed, batched rather than one commit per touch-up.
+
+Why: two writers on one artifact conflict, and per-edit commits bury the
+changes that matter.
+
 ## When to apply
 
 Any automation where agents create, work, review, and hand back items to a
