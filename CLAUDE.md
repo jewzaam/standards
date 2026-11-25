@@ -179,7 +179,7 @@ Knowledgebase counterpart (mechanics, vendor behavior) live in [jewzaam/knowledg
 
 - [claude-code/skills.md](claude-code/skills.md) — authoring Claude Code skills (SKILL.md files)
 - [claude-code/plugins.md](claude-code/plugins.md) — plugin structure, manifest schema, marketplace distribution
-- [claude-code/agent-work-tracking.md](claude-code/agent-work-tracking.md) — agent work items: issue body is current state, one Status column, checklist-gated close, agent intent footers, pick-up order, incremental GitHub polling
+- [claude-code/agent-work-tracking.md](claude-code/agent-work-tracking.md) — agent work items: issue body is current state, one Status column, checklist-gated close, agent intent footers, pick-up order, incremental GitHub polling, one live owner per session, interrupt-to-redirect, worktree per session, path-guard hooks, single writer per artifact
 
 Knowledgebase counterparts (descriptive mechanics, vendor quirks) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
 
