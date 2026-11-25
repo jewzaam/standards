@@ -159,7 +159,6 @@ Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/
 |----------|-------------|
 | [Skills](claude-code/skills.md) | Authoring Claude Code skills (SKILL.md files) |
 | [Plugins](claude-code/plugins.md) | Plugin structure, manifest schema, marketplace distribution |
-| [Agent Work Tracking](claude-code/agent-work-tracking.md) | Issue body as current state, single Status column, checklist-gated close, agent intent footers, pick-up order, incremental polling, session lock, interrupt-to-redirect, worktree per session, path-guard hooks, single writer |
 
 Knowledgebase counterparts (descriptive mechanics, vendor quirks) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase): skills enforcement detail, plugin caching/env-vars/marketplace mechanics, hook state transitions, Agent SDK usage data, OAuth token taxonomy, `settings.json` rewrite behavior.
 
