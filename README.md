@@ -39,6 +39,7 @@ This project follows the [Work Standards](https://github.com/jewzaam/standards).
 | [Temp Directories](common/tmp-dirs.md) | `.tmp-<slug>/` convention for named, git-ignored working directories |
 | [Local Config Split](common/local-config-split.md) | `.example` template + `.gitignore` for per-environment config (secrets, endpoints) |
 | [Git Remote Discovery](common/git-remote-discovery.md) | Discover remote names by URL match, not by hardcoded `origin`/`upstream` |
+| [PowerShell 5.1 Scripts](common/powershell-5-1.md) | ASCII source, parenthesize `ConvertFrom-Json` before piping, case-insensitive variables, no heredoc-through-interpreter patching, BOM-less UTF-8 data files |
 | [Documentation and Standards Authority](common/doc-authority.md) | Skills own their domain (link, don't copy); a repo with hands-on domain experience outranks the generalized cross-project standard |
 | [Skill Hook Registration](common/skill-hook-registration.md) | Skill ships `hooks/register.claude.json` / `hooks/register.codex.json` next to the hook; config repo reconcile globs and merges it; `# KEEP: <reason>` marker |
 
@@ -158,6 +159,7 @@ Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/
 |----------|-------------|
 | [Skills](claude-code/skills.md) | Authoring Claude Code skills (SKILL.md files) |
 | [Plugins](claude-code/plugins.md) | Plugin structure, manifest schema, marketplace distribution |
+| [Agent Work Tracking](claude-code/agent-work-tracking.md) | Issue body as current state, single Status column, checklist-gated close, agent intent footers, pick-up order, incremental polling |
 
 Knowledgebase counterparts (descriptive mechanics, vendor quirks) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase): skills enforcement detail, plugin caching/env-vars/marketplace mechanics, hook state transitions, Agent SDK usage data, OAuth token taxonomy, `settings.json` rewrite behavior.
 
