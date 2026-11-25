@@ -59,6 +59,7 @@ When adding a new standard or template:
 - [common/git-remote-discovery.md](common/git-remote-discovery.md) — discover remote names by URL match, not by hardcoded `origin`/`upstream`
 - [common/doc-authority.md](common/doc-authority.md) — skills own their domain (project docs link, don't copy); a repo with hands-on domain experience outranks the generalized cross-project standard for that domain
 - [common/skill-hook-registration.md](common/skill-hook-registration.md) — a skill ships its own `hooks/register.claude.json` / `hooks/register.codex.json`; the config repo globs and merges it; `# KEEP: <reason>` retention marker
+- [common/powershell-5-1.md](common/powershell-5-1.md) — PowerShell 5.1 scripts: ASCII source, parenthesize `ConvertFrom-Json` before piping, case-insensitive variables, no heredoc-through-interpreter patching, BOM-less UTF-8 data files
 - [common/documentation-diagrams.md](common/documentation-diagrams.md) — Mermaid diagram structure, port labeling, colors, legends, connectivity tables, ref arch layout, citation discipline
 
 Knowledgebase counterpart in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
@@ -178,6 +179,7 @@ Knowledgebase counterpart (mechanics, vendor behavior) live in [jewzaam/knowledg
 
 - [claude-code/skills.md](claude-code/skills.md) — authoring Claude Code skills (SKILL.md files)
 - [claude-code/plugins.md](claude-code/plugins.md) — plugin structure, manifest schema, marketplace distribution
+- [claude-code/agent-work-tracking.md](claude-code/agent-work-tracking.md) — agent work items: issue body is current state, one Status column, checklist-gated close, agent intent footers, pick-up order, incremental GitHub polling
 
 Knowledgebase counterparts (descriptive mechanics, vendor quirks) live in [jewzaam/knowledgebase](https://github.com/jewzaam/knowledgebase):
 
